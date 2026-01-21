@@ -1,0 +1,71 @@
+@use 'mixins';
+/* Import Rubik font and provide global font-family
+	Using Google Fonts import; replace with local @font-face if you prefer.
+*/
+@import url('https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700&display=swap');
+
+/* Global project color variables
+	- Provides both CSS custom properties (for runtime theming)
+	  and SCSS variables (for build-time usage).
+*/
+
+
+:root {
+    /* Light variants */
+	--color-light-blue: #78D1F7;
+	--color-blue: #0068F5;
+	--color-dark-blue: #064A9D;
+	--color-light-gray: #F3F4F6;
+
+	/* Accent / Warm */
+	--color-pink: #FF70BF;
+	--color-coral: #FF8497;
+
+	/* Additional palette */
+	--color-purple: #DEAAFF;
+	--color-dark-green: #70D7BD;
+	--color-green: #00F587;
+	--color-orange: #FFBF1F;
+	--color-yellow: #F2DD54;
+
+	/* Text color */
+	--text-color-dark-blue: #0C3058;
+
+}
+
+/* SCSS aliases for convenience in component styles */
+$color-light-blue: #78D1F7;
+$color-blue: #0068F5;
+$color-dark-blue: #064A9D;
+$color-pink: #FF70BF;
+$color-coral: #FF8497;
+$color-purple: #DEAAFF;
+$color-dark-green: #70D7BD;
+$color-green: #00F587;
+$color-orange: #FFBF1F;
+$color-yellow: #F2DD54;
+
+/* Global box-sizing reset */
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+/* Global font family */
+html, body {
+	font-family: 'Rubik', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
+	margin: 0;
+	padding: 0;
+	direction: rtl;
+}
+
+.page {
+  background: var(--color-light-gray);
+  min-height: 100svh;
+}
+
+button, input {
+	font-family: inherit;
+}
+

@@ -1,0 +1,94 @@
+﻿<section class="page category">
+  <section class="category-header">
+    <div class="options-bar" role="navigation" aria-label="אפשרויות קטגוריה">
+      <div class="options-inner">
+        @for (category of categories(); track category.Category_ID) {
+          <button type="button" class="category-option" [ngClass]="selectedCategory()?.Category_ID === category.Category_ID ? 'selected' : ''" (click)="onSelectCategory(category.Category_ID, true)" [class.active]="selectedCategory()?.Category_ID === category.Category_ID" aria-pressed="{{selectedCategory()?.Category_ID === category.Category_ID}}">
+            <span class="icon-box" aria-hidden="true">
+              <img [src]="category.icon" [alt]="category.Category_Name">
+              @if (category.isSaved) {<img class="badge" src="/assets/category-badge.svg" alt="°">}
+            </span>
+            <span class="option-label">{{ category.Category_Name }}</span>
+            <span class="option-underline" aria-hidden="true"></span>
+          </button>
+        }
+      </div>
+    </div>
+
+    <div class="header-content">
+      <div class="header-text">
+        <h1 class="category-title">{{ selectedCategory()?.Category_Name || '' }}</h1>
+        <p class="category-description">{{ selectedCategory()?.Description || '' }}</p>
+        <a [href]="selectedCategory()?.Link || '#'" target="_blank" rel="noopener noreferrer">
+        <span class="link">קראו עוד
+            <img src="/assets/read-more.svg" alt="+">
+          </span>
+        </a>
+      </div>
+      <div class="header-image">
+        <img [src]="`/heros/${selectedCategory()?.Category_ID}.svg`" [alt]="selectedCategory()?.Category_Name ?? ''">
+      </div>
+    </div>
+  </section>
+
+  <section class="category-mid">
+    <h2>ניתוח מדדים</h2>
+    <div class="research">
+      <span>חקרו:</span>
+      @for (chip of chips(); track chip.Chip_ID) {
+        <button class="research-option" [ngClass]="chip.isActive ? 'selected' : ''" (click)="onSelectChip(chip.Chip_ID)">
+          <span>{{chip.Chip_Name}}</span>
+          <div class="chip-tooltip">{{ chip['ToolTip/Hover'] }}</div>
+        </button>
+      }
+    </div>
+    <div class="mid-content">
+  <app-Filters 
+    [categoryGroups]="categoryGroups()"
+    [measures]="measures()"
+    [filterGroups]="filterGroups()"
+    [graphData]="graphData()"
+    (selectionChange)="onFiltersChange($event)"
+    (selectMeasure)="onSelectMeasure($event)"
+    (graphSaved)="onGraphSaved()">
+  </app-Filters>
+    </div>
+    <div class="saved-graphs">
+      <span>גרפים שנשמרו:</span>
+        @for (graph of savedGraphs(); track graph.id) {
+          <div class="saved-option-container">
+            <button class="saved-option" [ngClass]="graph.isActive ? 'active' : ''" (click)="onSelectSavedGraph(graph.id)">
+              <span>{{graph.title}}</span>
+            </button>
+            <button class="remove-btn" (click)="removeSavedGraph(graph.id)">
+              <img src="/assets/remove.svg" alt="x">
+            </button>
+          </div>
+        }
+    </div>
+  </section>
+
+  <section class="linked-data">
+    <h2 class="link-data-title">מידע מקושר</h2>
+    <div class="linked-grid">
+      @for (item of linkedItems(); track item.id) {
+        <div class="item-wrapper">
+          <!-- <img class="item-image" [src]="item.img" [alt]="item.title"> -->
+          <div class="item-text">
+            <h3 class="item-title">{{item.title}}</h3>
+            <span class="item-subtitle">{{item.subtitle}}</span>
+            <p class="item-description">{{item.description}}</p>
+            <div class="link">
+              <a [href]="item.link">
+                קראו עוד
+                <img src="/assets/read-more.svg" alt="+">
+              </a>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  </section>
+
+  <footer class="footer"></footer>
+</section>

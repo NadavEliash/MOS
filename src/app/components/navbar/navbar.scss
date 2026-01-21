@@ -1,0 +1,92 @@
+.app-nav {
+	position: absolute;
+	box-sizing: border-box;
+	top: 0;
+	left: 0;
+	display: flex;
+	align-items: center;
+	justify-content: flex-start;
+	padding: 16px 24px;
+    font-size: 16px;
+    width: 100%;
+	z-index: 10;
+}
+
+.nav-right {
+    flex: 1;
+}
+
+.nav-left, .nav-right {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+}
+
+.logo-img {
+	height: 43px;
+	width: auto;
+	display: block;
+}
+
+.link {
+	text-decoration: none;
+	margin-inline-end: 48px;
+}
+
+.report {
+	margin-inline-end: 0;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 16px;
+	height: 44px;
+	background-color: var(--color-blue);
+	color: #fff;
+	border: none;
+	padding: 10px 16px;
+	border-radius: 8px;
+	cursor: pointer;
+
+	&.disabled {
+		background-color: rgba(0, 0, 0, .2);
+		pointer-events: none;
+		cursor: default;
+	}
+}
+
+.report-icon {
+	display: block;
+}
+
+.report-btn img {
+	width: 19px;
+	height: 19px;
+	display: block;
+}
+
+.report-label {
+	/* ensure the text sits to the left of the icon visually */
+	display: inline-block;
+}
+
+.badge {
+	position: relative;
+}
+.count-icon {
+	position: absolute;
+	top: -4px;
+	left: 10px;
+
+	.icon {
+		position: absolute;
+		width: 16px;
+		filter: invert(23%) sepia(92%) saturate(7480%) hue-rotate(357deg) brightness(97%) contrast(120%);
+	}
+	
+	.count {
+		position: absolute;
+		left: -14px;
+		font-size: 14px;
+		font-weight: 500;
+	}
+}

@@ -1,0 +1,55 @@
+﻿<div class="graph-wrapper" [class.headless]="headless">
+  
+  @if (graphData()) {
+    @if (!headless) {<div class="graph-header">
+      <div class="graph-titles">
+        <h3 class="graph-title" [ngClass]="{'long': graphData().title.length > 30}">{{ graphData().title }}</h3>
+        <h4 class="graph-description">{{ graphData().description }}</h4>
+        <div class="graph-subtitles">
+          <!-- @for (subtitle of subtitles; track subtitle) {<span>{{ subtitle }}</span>} -->
+        </div>
+      </div>
+      <div class="graph-tools">
+        <div class="save-graph-wrapper" (click)="saveGraph()">
+          <img src="/assets/save-graph.svg" alt="save" class="tool-icon" (click)="saveGraph()" style="cursor: pointer;"/>
+          <span class="save-graph">שמירת גרף</span>
+        </div>  
+          <img src="/assets/share.svg" alt="שתף" class="tool-icon" (click)="toggleShareBar()" style="cursor: pointer;"/>
+          @if (showShareBar) {
+            <div class="share-bar">
+              <app-share-bar
+              [url]="getShareUrl()"
+              [title]="graphData().title!"
+              (close)="closeShareBar()"
+              (copied)="showSuccessMessage($event)">
+            </app-share-bar>
+          </div>}
+          <button class="excel" (click)="exportToExcel()">
+            <img src="/assets/excel.svg" alt="יצא לאקסל" class="tool-icon"/>
+          </button>
+          @if (successMessage()) {
+            <div class="success-message">
+              {{ successMessage() }}
+            </div>
+          }
+      </div>
+    </div>}
+  
+    <div #chartEl class="chart"></div> 
+    
+  } @else if (!data?.categories?.filter?.labels?.length || !data?.series?.length) {
+    <div class="graph-error">
+      <img src="/assets/graph-no-data.svg"/>
+      <h2>לא נבחרו מדדים לגרף</h2>
+      <h3>בחרו מדד ופילוחים בצד ימין או חקרו את אחת ההצעות למעלה</h3>
+      <h3>לתשומת לבך, לרוב לא ניתן לשלב יותר ממדד אחד בגרף</h3>
+    </div>
+  } @else {
+    <div class="graph-error">
+      <img src="/assets/graph-error.svg"/>
+      <h2>משהו השתבש...</h2>
+      <h3>לא הצלחנו להציג את הנתונים בגרף</h3>
+      <button (click)="reload()">נסו שוב</button>
+    </div>
+  }
+</div>

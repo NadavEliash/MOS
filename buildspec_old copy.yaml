@@ -1,0 +1,100 @@
+version: 0.2
+
+env:
+  secrets-manager:
+    TFS_PAT: "${tfs_secret_name}:TFS_PAT"
+    TFS_CERT: "${tfs_secret_name}:TFS_CERT"
+  variables:
+    TARGET_BRANCH: "dev"
+    REPOSITORY_NAME: "Cloud_OpenData"
+
+phases:
+  install:
+    commands:
+      - echo "Setting up Git and SSL configuration"
+      - git config --global credential.UseHttpPath true
+      - git config --global user.name "CodeBuild Sync"
+      - git config --global user.email "codebuild@molsa.gov.il"
+      - git config --global init.defaultBranch master
+      - |
+        set -e
+        echo "Installing TFS SSL certificate"
+        echo "$TFS_CERT" | base64 -d > /tmp/tfs-cert.crt
+        if [ -d /usr/local/share/ca-certificates ]; then
+          install -m 0644 /tmp/tfs-cert.crt /usr/local/share/ca-certificates/tfs-cert.crt
+          command -v update-ca-certificates >/dev/null && update-ca-certificates
+        elif [ -d /etc/pki/ca-trust/source/anchors ]; then
+          install -m 0644 /tmp/tfs-cert.crt /etc/pki/ca-trust/source/anchors/tfs-cert.crt
+          command -v update-ca-trust >/dev/null && update-ca-trust
+        else
+          echo "WARN: No known CA directory found; skipping install" >&2
+        fi
+        git config --global http.sslCAInfo /tmp/tfs-cert.crt
+
+  build:
+    commands:
+      - echo "Starting sync process for repository $REPOSITORY_NAME"
+      - TFS_URL="https://tfsprod17.molsa.gov.il/tfs/MOSA/Cloud_OpenData/_git/$REPOSITORY_NAME"
+      - |
+        set -euo pipefail
+        # Derive missing values from CodeBuild context if not provided
+        if [ -z "${REPOSITORY_NAME:-}" ] && [ -n "${CODEBUILD_SOURCE_REPO_URL:-}" ]; then
+          REPOSITORY_NAME=$(basename "${CODEBUILD_SOURCE_REPO_URL%/}")
+          REPOSITORY_NAME=${REPOSITORY_NAME%.git}
+          echo "Derived REPOSITORY_NAME from CODEBUILD_SOURCE_REPO_URL: $REPOSITORY_NAME"
+        fi
+        if [ -z "${COMMIT_ID:-}" ] && [ -n "${CODEBUILD_RESOLVED_SOURCE_VERSION:-}" ]; then
+          COMMIT_ID="$CODEBUILD_RESOLVED_SOURCE_VERSION"
+          echo "Derived COMMIT_ID from CODEBUILD_RESOLVED_SOURCE_VERSION: $COMMIT_ID"
+        fi
+        echo "Env check -> REPOSITORY_NAME=${REPOSITORY_NAME:-<unset>} COMMIT_ID=${COMMIT_ID:-<unset>} TARGET_BRANCH=${TARGET_BRANCH:-<unset>}"
+        : "${REPOSITORY_NAME:?REPOSITORY_NAME is required}"
+        : "${COMMIT_ID:?COMMIT_ID is required}"
+        : "${TARGET_BRANCH:?TARGET_BRANCH is required}"
+
+        echo "Downloading repository content from CodeCommit"
+        rm -rf repo
+        mkdir repo && cd repo
+        aws codecommit get-folder --repository-name "$REPOSITORY_NAME" --commit-specifier "$COMMIT_ID" --folder-path / --region il-central-1 > /tmp/folder_contents.json
+        FILE_COUNT=$(jq '.files | length' /tmp/folder_contents.json)
+        echo "Files to sync: $FILE_COUNT"
+        [ "$FILE_COUNT" -gt 0 ] || { echo "No files returned from CodeCommit (commit $COMMIT_ID). Aborting push."; exit 1; }
+        cat /tmp/folder_contents.json | jq -r '.files[].relativePath' | while read -r file; do
+          mkdir -p "$(dirname "$file")"
+          aws codecommit get-file --repository-name "$REPOSITORY_NAME" --commit-specifier "$COMMIT_ID" --file-path "$file" --region il-central-1 --query 'fileContent' --output text | base64 -d > "$file"
+        done
+        echo "Downloaded files:"
+        ls -la
+
+        echo "Syncing to TFS with force push"
+        git init
+        git add .
+        git commit -m "Sync from CodeCommit commit $COMMIT_ID" || echo "Nothing to commit, pushing current content"
+        git remote add tfs "$TFS_URL"
+        git remote -v
+        # Decode base64-encoded PAT then build Basic auth header
+        TFS_PAT_DECODED=$(echo "$TFS_PAT" | base64 -d | tr -d '\n\r')
+        echo "Decoded PAT length: $(printf '%s' "$TFS_PAT_DECODED" | wc -c | tr -d ' ')"
+        TFS_AUTH_USER=${TFS_USERNAME:-codebuild}
+        echo "Using TFS auth username: $TFS_AUTH_USER"
+        TFS_BASIC_HEADER=$(printf '%s:%s' "$TFS_AUTH_USER" "$TFS_PAT_DECODED" | base64)
+        echo "Force pushing to TFS branch $TARGET_BRANCH (creates branch if not exists)"
+        git status -sb
+        git rev-parse HEAD
+        echo "Pushing to $TFS_URL branch $TARGET_BRANCH"
+        set +e
+        GIT_TRACE_PACKET=1 GIT_TRACE=1 GIT_TRACE_CURL=1 GIT_CURL_VERBOSE=1 git -c http.extraHeader="Authorization: Basic $TFS_BASIC_HEADER" push tfs HEAD:"$TARGET_BRANCH" --force
+        PUSH_RC=$?
+        if [ "$PUSH_RC" -ne 0 ]; then
+          echo "First push failed with rc=$PUSH_RC, trying refs/heads/$TARGET_BRANCH"
+          GIT_TRACE_PACKET=1 GIT_TRACE=1 GIT_TRACE_CURL=1 GIT_CURL_VERBOSE=1 git -c http.extraHeader="Authorization: Basic $TFS_BASIC_HEADER" push tfs HEAD:refs/heads/"$TARGET_BRANCH" --force
+          PUSH_RC=$?
+        fi
+        set -e
+        echo "Final push rc=$PUSH_RC"
+        [ "$PUSH_RC" -eq 0 ] || exit "$PUSH_RC"
+  post_build:
+    commands:
+      - echo "Sync completed successfully"
+      - echo "Repository $REPOSITORY_NAME"
+      - echo "Commit $COMMIT_ID force-pushed to TFS branch $TARGET_BRANCH"

@@ -1,0 +1,58 @@
+version: 0.2
+
+env:
+  secrets-manager:
+    TFS_CERT: ${tfs_secret_name}:TFS_CERT
+    TFS_PAT: ${tfs_secret_name}:TFS_PAT
+  variables:
+    TARGET_BRANCH: dev
+    REPOSITORY_NAME: Cloud_OpenData_Client
+    AZURE_DEVOPS_PROJECT: Cloud_OpenData
+    # TFS_PAT: d3hpeGphcWVldTc2NnhsZnU0aGVtNndnd21yN3BqenRicjZ2MzZvM3cyeGphMnQ1N2lscQo=
+    # TFS_USERNAME: AVODA_NT\AzureDevOpsRepo
+phases:
+  install:
+    commands:
+      - echo "Setting up Git and SSL configuration"
+      - git config --global credential.UseHttpPath true
+      - git config --global user.name "AzureDevOpsRepo"
+      - git config --global user.email "AzureDevOpsRepo@molsa.gov.il"
+      - git config --global init.defaultBranch master
+      - echo "Installing TFS SSL certificate"
+      - echo "$TFS_CERT" | base64 -d > /tmp/tfs-cert.crt
+      - cp /tmp/tfs-cert.crt /usr/local/share/ca-certificates/
+      - update-ca-certificates
+      - git config --global http.sslCAInfo /tmp/tfs-cert.crt
+
+  build:
+    commands:
+      - echo "Starting sync process for repository $REPOSITORY_NAME"
+      - BASE_TFS_URL="https://tfsprod17.molsa.gov.il/tfs/MOSA/$AZURE_DEVOPS_PROJECT/_git/$REPOSITORY_NAME"
+      - 'AUTH_HEADER="Authorization: Basic ${TFS_PAT}"'
+
+      - ls -la
+      - cd ..
+      - ls -la
+      - git -c http.extraheader="$AUTH_HEADER" clone ${BASE_TFS_URL}
+      - cd $REPOSITORY_NAME
+      - cp -r ../src/* .
+      - echo "Syncing to TFS with force push"
+      - git init
+      - git add .
+      - git commit -m "Sync from CodeCommit commit
+        $CODEBUILD_RESOLVED_SOURCE_VERSION"
+
+      # Add the remote using the URL that contains the credentials
+      - git remote add tfs $BASE_TFS_URL
+      - 'git -c http.extraHeader="$AUTH_HEADER" push tfs HEAD:$TARGET_BRANCH --force || git -c http.extraHeader="$AUTH_HEADER" push tfs HEAD:refs/heads/$TARGET_BRANCH --force'
+
+      - echo "Force pushing to TFS branch $TARGET_BRANCH (creates branch if not
+        exists)"
+
+
+  post_build:
+    commands:
+      - echo "Sync completed successfully"
+      - echo "Repository $REPOSITORY_NAME"
+      - echo "Commit $CODEBUILD_RESOLVED_SOURCE_VERSION force-pushed to TFS
+        branch $TARGET_BRANCH"

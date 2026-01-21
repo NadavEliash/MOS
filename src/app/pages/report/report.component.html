@@ -1,0 +1,109 @@
+<section class="page report">
+  <div class="report-header">
+    <div class="header-text">
+      <h1 class="report-title">הדוח שלי</h1>
+      <span class="report-subtitle">כאן תוכלו לצפות בכל הגרפים ששמרתם במהלך הביקור באתר ולייצא גרפים נבחרים במגוון פורמטים לשימוש עתידי.</span>
+        <button class="export-btn" (click)="exportToExcel()">
+          <img src="/assets/export-report.svg" alt="^" class="export-icon"/>
+          <span>ייצוא גרפים לאקסל</span>
+        </button>
+    </div>
+    <img src="/heros/REPORT.svg" alt="הדוח שלי" class="report-hero">
+  </div>
+
+  <div class="report-content">
+    @if (categories().length > 0) {
+      <div class="categories-list">
+      @for (categoryGroup of categories(); track categoryGroup.category.Category_ID) {
+        <div class="category-section">
+          <div class="category-header">
+            <div class="category-info">
+              <img [src]="categoryGroup.category.icon" [alt]="categoryGroup.category.Category_Name" class="category-icon">
+              <h2 class="category-title">{{ categoryGroup.category.Category_Name }}</h2>
+            </div>
+            <span class="graphs-count">{{ categoryGroup.graphs.length }} גרפים</span>
+          </div>
+
+          <div class="graphs-list">
+          @for (graph of categoryGroup.graphs; track graph.id) {
+            <div class="graph-report-item">
+              <div class="graph-report-header">
+                <div class="first-line">
+                  <h3 class="graph-report-title">{{ graph.title }}</h3>
+                  <div class="graph-report-actions">
+                    <button class="action-btn share-btn" title="שתף" (click)="toggleShareBar(graph)">
+                      <img src="/assets/share.svg" alt="שתף"/>
+                    </button>
+                    <button class="action-btn export-btn" title="יצא לאקסל" (click)="exportToExcel()">
+                      <img src="/assets/excel.svg" alt="יצא לאקסל"/>
+                    </button>
+                    @if (graph.showShareBar) {
+                      <div class="share-bar">
+                        <app-share-bar
+                          [url]="getShareUrl(graph)"
+                          [title]="graph.title"
+                          (close)="closeShareBar(graph)">
+                        </app-share-bar>
+                      </div>
+                    }
+                  </div>
+                </div>
+                <div class="second-line">
+
+                  <label class="checkbox-label">
+                    <input type="checkbox" [checked]="graph.selectedForExport" (change)="toggleExportSelection(graph.id)">
+                    <span class="checkmark"></span>
+                    ייצוא לאקסל
+                  </label>
+                  <button class="return-link" (click)="returnToGraph(graph)">
+                    <span>חזרה לגרף</span>
+                    <img src="/assets/return.svg" alt="→"/>
+                  </button>
+                </div>
+              </div>
+
+              <div class="graph-report-content">
+                <div class="filters-panel">
+                  <h4>פילוח לפי</h4>
+                  <div class="filters-content">
+                    @if (graph.data) {
+                      <div class="filter-group">
+                        <span class="filter-title">{{ graph.data.categories.filter.name }}:</span>
+                        <div class="filter-values">
+                          @for (label of graph.data.categories.filter.labels; track label.title) {
+                            <span class="filter-value">{{ label.title }}</span>
+                          }
+                        </div>
+                        <span class="filter-title">{{ graph.data.series[0].groupTitle }}:</span>
+                        <div class="filter-values">
+                          @for (serie of graph.data.series; track serie.name) {
+                            <span class="filter-value">{{ serie.name }}</span>
+                          }
+                        </div>
+                      </div>
+                    } @else {
+                      <p class="no-filters">לא נבחרו מסננים</p>
+                    }
+                  </div>
+                </div>
+
+                <div class="graph-panel">
+                  <app-graph
+                    [title]="graph.title"
+                    [data]="graph.data"
+                    [categoryId]="graph.data.categoryId"
+                    [headless]="true">
+                  </app-graph>
+                </div>
+              </div>
+            </div>}
+          </div>
+        </div>}
+      </div>
+  } @else {
+        <div class="no-graphs">
+          <h2 class="no-graphs-title">אין גרפים שמורים</h2>
+        </div>
+    }
+  </div>
+</section>

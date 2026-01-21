@@ -1,0 +1,70 @@
+<section class="page home">
+  <section class="head">
+    @if (pageData()) {
+      <h1 class="title">{{ title()[1] }} <span class="year">{{ title()[2] }}</span>,</h1>
+      <h1 class="title">{{ title()[3].replace(',', '') }}</h1>
+      <span class="subtitle">{{pageData()[2].Sub_Header}}</span>
+    }
+    <div class="search-wrap">
+      <div class="search-bar" [ngClass]="isDrawerOpen ? 'open' : ''" role="search" aria-label="חיפוש בדוח" (keydown)="onKeyDown($event)">
+        <button class="search-btn" type="button" aria-label="חפש">
+          <img src="/assets/search-icon.svg" alt="search" width="20" height="20" />
+        </button>
+        <input
+          type="search"
+          class="search-input"
+          placeholder="חיפוש בדוח לפי מילת מפתח. לדוגמה: אזרחים ותיקים, רשות מקומית, תקציב"
+          aria-label="חיפוש בדוח"
+          [value]="searchTerm()"
+          (input)="onSearchInput($event)"
+          />
+          @if (isDrawerOpen) {
+          <div class="drawer">
+            @if (searchResults.length > 0) {
+              @for (result of searchResults; track result.id; let i = $index) {
+                <div
+                  class="result"
+                  [class.selected]="i === selectedResultIndex"
+                  (click)="onSelectResult(result)"
+                  (mouseenter)="selectedResultIndex = i">
+                  @if (isCategory(result.id)) {
+                    <div class="category-result">
+                      <img [src]="`/icons/${result.id}.svg`" [alt]="result.name">
+                      <span [innerHTML]="result.name | highlight: searchTerm()"></span>
+                    </div>
+                  } @else {
+                    <span class="result-category">{{result.categoryName}}</span>
+                    <span class="result-name" [innerHTML]="result.name | highlight: searchTerm()"></span>
+                  }
+                  @if (result.none) {
+                    <span class="result-none" [innerHTML]="result.none | highlight: searchTerm()"></span>
+                  }
+                </div>
+              }
+            }
+          </div>}
+      </div>
+    </div>
+    <div class="chips" role="navigation" aria-label="קישורים מהירים">
+      @for (chip of chips(); track chip.Category_ID) {<a class="chip" [ngClass]="{'no-tooltip': isDrawerOpen}" href="javascript:void(0)" (click)="onChipClick(chip.Category_ID)" [attr.title]="isDrawerOpen ? null : chip['ToolTip/Hover']" tabindex="0">
+        {{ chip.Category_Name }}
+        <div class="chip-tooltip">{{ chip['ToolTip/Hover'] }}</div>
+      </a>}
+    </div>
+  </section>
+  <section class="mid">
+    @if (pageData()) { 
+      <div class="mid-text">
+        <h2 class="mid-title">{{pageData()[1].Main_Header}}</h2>
+        <p class="mid-paragraph">{{pageData()[1].Text}}</p>
+        <a class="link" [href]="pageData()[1].Link">{{pageData()[1]['Link Text']}}
+          <img src="/assets/read-more.svg" alt="↖️" width="16" height="16" />
+        </a>
+      </div>
+    }
+    <img src="/heros/HOME.svg" alt="סקירת השירותים החברתיים">
+  </section>    
+  <footer class="footer">
+
+  </footer>
+</section>

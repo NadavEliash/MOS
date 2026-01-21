@@ -1,0 +1,16 @@
+<div class="share-bar-overlay" (click)="onClose()">
+  <div class="share-bar" (click)="$event.stopPropagation()">
+    <div class="share-buttons">
+      <button class="share-button" (click)="shareViaMail()" title="שתף באימייל">
+        <img src="/assets/mail.svg" alt="אימייל" class="share-icon">
+      </button>
+      <button class="share-button" (click)="shareViaWhatsapp()" title="שתף בווטסאפ">
+        <img src="/assets/whatsapp.svg" alt="ווטסאפ" class="share-icon">
+      </button>
+      <button class="share-button copy" (click)="copyLink()" title="העתק קישור">
+        <img src="/assets/link.svg" alt="קישור" class="share-icon">
+        <span>העתקת לינק</span>
+      </button>
+    </div>
+  </div>
+</div>
