@@ -394,7 +394,7 @@ export class CategoryComponent implements OnInit {
           
           // Check labels for chip filters (first 10 labels)
           if (isChipFilter) {
-            updatedLabels.slice(0, 10).forEach(label => label.data.checked = true);
+            updatedLabels?.slice(0, 10).forEach(label => label.data.checked = true);
           }
           
           // Check xAxis labels (categories)
@@ -437,6 +437,7 @@ export class CategoryComponent implements OnInit {
     const newGraphData = {
       categoryId: firstMeasure.categoryId,
       title: chip.Chip_Name,
+      subtitles: measures.map(m => m.name).join('#'),
       description: chip.Chip_Description,
       type: firstMeasure.graphType,
       categories: categories,

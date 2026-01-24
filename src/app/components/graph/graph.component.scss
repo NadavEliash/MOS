@@ -21,8 +21,9 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 16px;
+  gap: 3px;
   direction: rtl;
+  flex-wrap: wrap;
 }
 
 .graph-titles {
@@ -41,10 +42,23 @@
 }
 
 .graph-description {
-  margin-top: 6px;
+  margin-block: 6px;
+  margin-inline: 0;
   font-size: 14px;
   font-weight: 400;
   color: #5878A4;
+}
+
+.graph-subtitles {
+  width: 100%;
+  margin-top: 12px;
+
+  .subtitle {
+    display: block;
+    margin-bottom: 4px;
+    font-size: 14px;
+    color: #335D9C;
+  }
 }
 
 .graph-tools {

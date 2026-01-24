@@ -5,9 +5,6 @@
       <div class="graph-titles">
         <h3 class="graph-title" [ngClass]="{'long': graphData().title.length > 30}">{{ graphData().title }}</h3>
         <h4 class="graph-description">{{ graphData().description }}</h4>
-        <div class="graph-subtitles">
-          <!-- @for (subtitle of subtitles; track subtitle) {<span>{{ subtitle }}</span>} -->
-        </div>
       </div>
       <div class="graph-tools">
         <div class="save-graph-wrapper" (click)="saveGraph()">
@@ -33,6 +30,10 @@
             </div>
           }
       </div>
+      @if (graphData().subtitles?.split('#')!.length > 1) {
+        <div class="graph-subtitles">
+          @for (subtitle of graphData().subtitles?.split('#'); track $index) {<span class="subtitle">מדד {{ $index + 1 }}: {{ subtitle }}</span>}
+        </div>}
     </div>}
   
     <div #chartEl class="chart"></div> 

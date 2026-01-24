@@ -1,4 +1,4 @@
-﻿import { AfterViewInit, Component, ElementRef, Input, OnChanges, OnDestroy, SimpleChanges, ViewChild, inject, output, signal } from "@angular/core";
+﻿import { AfterViewInit, Component, ElementRef, Input, OnChanges, OnDestroy, SimpleChanges, ViewChild, computed, inject, output, signal } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import * as echarts from "echarts/core";
 import { BarChart, LineChart } from "echarts/charts";
@@ -48,7 +48,7 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
   graphSaved = output<void>();
   graphData = signal<GraphData>(this.emptyGraph);
   successMessage = signal<string | null>(null);
-
+  
   @ViewChild("chartEl") chartEl: ElementRef<HTMLDivElement> | undefined;
 
   private chart?: echarts.ECharts;
@@ -86,6 +86,8 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
   }
 
   private getChartData() {
+    console.log(this.data);
+    
     this.graphData.set(this.data || this.emptyGraph);
   }
 

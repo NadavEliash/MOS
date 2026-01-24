@@ -45,8 +45,9 @@ export interface Graph {
 }
 
 export interface GraphData {
-  categoryId: string
+  categoryId: string;
   title: string;
+  subtitles?: string;
   type: string;
   description?: string;
   categories: FilterGroup; 
