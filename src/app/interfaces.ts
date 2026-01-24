@@ -53,7 +53,8 @@ export interface GraphData {
   series: { 
     name: string; 
     data: number[]; 
-    color?: string 
+    color?: string;
+    stack?: string;
   }[];
   filterGroups: FilterGroup[];
 }

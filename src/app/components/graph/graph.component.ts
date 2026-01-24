@@ -140,19 +140,31 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
               <span style="color: #6b7a90; flex: 1; margin-right: 8px; text-align: right;">${title}</span>
               <span style="font-weight: 600; color: #123248; margin-right: 16px;">${value}</span>
             </div>`;
-          }).join('');
+          }).reverse().join('');
           
           return `<div style="padding: 8px 12px; background-color: rgba(255,255,255,0.95); border-radius: 4px;">${tooltipItems}</div>`;
         }
       },
       legend: {
-        right: 0,
-        top: 0,
-        padding: 5,
-        direction: 'rtl',
-        textStyle: { color: "#123248", fontFamily: "Rubik, sans-serif"}
+        type: 'scroll',
+        right: 20,
+        top: 10,
+        orient: 'horizontal',
+        itemGap: 20,
+        itemWidth: 12,
+        itemHeight: 12,
+        textStyle: { 
+          color: "#123248", 
+          fontFamily: "Rubik, sans-serif",
+          fontSize: 12
+        },
+        pageIconSize: 12,
+        pageTextStyle: {
+          color: "#123248"
+        },
+        pageButtonPosition: 'start'
       },
-      grid: { left: 40, right: 24, top: 60, bottom: 40 },
+      grid: { left: 40, right: 24, top: 100, bottom: 40 },
       xAxis: {
         type: "category",
         data: this.data?.type?.toLowerCase().includes('stacked') 
@@ -175,13 +187,23 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
         splitLine: { lineStyle: { color: "rgba(90, 124, 167, 0.15)" } },
         axisLabel: { color: "#866b90ff", fontFamily: "Rubik, sans-serif" }
       },
-      series: chartData?.series.map(s => {
+      series: [...(chartData?.series || [])].reverse().map(s => {
         const isLine = this.data?.type?.toLowerCase().includes('line');
         const isStacked = this.data?.type?.toLowerCase().includes('stacked');
+        
+        // Filter data to match checked x-axis labels
+        let filteredData = s.data;
+        if (chartData?.categories?.filter?.labels) {
+          const checkedIndices = chartData.categories.filter.labels
+            .map((label, idx) => label.data.checked ? idx : -1)
+            .filter(idx => idx !== -1);
+          filteredData = checkedIndices.map(idx => s.data[idx]);
+        }
+        
         const seriesConfig: any = {
             name: s.name.toString().trim(),
             type: isLine ? 'line' : 'bar',
-            data: s.data,
+            data: filteredData,
             itemStyle: { color: s.color },
             z: 10
         };
@@ -191,7 +213,7 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
             seriesConfig.label = { show: false };
         } else {
             if (isStacked) {
-              seriesConfig.stack = 'total';
+              seriesConfig.stack = s.stack || 'total';
             }
             seriesConfig.itemStyle = {
                 ...seriesConfig.itemStyle,

@@ -84,17 +84,9 @@ export class FiltersComponent implements OnChanges {
         });
         this.measures.forEach(m => this.updateBlockedFilters(m.id));
       }
-      if (this.data) {
-        filterGroups.forEach((group: InputFilterGroup) => {
-          if (group?.measureId === this.data?.categories?.measureId) {
-            group.filter.labels?.forEach(label => { label.data.checked = this.data?.filterGroups?.find(fg => fg.filter.id === group.filter.id)?.filter.labels.find(l => l.title === label.title)?.data.checked ?? false })
-          }
-        });
-      };
     }
 
     if (changes['graphData']) {
-      
       const data = changes['graphData'].currentValue;
       if (data) {
         this.currentGraphData.set(data);
@@ -103,12 +95,9 @@ export class FiltersComponent implements OnChanges {
         if (this.showGrouped) {
           this.selectGroup(this.groupedMeasures.find(g => g.measures.includes(selectedMeasure?.id)));          
         }
-        this.measures.find((m: MeasureView) => m.id === selectedMeasure?.id)!.expanded = true;  
-        data.filterGroups.forEach((group: InputFilterGroup) => {
-          if (group?.measureId === this.data?.categories?.measureId) {
-            group.filter.labels?.forEach(label => { label.data.checked = this.data?.filterGroups?.find(fg => fg.filter.id === group.filter.id)?.filter.labels.find(l => l.title === label.title)?.data.checked ?? false })
-          }
-        });
+        if (selectedMeasure) {
+          this.measures.find((m: MeasureView) => m.id === selectedMeasure.id)!.expanded = true;
+        }
       } else {
         this.currentGraphData.set(undefined);
         this.data = undefined;

@@ -295,7 +295,7 @@
 
   .item-wrapper {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     background: white;
     border-radius: 12px;
     box-shadow: 0 4px 12px rgba(6, 74, 157, 0.08);
@@ -343,6 +343,12 @@
         color: #6b7a90;
         margin: 0;
         flex: 1;
+        display: -webkit-box;
+        line-clamp: 3;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
 
       .link {

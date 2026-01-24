@@ -8,7 +8,6 @@ import { FiltersComponent } from "../../components/filters/filters.component";
 import { FilterGroup, Graph, GraphData, Measure } from '../../interfaces';
 import { graphColors } from '../../services/static.data';
 import { ApiService } from '../../services/api.service';
-import { log } from 'echarts/types/src/util/log.js';
 
 @Component({
   selector: 'app-category',
@@ -117,7 +116,7 @@ export class CategoryComponent implements OnInit {
     const measures = await this.categoryService.getMeasures(id);
     const chipMeasures = measures.filter(m => this.chips()[0]['Measure ID']?.includes(m.id));
 
-    for (const measure of chipMeasures) {
+    for (const measure of chipMeasures) {      
       await this.categoryService.getView(measure.id);
       this.setFilterGroups(measure);
     };
@@ -126,7 +125,8 @@ export class CategoryComponent implements OnInit {
       this.onSelectChip(this.chips()[0].Chip_ID);
     }
     
-    for (const measure of measures) {
+    const otherMeasures = measures.filter(m => !this.chips()[0]['Measure ID']?.includes(m.id));
+    for (const measure of otherMeasures) {
       await this.categoryService.getView(measure.id);
       this.setFilterGroups(measure);
     };
@@ -143,6 +143,11 @@ export class CategoryComponent implements OnInit {
     
     const chip = this.chips().find(chip => chip.Chip_ID === id);
     if (chip) {
+      // Set selected measure to trigger expansion in filters component
+      const measureIds = chip['Measure ID']?.split(',');
+      if (measureIds.length > 0) {
+        this.categoryService.setSelectedMeasure(measureIds[0]);
+      }
       this.setMultiGraphData(chip);
     }
   }
@@ -242,6 +247,15 @@ export class CategoryComponent implements OnInit {
   }
   
   onFiltersChange(event: any) {
+    // Update the filterGroups signal with the modified data from the filters component
+    this.filterGroups.update(groups => {
+      const updatedGroups = groups.map(group => {
+        const updatedGroup = event.find((e: FilterGroup) => e.filter.id === group.filter.id && e.measureId === group.measureId);
+        return updatedGroup || group;
+      });
+      return updatedGroups;
+    });
+    
     const measureId = event[0].measureId;
     this.updateActiveGraph('measure', measureId);
     this.setGraphData(this.measures().find(m => m.id === measureId)!);
@@ -252,7 +266,7 @@ export class CategoryComponent implements OnInit {
     let colorIndex = 0;
 
     let measureFilterGroups = this.filterGroups().filter(fg => fg.measureId === measure.id);
-    if (measureFilterGroups.length === 0) {
+    if (measureFilterGroups.length === 0) {      
       await this.categoryService.getView(measure.id);
       this.setFilterGroups(measure);
       measureFilterGroups = this.filterGroups().filter(fg => fg.measureId === measure.id);
@@ -270,7 +284,6 @@ export class CategoryComponent implements OnInit {
       const secondFilterGroup = activeSeriesFilterGroups[1];
       const groupedStackedSeriesData = this.categoryService.getGroupedStackedSeriesData(measure, categories, firstFilterGroup, secondFilterGroup);
       
-      console.log(groupedStackedSeriesData);
       const firstFilterLabels = firstFilterGroup.filter.labels.filter(l => l.data.checked);
       const secondFilterLabels = secondFilterGroup.filter.labels.filter(l => l.data.checked);
       
@@ -362,6 +375,47 @@ export class CategoryComponent implements OnInit {
     const sharedFilterGroups = sharedFilterIds.map(id => allFilterGroups.find(fg => fg.filter.id === id && fg.measureId === firstMeasure.id)).filter(fg => fg) as FilterGroup[];
     
     const chipFilterIds = chip.Filter_ID.split(',').map(f => f.trim());
+    
+    // Update filterGroups: uncheck all labels, then check only those in chip.Filter_ID
+    this.filterGroups.update(groups => {
+      return groups.map(group => {
+        // Check if this filter group belongs to one of the chip's measures
+        const belongsToChipMeasure = measureIds.includes(group.measureId);
+        
+        if (belongsToChipMeasure) {
+          const isSharedFilter = sharedFilterIds.includes(group.filter.id);
+          const isChipFilter = chipFilterIds.includes(group.filter.id);
+          
+          // Uncheck all labels first
+          const updatedLabels = group.filter.labels?.map(label => ({
+            ...label,
+            data: { ...label.data, checked: false }
+          }));
+          
+          // Check labels for chip filters (first 10 labels)
+          if (isChipFilter) {
+            updatedLabels.slice(0, 10).forEach(label => label.data.checked = true);
+          }
+          
+          // Check xAxis labels (categories)
+          if (group.filter.id === firstMeasure.xAxis) {
+            updatedLabels.slice(0, 10).forEach(label => label.data.checked = true);
+          }
+          
+          return {
+            ...group,
+            filter: {
+              ...group.filter,
+              labels: updatedLabels,
+              disabled: !isSharedFilter, // Disable if not in shared filters
+              expanded: isChipFilter || group.filter.id === firstMeasure.xAxis
+            }
+          };
+        }
+        return group;
+      });
+    });
+    
     const series: any[] = [];
     
     measures.forEach((measure, idx) => {

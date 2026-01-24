@@ -96,6 +96,16 @@
   top: 140px;
 }
 
+.headless .chart {
+  position: relative;
+  left: auto;
+  right: auto;
+  bottom: auto;
+  top: auto;
+  height: 400px;
+  margin-top: 16px;
+}
+
 .graph-error {
   display: flex;
   flex-direction: column;

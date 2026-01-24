@@ -37,19 +37,21 @@
   
     <div #chartEl class="chart"></div> 
     
-  } @else if (!data?.categories?.filter?.labels?.length || !data?.series?.length) {
-    <div class="graph-error">
-      <img src="/assets/graph-no-data.svg"/>
-      <h2>לא נבחרו מדדים לגרף</h2>
-      <h3>בחרו מדד ופילוחים בצד ימין או חקרו את אחת ההצעות למעלה</h3>
-      <h3>לתשומת לבך, לרוב לא ניתן לשלב יותר ממדד אחד בגרף</h3>
-    </div>
-  } @else {
+  } @else  {
     <div class="graph-error">
       <img src="/assets/graph-error.svg"/>
       <h2>משהו השתבש...</h2>
       <h3>לא הצלחנו להציג את הנתונים בגרף</h3>
       <button (click)="reload()">נסו שוב</button>
+    </div>
+  }
+
+  @if (!data?.categories?.filter?.labels?.length || !data?.series?.length) {
+    <div class="graph-error">
+      <img src="/assets/graph-no-data.svg"/>
+      <h2>לא נבחרו מדדים לגרף</h2>
+      <h3>בחרו מדד ופילוחים בצד ימין או חקרו את אחת ההצעות למעלה</h3>
+      <h3>לתשומת לבך, לרוב לא ניתן לשלב יותר ממדד אחד בגרף</h3>
     </div>
   }
 </div>

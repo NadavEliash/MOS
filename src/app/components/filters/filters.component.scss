@@ -345,6 +345,14 @@
       width: 18px;
       height: 18px;
     }
+
+    &.expanded {
+      color: #0068f5;
+      font-weight: 500;
+      .arrow {
+        filter: brightness(0) saturate(100%) invert(42%) sepia(92%) saturate(6601%) hue-rotate(206deg) brightness(101%) contrast(101%);
+      }
+    }
   }
 
   .filter-groups-container {
