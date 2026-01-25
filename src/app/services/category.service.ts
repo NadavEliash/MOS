@@ -167,7 +167,7 @@ export class CategoryService {
     return updatedLabels;
   }
 
-  getSeriesData(measure: Measure, categories: FilterGroup, filterGroups: FilterGroup[], label: Label): number[] {
+  getSeriesData(measure: Measure, categories: FilterGroup, filterGroups: FilterGroup[], label: Label, firstLabel?: Label): number[] {
     let seriesData: number[] = [];
     const viewData = this.views().find(v => v.id === measure.id)?.data;
     const xAxis = this.filters()?.find(f => f.id === categories?.filter.id)?.property;
@@ -175,10 +175,18 @@ export class CategoryService {
     const moreFilterGroups = filterGroups.slice(1).filter(fg => fg.filter.labels?.some(l => l.data.checked));
     const moreFilterLabels = moreFilterGroups.map(fg => (fg.filter.labels?.filter(l => l.data.checked).map(l => l.title)));
 
+    // For stacked series: if firstLabel is provided, use it as an additional filter
+    const firstFilterGroup = firstLabel ? filterGroups.find(fg => fg.filter.labels?.some(l => l.title === firstLabel.title)) : null;
+
     if (viewData && xAxis && filterGroup) {
       categories.filter.labels.forEach(l => {
         const sum = viewData.reduce((acc: number, item: any) => {
           const mainCondition = item[xAxis] === l.title && item[filterGroup.filter.property] === label.title;
+          
+          // If firstLabel is provided, add it as a condition
+          const firstLabelCondition = firstLabel && firstFilterGroup 
+            ? item[firstFilterGroup.filter.property] === firstLabel.title 
+            : true;
 
           const additionalFiltersCondition = moreFilterGroups.every((fg, index) => {
             const labels = moreFilterLabels[index];
@@ -188,7 +196,7 @@ export class CategoryService {
             return true;
           });
 
-          if (mainCondition && additionalFiltersCondition) {
+          if (mainCondition && firstLabelCondition && additionalFiltersCondition) {
             acc+=item[measure.value];
           }
           return acc;

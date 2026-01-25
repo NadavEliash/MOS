@@ -86,8 +86,6 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
   }
 
   private getChartData() {
-    console.log(this.data);
-    
     this.graphData.set(this.data || this.emptyGraph);
   }
 
@@ -169,15 +167,7 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
       grid: { left: 40, right: 24, top: 100, bottom: 40 },
       xAxis: {
         type: "category",
-        data: this.data?.type?.toLowerCase().includes('stacked') 
-          ? chartData?.series[0]?.data?.map((_, idx) => {
-              const firstFilterGroup = chartData?.filterGroups?.find(fg => 
-                fg.filter.labels?.some(l => l.data.checked) && 
-                fg.filter.property !== chartData?.categories?.filter?.property
-              );
-              return firstFilterGroup?.filter?.labels?.filter(l => l.data.checked)[idx]?.title || '';
-            })
-          : chartData?.categories?.filter?.labels?.filter(l => l.data.checked).map(l => l.title),
+        data: chartData?.categories?.filter?.labels?.filter(l => l.data.checked).map(l => l.title),
         axisLine: { show: false },
         axisTick: { show: false },
         axisLabel: { color: "#6b7a90", fontFamily: "Rubik, sans-serif" },
@@ -215,7 +205,7 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
             seriesConfig.label = { show: false };
         } else {
             if (isStacked) {
-              seriesConfig.stack = s.stack || 'total';
+              seriesConfig.stack = s.stack || undefined;
             }
             seriesConfig.itemStyle = {
                 ...seriesConfig.itemStyle,
@@ -235,6 +225,8 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
         return seriesConfig;
       })
     };
+    console.log(option);
+    
     this.chart.setOption(option, true);
   }
 

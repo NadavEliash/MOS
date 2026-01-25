@@ -145,7 +145,7 @@ export class CategoryComponent implements OnInit {
     if (chip) {
       // Set selected measure to trigger expansion in filters component
       const measureIds = chip['Measure ID']?.split(',');
-      if (measureIds.length > 0) {
+      if (measureIds?.length > 0) {
         this.categoryService.setSelectedMeasure(measureIds[0]);
       }
       this.setMultiGraphData(chip);
@@ -276,53 +276,69 @@ export class CategoryComponent implements OnInit {
     const seriesFilterGroups = measureFilterGroups.filter(fg => fg.filter.property !== categories.filter.property);
     const activeSeriesFilterGroups = seriesFilterGroups.filter(fg => fg.filter.labels?.some(l => l.data.checked));
     
-    let series;
+    let series: any[] = [];
     let graphType = measure.graphType;
 
     if (activeSeriesFilterGroups.length === 2) {
       const firstFilterGroup = activeSeriesFilterGroups[0];
       const secondFilterGroup = activeSeriesFilterGroups[1];
-      const groupedStackedSeriesData = this.categoryService.getGroupedStackedSeriesData(measure, categories, firstFilterGroup, secondFilterGroup);
       
       const firstFilterLabels = firstFilterGroup.filter.labels.filter(l => l.data.checked);
       const secondFilterLabels = secondFilterGroup.filter.labels.filter(l => l.data.checked);
       
-      const baseColorMap = new Map<string, string>();
-      firstFilterLabels.forEach(label => {
-        baseColorMap.set(label.title, colors[colorIndex % colors.length]);
-        colorIndex++;
+      // Assign colors to first filter labels
+      const firstFilterColorMap = new Map<string, string>();
+      firstFilterLabels.forEach((label, idx) => {
+        firstFilterColorMap.set(label.title, colors[idx % colors.length]);
+      });
+      
+      // Assign colors to second filter labels (offset by first filter count)
+      const secondFilterColorMap = new Map<string, string>();
+      const secondColorOffset = firstFilterLabels.length;
+      secondFilterLabels.forEach((label, idx) => {
+        secondFilterColorMap.set(label.title, colors[(secondColorOffset + idx) % colors.length]);
       });
 
-      const adjustShade = (hex: string, percent: number): string => {
-        const num = parseInt(hex?.replace('#', ''), 16);
-        const amt = Math.round(2.55 * percent);
-        const R = (num >> 16) + amt;
-        const G = (num >> 8 & 0x00FF) + amt;
-        const B = (num & 0x0000FF) + amt;
-        return '#' + (0x1000000 + (R < 255 ? R < 1 ? 0 : R : 255) * 0x10000 +
-          (G < 255 ? G < 1 ? 0 : G : 255) * 0x100 +
-          (B < 255 ? B < 1 ? 0 : B : 255))
-          .toString(16).slice(1);
-      };
+      // For each first filter label, create:
+      // 1. A regular bar showing total for that first filter label
+      // 2. A stacked bar showing breakdown of that same first filter label by second filter
+      series = [];
+      
+      // For each first filter label, create the regular bar followed by its stacked breakdown
+      firstFilterLabels.forEach(firstLabel => {
+        // Regular bar for this first filter label (no stack property)
+        series.push({
+          groupTitle: firstFilterGroup.filter.name,
+          name: firstLabel.title,
+          data: this.categoryService.getSeriesData(measure, categories, [firstFilterGroup], firstLabel),
+          color: firstFilterColorMap.get(firstLabel.title)!
+        });
 
-      series = groupedStackedSeriesData.map((s, idx) => {
-        const baseColor = baseColorMap.get(s.firstFilterLabel)!;
-        const secondFilterIndex = secondFilterLabels.findIndex(l => l.title === s.secondFilterLabel);
-        const shadePercent = secondFilterIndex * (30 / secondFilterLabels.length);
-        const shadedColor = adjustShade(baseColor, shadePercent);
-        
-        return {
-          name: s.name,
-          stack: s.stack,
-          data: s.data,
-          color: shadedColor
-        };
+        // Immediately add stacked bars showing breakdown of this first filter label by second filter
+        secondFilterLabels.forEach(secondLabel => {
+          const data = this.categoryService.getSeriesData(
+            measure, 
+            categories, 
+            [firstFilterGroup, secondFilterGroup], 
+            secondLabel,
+            firstLabel
+          );
+          
+          series.push({
+            name: secondLabel.title,
+            stack: firstLabel.title, // Each first filter label gets its own stacked breakdown
+            data: data,
+            color: secondFilterColorMap.get(secondLabel.title)!,
+            groupTitle: secondFilterGroup.filter.name
+          });
+        });
       });
+      
       graphType = 'stacked-column';
     } else {
       let seriesLabels = activeSeriesFilterGroups.flatMap(fg => fg.filter.labels.filter(l => l.data.checked));
       
-      if (seriesLabels.length === 0) {
+      if (seriesLabels.length === 0 && measureFilterGroups.length === 1) {
         series = [{
           groupTitle: measure.name,
           name: measure.name,
