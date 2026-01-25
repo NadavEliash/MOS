@@ -258,8 +258,6 @@
 }
 
 .mid-content {
-  display: flex;
-  gap: 24px;
   width: 100%;
   margin-bottom: 36px;
 
@@ -322,10 +320,12 @@
       flex: 1;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 4px;
+      justify-content: space-between;
+      height: 100%;
 
       .item-title {
-        font-size: 32px;
+        font-size: 24px;
         font-weight: 700;
         color: var(--color-dark-blue);
         margin: 0;
@@ -340,8 +340,9 @@
       .item-description {
         font-size: 16px;
         line-height: 1.5;
-        color: #6b7a90;
         margin: 0;
+        margin-top: 12px;
+        color: #6b7a90;
         flex: 1;
         display: -webkit-box;
         line-clamp: 3;
@@ -349,6 +350,7 @@
         -webkit-box-orient: vertical;
         overflow: hidden;
         text-overflow: ellipsis;
+        text-align: justify;
       }
 
       .link {

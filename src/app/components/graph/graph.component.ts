@@ -128,7 +128,14 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
         formatter: (params: any) => {
           if (!Array.isArray(params)) return '';
           
-          const tooltipItems = params.map((param: any) => {
+          // Filter out items with value of 0 or undefined
+          const filteredParams = params.filter((param: any) => 
+            param.value !== 0 && param.value !== undefined && param.value !== null
+          );
+          
+          if (filteredParams.length === 0) return '';
+          
+          const tooltipItems = filteredParams.map((param: any) => {
             const value = typeof param.value === 'number' 
               ? param.value.toLocaleString(undefined, { maximumFractionDigits: 2 }) 
               : param.value;
@@ -164,7 +171,25 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
         pageTextStyle: {
           color: "#123248"
         },
-        pageButtonPosition: 'start'
+        pageButtonPosition: 'start',
+        // Filter legend to only show series with non-zero data
+        data: [...(chartData?.series || [])].reverse()
+          .filter(s => {
+            // Check if series has any non-zero values
+            let filteredData = s.data;
+            if (chartData?.categories?.filter?.labels) {
+              const checkedIndices = chartData.categories.filter.labels
+                .map((label, idx) => label.data.checked ? idx : -1)
+                .filter(idx => idx !== -1);
+              filteredData = checkedIndices.map(idx => s.data[idx]);
+            }
+            return filteredData.some((val: number) => val !== 0 && val !== null && val !== undefined);
+          })
+          .map(s => {
+            const seriesName = s.name.toString().trim();
+            const groupTitle = (s as any).groupTitle;
+            return groupTitle ? `${groupTitle}: ${seriesName}` : seriesName;
+          })
       },
       grid: { left: 40, right: 24, top: 100, bottom: 40 },
       xAxis: {
@@ -194,8 +219,11 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
           filteredData = checkedIndices.map(idx => s.data[idx]);
         }
         
+        const seriesName = s.name.toString().trim();
+        const groupTitle = (s as any).groupTitle;
+        
         const seriesConfig: any = {
-            name: s.name.toString().trim(),
+            name: groupTitle ? `${groupTitle}: ${seriesName}` : seriesName,
             type: isLine ? 'line' : 'bar',
             data: filteredData,
             itemStyle: { color: s.color },

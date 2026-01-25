@@ -50,6 +50,7 @@ export interface GraphData {
   subtitles?: string;
   type: string;
   description?: string;
+  measureIds?: string[];
   categories: FilterGroup; 
   series: { 
     name: string; 

@@ -221,7 +221,27 @@ export class CategoryComponent implements OnInit {
     }
     this.categoryService.setSelectedMeasure(measureId);
     this.updateActiveGraph('measure', measureId);
-    this.setGraphData(this.measures().find(m => m.id === measureId)!);
+    
+    // Always show single measure when selected
+    const measure = this.measures().find(m => m.id === measureId)!;
+    this.setGraphData(measure);
+  }
+
+  onSelectMultipleMeasures(measureIds: string[]) {
+    if (!measureIds || measureIds.length === 0) {
+      this.graphData.set(undefined);
+      return;
+    }
+    
+    const measures = measureIds
+      .map(id => this.measures().find(m => m.id === id))
+      .filter(m => m) as Measure[];
+    
+    if (measures.length > 1) {
+      this.setMultiMeasureGraphData(measures);
+    } else if (measures.length === 1) {
+      this.onSelectMeasure(measures[0].id);
+    }
   }
 
   async getSpecificMeasure(measureId: string) {
@@ -247,7 +267,9 @@ export class CategoryComponent implements OnInit {
   }
   
   onFiltersChange(event: any) {
-    // Update the filterGroups signal with the modified data from the filters component
+    if (!event || event.length === 0) return;
+    
+    // Update the filterGroups signal with the modified data
     this.filterGroups.update(groups => {
       const updatedGroups = groups.map(group => {
         const updatedGroup = event.find((e: FilterGroup) => e.filter.id === group.filter.id && e.measureId === group.measureId);
@@ -256,9 +278,19 @@ export class CategoryComponent implements OnInit {
       return updatedGroups;
     });
     
-    const measureId = event[0].measureId;
-    this.updateActiveGraph('measure', measureId);
-    this.setGraphData(this.measures().find(m => m.id === measureId)!);
+    // Check if we're in multi-measure mode
+    const currentGraphData = this.graphData();
+    const measureIds = event.map((e: FilterGroup) => e.measureId).filter((id: string, index: number, self: string[]) => self.indexOf(id) === index);
+    
+    if (measureIds.length > 1) {
+      // Multi-measure mode: regenerate with all measures
+      this.setMultiMeasureGraphData(measureIds.map((id:string) => this.measures().find((m: Measure) => m.id === id)!).filter((m: Measure) => m));
+    } else {
+      // Single measure mode
+      const measureId = event[0].measureId;
+      this.updateActiveGraph('measure', measureId);
+      this.setGraphData(this.measures().find(m => m.id === measureId)!);
+    }
   }
 
   async setGraphData(measure: Measure, secondMeasure?: Measure) {
@@ -369,6 +401,92 @@ export class CategoryComponent implements OnInit {
     this.graphData.set(newGraphData);
   }
 
+  setMultiMeasureGraphData(measures: Measure[]) {
+    if (measures.length === 0) return;
+    if (measures.length === 1) {
+      this.setGraphData(measures[0]);
+      return;
+    }
+
+    const colors = graphColors;
+    let colorIndex = 0;
+
+    const firstMeasure = measures[0];
+    const allFilterGroups = this.filterGroups();
+    const measureFilterGroups = allFilterGroups.filter(fg => fg.measureId === firstMeasure.id);
+    const categories = measureFilterGroups.find(fg => fg.filter.id === firstMeasure.xAxis)!;
+
+    // Find shared filters across all measures
+    const sharedFilterIds = measures.reduce((acc, measure) => {
+      const ids = allFilterGroups.filter(fg => fg.measureId === measure.id).map(fg => fg.filter.id);
+      return acc.filter(id => ids.includes(id));
+    }, allFilterGroups.filter(fg => fg.measureId === measures[0].id).map(fg => fg.filter.id));
+
+    const sharedFilterGroups = sharedFilterIds
+      .map(id => allFilterGroups.find(fg => fg.filter.id === id && fg.measureId === firstMeasure.id))
+      .filter(fg => fg) as FilterGroup[];
+
+    const series: any[] = [];
+
+    // Create series for each measure (one bar per measure)
+    measures.forEach((measure, idx) => {
+      const measureName = measures.length > 1 ? measure.name : '';
+      const data = this.categoryService.getNoSeriesData(measure, categories, []);
+      colorIndex++;
+      series.push({
+        name: measureName,
+        data: data,
+        color: colors[colorIndex % colors.length]
+      });
+    });
+
+    // Check if any shared filters have checked labels
+    const activeFilters = sharedFilterGroups.filter(fg => 
+      fg.filter.id !== categories.filter.id && 
+      fg.filter.labels?.some(l => l.data.checked)
+    );
+
+    // If there are active filters, create stacked bars
+    if (activeFilters.length > 0) {
+      const filterGroup = activeFilters[0];
+      const checkedLabels = filterGroup.filter.labels.filter(l => l.data.checked);
+      
+      // Assign colors to filter labels
+      const filterColorMap = new Map<string, string>();
+      const filterColorOffset = measures.length;
+      checkedLabels.forEach((label, idx) => {
+        filterColorMap.set(label.title, colors[(filterColorOffset + idx) % colors.length]);
+      });
+
+      // Create stacked series for each measure
+      measures.forEach((measure, measureIdx) => {
+        checkedLabels.forEach(label => {
+          const data = this.categoryService.getSeriesData(measure, categories, [filterGroup], label);
+          series.push({
+            name: label.title,
+            stack: measure.name,
+            data: data,
+            color: filterColorMap.get(label.title)!,
+            groupTitle: `מדד ${measureIdx + 1}`
+          });
+        });
+      });
+    }
+
+    const measureIds = measures.map(m => m.id);
+    const newGraphData = {
+      categoryId: firstMeasure.categoryId,
+      title: measures.map(m => m.name).join(' + '),
+      measureIds: measureIds,
+      type: firstMeasure.graphType,
+      categories: categories,
+      series: series,
+      filterGroups: sharedFilterGroups
+    };
+
+    this.graphData.set(newGraphData);
+  }
+
   setMultiGraphData(chip: Chip) {
     if (!chip['Measure ID']) return;
     const measureIds = chip['Measure ID'].split(',');
@@ -455,6 +573,7 @@ export class CategoryComponent implements OnInit {
       title: chip.Chip_Name,
       subtitles: measures.map(m => m.name).join('#'),
       description: chip.Chip_Description,
+      measureIds: measureIds,
       type: firstMeasure.graphType,
       categories: categories,
       series: series,

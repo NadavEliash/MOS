@@ -50,6 +50,7 @@
     [graphData]="graphData()"
     (selectionChange)="onFiltersChange($event)"
     (selectMeasure)="onSelectMeasure($event)"
+    (selectMultipleMeasures)="onSelectMultipleMeasures($event)"
     (graphSaved)="onGraphSaved()">
   </app-Filters>
     </div>
@@ -79,7 +80,7 @@
             <span class="item-subtitle">{{item.subtitle}}</span>
             <p class="item-description">{{item.description}}</p>
             <div class="link">
-              <a [href]="item.link">
+              <a [href]="item.link" target="_blank">
                 קראו עוד
                 <img src="/assets/read-more.svg" alt="+">
               </a>
