@@ -37,7 +37,6 @@
     </div>}
   
     <div #chartEl class="chart"></div> 
-    
   } @else  {
     <div class="graph-error">
       <img src="/assets/graph-error.svg"/>
@@ -46,8 +45,10 @@
       <button (click)="reload()">נסו שוב</button>
     </div>
   }
-
-  @if (!data?.categories?.filter?.labels?.length || !data?.series?.length) {
+  
+  @if (isLoading) {
+    <span class="loader"></span>
+  } @else if (!data?.categories?.filter?.labels?.length || !data?.series?.length) {
     <div class="graph-error">
       <img src="/assets/graph-no-data.svg"/>
       <h2>לא נבחרו מדדים לגרף</h2>

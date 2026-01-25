@@ -24,6 +24,7 @@ export class FiltersComponent implements OnChanges {
   @Input('filterGroups') filterGroupsInput: InputFilterGroup[] = [];
   @Input('expendMeasure') expendMeasure: string = '';
   @Input('graphData') graphData: GraphData | undefined = undefined;
+  @Input('isLoading') isLoading: boolean = false;
   
   @Output() selectionChange = new EventEmitter<InputFilterGroup[]>();
   @Output() selectMeasure = new EventEmitter<string>();

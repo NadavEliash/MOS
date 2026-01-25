@@ -71,6 +71,7 @@
     <app-graph 
       [data]="currentGraphData()" 
       [filterGroups]="filterGroupsInput"
+      [isLoading]="isLoading"
       (graphSaved)="onGraphSaved()">
     </app-graph>
   </div>

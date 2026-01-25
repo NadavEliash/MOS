@@ -51,7 +51,8 @@
     (selectionChange)="onFiltersChange($event)"
     (selectMeasure)="onSelectMeasure($event)"
     (selectMultipleMeasures)="onSelectMultipleMeasures($event)"
-    (graphSaved)="onGraphSaved()">
+    (graphSaved)="onGraphSaved()"
+    [isLoading]="loadingGraph()">
   </app-Filters>
     </div>
     <div class="saved-graphs">

@@ -34,6 +34,7 @@ export class CategoryComponent implements OnInit {
   savedGraphs = signal<Graph[]>([]);
   articles = signal<any[]>([]);
   linkedItems = signal<any[]>([]);
+  loadingGraph = signal<boolean>(false);
 
   constructor() {
     effect(() => {
@@ -109,6 +110,7 @@ export class CategoryComponent implements OnInit {
 
   async onSelectCategory(id: string, resetGraph: boolean = false) {
     this.graphData.set(undefined);
+    this.loadingGraph.set(true);
     this.categoryService.setSelectedCategory(this.categories()!.find(c => c.Category_ID === id)?.Category_ID!);    
     await this.categoryService.getChips(id);
 
@@ -124,6 +126,7 @@ export class CategoryComponent implements OnInit {
     if (resetGraph) {
       this.onSelectChip(this.chips()[0].Chip_ID);
     }
+    this.loadingGraph.set(false);
     
     const otherMeasures = measures.filter(m => !this.chips()[0]['Measure ID']?.includes(m.id));
     for (const measure of otherMeasures) {

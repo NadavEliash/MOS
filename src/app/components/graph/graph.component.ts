@@ -24,6 +24,7 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input() data: GraphData | undefined = undefined;
   @Input() filterGroups: FilterGroup[] | null = null;
   @Input() headless = false;
+  @Input() isLoading = false;
 
   emptyGraph: GraphData = {
   categoryId: '',
