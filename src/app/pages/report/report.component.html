@@ -14,7 +14,7 @@
   <div class="report-content">
     @if (categories().length > 0) {
       <div class="categories-list">
-      @for (categoryGroup of categories(); track categoryGroup.category.Category_ID) {
+      @for (categoryGroup of categories(); track $index) {
         <div class="category-section">
           <div class="category-header">
             <div class="category-info">
@@ -25,7 +25,7 @@
           </div>
 
           <div class="graphs-list">
-          @for (graph of categoryGroup.graphs; track graph.id) {
+          @for (graph of categoryGroup.graphs; track $index) {
             <div class="graph-report-item">
               <div class="graph-report-header">
                 <div class="first-line">
@@ -70,13 +70,13 @@
                       <div class="filter-group">
                         <span class="filter-title">{{ graph.data.categories.filter.name }}:</span>
                         <div class="filter-values">
-                          @for (label of graph.data.categories.filter.labels; track label.title) {
+                          @for (label of graph.data.categories.filter.labels; track $index) {
                             <span class="filter-value">{{ label.title }}</span>
                           }
                         </div>
                         <span class="filter-title">{{ graph.data.series[0].groupTitle }}:</span>
                         <div class="filter-values">
-                          @for (serie of graph.data.series; track serie.name) {
+                          @for (serie of graph.data.series; track $index) {
                             <span class="filter-value">{{ serie.name }}</span>
                           }
                         </div>

@@ -154,4 +154,8 @@
   width: 200px;
   color: #28a745;
   font-size: 14px;
+
+  &.error {
+    color: #dc3545;
+  }
 }

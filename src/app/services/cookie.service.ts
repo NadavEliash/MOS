@@ -12,7 +12,16 @@ export class CookieService {
     this.savedGraphs.set(this.getSavedGraphsFromLocalStorage());
   }
 
-  saveGraph(graph: Graph): void {
+  saveGraph(graph: Graph): boolean {
+    // Check if the same graph already exists
+    const isDuplicate = this.savedGraphs().some(savedGraph => 
+      this.areGraphsEqual(savedGraph.data, graph.data)
+    );
+
+    if (isDuplicate) {
+      return false; // Graph already exists, don't save
+    }
+
     const newGraph: Graph = {
       ...graph,
       id: this.generateId(),
@@ -20,6 +29,41 @@ export class CookieService {
 
     this.savedGraphs.update(graphs => [...graphs, newGraph]);
     this.setSavedGraphs(this.savedGraphs());
+    return true; // Graph saved successfully
+  }
+
+  private areGraphsEqual(graph1: any, graph2: any): boolean {
+    // Compare category IDs and measure titles
+    if (graph1.categoryId !== graph2.categoryId || graph1.title !== graph2.title) {
+      return false;
+    }
+
+    // Compare checked category labels
+    const labels1 = graph1.categories?.filter?.labels
+      ?.filter((l: any) => l.data.checked)
+      .map((l: any) => l.title)
+      .sort() || [];
+    const labels2 = graph2.categories?.filter?.labels
+      ?.filter((l: any) => l.data.checked)
+      .map((l: any) => l.title)
+      .sort() || [];
+    
+    if (JSON.stringify(labels1) !== JSON.stringify(labels2)) {
+      return false;
+    }
+
+    // Compare series (names and data)
+    const series1 = graph1.series?.map((s: any) => ({
+      name: s.name,
+      data: s.data
+    })).sort((a: any, b: any) => a.name.localeCompare(b.name)) || [];
+    
+    const series2 = graph2.series?.map((s: any) => ({
+      name: s.name,
+      data: s.data
+    })).sort((a: any, b: any) => a.name.localeCompare(b.name)) || [];
+
+    return JSON.stringify(series1) === JSON.stringify(series2);
   }
 
   getSavedGraphs(): Graph[] {

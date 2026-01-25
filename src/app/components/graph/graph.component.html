@@ -25,7 +25,7 @@
             <img src="/assets/excel.svg" alt="יצא לאקסל" class="tool-icon"/>
           </button>
           @if (successMessage()) {
-            <div class="success-message">
+            <div class="success-message" [class.error]="messageType() === 'error'">
               {{ successMessage() }}
             </div>
           }

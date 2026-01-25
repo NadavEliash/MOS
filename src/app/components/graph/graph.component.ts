@@ -48,6 +48,7 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
   graphSaved = output<void>();
   graphData = signal<GraphData>(this.emptyGraph);
   successMessage = signal<string | null>(null);
+  messageType = signal<'success' | 'error'>('success');
   
   @ViewChild("chartEl") chartEl: ElementRef<HTMLDivElement> | undefined;
 
@@ -56,8 +57,9 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
 
   showShareBar = false;
 
-  showSuccessMessage(message: string): void {
+  showSuccessMessage(message: string, type: 'success' | 'error' = 'success'): void {
     this.successMessage.set(message);
+    this.messageType.set(type);
     setTimeout(() => {
       this.successMessage.set(null);
     }, 2000);
@@ -225,8 +227,6 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
         return seriesConfig;
       })
     };
-    console.log(option);
-    
     this.chart.setOption(option, true);
   }
 
@@ -235,14 +235,19 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
       return;
     }
 
-    this.cookieService.saveGraph({
+    const saved = this.cookieService.saveGraph({
       id: Date.now().toString(),
       title: this.graphData()?.title!,
       subtitle: this.graphData()?.description || '',
       data: this.data,
     });
-    this.graphSaved.emit();
-    this.showSuccessMessage('הגרף נשמר בהצלחה');
+    
+    if (saved) {
+      this.graphSaved.emit();
+      this.showSuccessMessage('הגרף נשמר בהצלחה', 'success');
+    } else {
+      this.showSuccessMessage('הגרף כבר קיים', 'error');
+    }
   }
 
   exportToExcel(): void {
