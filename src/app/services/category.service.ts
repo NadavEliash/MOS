@@ -97,7 +97,7 @@ export class CategoryService {
     const categoryMeasures = this.layersMeasures.filter((m: any) => m.Category_ID === categoryId).map((measure: any) => ({
       id: measure['Measure ID'],
       name: measure['Measure Name'],
-      filters: measure.Filters.split(', '),
+      filters: measure.Filters.split(',').map((f: string) => f.trim()),
       blockedFilters: measure['Blocked Filters']?.split(', '),
       xAxis: measure['X Axis Default'],
       yAxis: measure['Y Axis Default'],

@@ -147,11 +147,22 @@ export class CategoryComponent implements OnInit {
     const chip = this.chips().find(chip => chip.Chip_ID === id);
     if (chip) {
       // Set selected measure to trigger expansion in filters component
-      const measureIds = chip['Measure ID']?.split(',');
+      const measureIds = chip['Measure ID']?.split(',').map((m: string) => m.trim());
       if (measureIds?.length > 0) {
         this.categoryService.setSelectedMeasure(measureIds[0]);
       }
+
       this.setMultiGraphData(chip);
+      
+      // Check Chip validity
+      measureIds?.forEach(id => {
+        const filter = this.categoryService.measures().find(m=> m.id === id).filters.find((f: string) => f === chip['Filter_ID']);
+        if (!filter) console.log(chip['Filter_ID'], 'have no shared filters with measure', id);
+        const property = this.categoryService.filters().find(f => f.id === filter)?.property;
+        const view = this.categoryService.views().find(v => v.id === id)?.data;
+        const existingProperty = Object.keys(view[0]).find((key) => key === property);
+        if (filter && !existingProperty) console.log(`property ${property} doesnt exist in ${id}`);
+      })
     }
   }
 
@@ -563,7 +574,7 @@ export class CategoryComponent implements OnInit {
           if (index === 10) break;          
           colorIndex++;
           series.push({
-            name: `${measureName} ${data.filterValue}`,
+            name: `${measureName}`, //: ${data.filterValue}`,
             data: data.values,
             color: colors[colorIndex % colors.length]
           });
