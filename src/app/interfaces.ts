@@ -31,6 +31,7 @@ export interface Filter {
 export interface Label {
   title: string;
   data: {
+    filterId: string;
     values: number[];
     checked: boolean;
   }

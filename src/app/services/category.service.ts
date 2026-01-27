@@ -136,7 +136,7 @@ export class CategoryService {
     filterGroups.forEach(filterGroup => {
       const property = this.filters()?.find(f => f.id === filterGroup.filter.id)?.property;
       if (!defaultY && property !== defaultX) defaultY = property;
-      const labels = new Map<string,{values: number[], checked: boolean}>();
+      const labels = new Map<string,{values: number[], checked: boolean, filterId: string}>();
       if (!view) return;
       for (const item of view) {
         if (item[property]) {
@@ -144,6 +144,7 @@ export class CategoryService {
           if(!labels.has(title)) {  
             labels.set(
               title, {
+                filterId: filterGroup.filter.id,
                 values: [],
                 checked: property === defaultX || property === defaultY ? true : false
               });

@@ -187,9 +187,7 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
             return filteredData.some((val: number) => val !== 0 && val !== null && val !== undefined);
           })
           .map(s => {
-            const seriesName = s.name.toString().trim();
-            const groupTitle = (s as any).groupTitle;
-            return groupTitle ? `${groupTitle}: ${seriesName}` : seriesName;
+            return s.name.toString().trim();
           })
       },
       grid: { left: 40, right: 24, top: 100, bottom: 40 },
@@ -224,7 +222,7 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
         const groupTitle = (s as any).groupTitle;
         
         const seriesConfig: any = {
-            name: groupTitle ? `${groupTitle}: ${seriesName}` : seriesName,
+            name: seriesName,
             type: isLine ? 'line' : 'bar',
             data: filteredData,
             itemStyle: { color: s.color },

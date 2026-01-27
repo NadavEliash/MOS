@@ -197,12 +197,17 @@ export class CategoryComponent implements OnInit {
     this.filterGroups.update(allGroups => {
       const updatedGroups = allGroups.map(group => {
         if (group.measureId === measureId) {
-          const index = filterGroupsForMeasure.findIndex(fg => fg.filter.id === group.filter.id);
-          if (index !== -1) {
-            const labels = updatedLabels[index]?.map(label => ({ 
+          // Flatten all labels from the nested array
+          const allLabels = updatedLabels.flat();
+          // Filter labels that match this filter group's id
+          const labels = allLabels
+            .filter(label => label.data.filterId === group.filter.id)
+            .map(label => ({ 
               title: label.title, 
               data: label.data, 
             }));
+          
+          if (labels.length > 0) {
             return {
               ...group,
               filter: {
