@@ -153,16 +153,6 @@ export class CategoryComponent implements OnInit {
       }
 
       this.setMultiGraphData(chip);
-      
-      // Check Chip validity
-      measureIds?.forEach(id => {
-        const filter = this.categoryService.measures().find(m=> m.id === id).filters.find((f: string) => f === chip['Filter_ID']);
-        if (!filter) console.log(chip['Filter_ID'], 'have no shared filters with measure', id);
-        const property = this.categoryService.filters().find(f => f.id === filter)?.property;
-        const view = this.categoryService.views().find(v => v.id === id)?.data;
-        const existingProperty = Object.keys(view[0]).find((key) => key === property);
-        if (filter && !existingProperty) console.log(`property ${property} doesnt exist in ${id}`);
-      })
     }
   }
 
@@ -307,7 +297,7 @@ export class CategoryComponent implements OnInit {
     }
   }
 
-  async setGraphData(measure: Measure, secondMeasure?: Measure) {
+  async setGraphData(measure: Measure) {
     const colors = graphColors;
     let colorIndex = 0;
 
