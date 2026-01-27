@@ -28,7 +28,6 @@
       margin-block: 8px;
     }
 
-    
     .export-btn {
       display: flex;
       align-items: center;
@@ -164,6 +163,15 @@
             top: 100%;
             left: 0;
             z-index: 10;
+          }
+
+          .success-message {
+            color: #28a745;
+            font-size: 14px;
+          
+            &.error {
+              color: #dc3545;
+            }
           }
 
         }
@@ -406,5 +414,119 @@
       }
     }
   }
+
+}
+
+.export-btn-container {
+  position: relative;
+}
+.tooltip-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.tooltip-modal {
+  background: white;
+  border-radius: 8px;
+  padding: 8px 48px 8px 24px;
+  width: 280px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  position: absolute;
+  top: -80px;
+  right: -40px;
+  text-align: center;
+  animation: slideIn 0.3s ease-out;
+  z-index: 15;
+
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .close-btn {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #0068F5;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    border-radius: 50%;
+
+    &:hover {
+      background-color: rgba(0, 104, 245, 0.08);
+    }
+
+    svg {
+      width: 20px;
+      height: 20px;
+    }
+  }
+
+  .tooltip-message {
+    text-align: right;
+    font-size: 14px;
+    color: #6b7a90;
+    line-height: 1.6;
+    margin: 2px;
+  }
+
+  .tooltip-action-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    padding: 14px 28px;
+    background-color: #0068F5;
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 12px rgba(0, 104, 245, 0.2);
+
+    &:hover {
+      background-color: #0052CC;
+      box-shadow: 0 6px 16px rgba(0, 104, 245, 0.3);
+      transform: translateY(-1px);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+
+    svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    span {
+      font-weight: 400;
+    }
+  }
+
 }
 }

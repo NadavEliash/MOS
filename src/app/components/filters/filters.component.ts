@@ -315,11 +315,9 @@ export class FiltersComponent implements OnChanges {
 
   private updateBlockedFilters(measureId: string): void {
     const measure = this.measuresInput.find(m => m.id === measureId);
-    if (!measure || !measure.blockedFilters || measure.blockedFilters.length === 0) {
-        return;
-    }
-
     const filterGroupsForMeasure = this.filterGroupsInput.filter(fg => fg.measureId === measureId);
+    
+    // Reset all filters to enabled first
     filterGroupsForMeasure.forEach(group => group.filter.disabled = false);
 
     const activeFilterIds = new Set(
@@ -328,7 +326,24 @@ export class FiltersComponent implements OnChanges {
             .map(g => g.filter.id)
     );
 
-    if (activeFilterIds.size === 0) {
+    // Exclude xAxis filter from count for stacked bars detection
+    const activeNonXAxisFilterIds = measure?.xAxis 
+        ? new Set([...activeFilterIds].filter(id => id !== measure.xAxis))
+        : activeFilterIds;
+
+    // Check if we have exactly 2 non-xAxis filters with checked labels (stacked bars scenario)
+    if (activeNonXAxisFilterIds.size === 2) {
+        // Disable all other filters except the 2 active ones and the xAxis
+        filterGroupsForMeasure.forEach(group => {
+            if (!activeFilterIds.has(group.filter.id)) {
+                group.filter.disabled = true;
+            }
+        });
+        return; // Skip other blocking logic when in stacked bars mode
+    }
+
+    // Normal blocking logic
+    if (!measure || !measure.blockedFilters || measure.blockedFilters.length === 0 || activeFilterIds.size === 0) {
         return;
     }
     

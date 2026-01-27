@@ -21,14 +21,14 @@
               (copied)="showSuccessMessage($event)">
             </app-share-bar>
           </div>}
-          <button class="excel" (click)="exportToExcel()">
-            <img src="/assets/excel.svg" alt="יצא לאקסל" class="tool-icon"/>
-          </button>
           @if (successMessage()) {
             <div class="success-message" [class.error]="messageType() === 'error'">
               {{ successMessage() }}
             </div>
           }
+          <button class="excel" (click)="exportToExcel()">
+            <img src="/assets/excel.svg" alt="יצא לאקסל" class="tool-icon"/>
+          </button>
       </div>
       @if (graphData().subtitles?.split('#')!.length > 1) {
         <div class="graph-subtitles">

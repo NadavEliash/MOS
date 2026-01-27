@@ -30,6 +30,17 @@ export class ReportComponent implements OnInit {
   private categoryService = inject(CategoryService);
 
   categories = signal<CategoryWithGraphs[]>([]);
+  successMessage = signal<string | null>(null);
+  messageType = signal<'success' | 'error'>('success');
+  showNoSelectionTooltip = signal<boolean>(false);
+
+  showSuccessMessage(message: string, type: 'success' | 'error' = 'success'): void {
+    this.successMessage.set(message);
+    this.messageType.set(type);
+    setTimeout(() => {
+      this.successMessage.set(null);
+    }, 2000);
+  }
 
   ngOnInit(): void {
     this.loadSavedGraphs();
@@ -55,9 +66,14 @@ export class ReportComponent implements OnInit {
     const allGraphs = this.categories().flatMap(cat => cat.graphs);
     const selectedGraphs = allGraphs.filter(graph => graph.selectedForExport);
     if (selectedGraphs.length === 0) {
+      this.showNoSelectionTooltip.set(true);
       return;
     }
     this.cookieService.exportToExcel();
+  }
+
+  closeNoSelectionTooltip(): void {
+    this.showNoSelectionTooltip.set(false);
   }
 
   toggleExportSelection(graphId: string): void {

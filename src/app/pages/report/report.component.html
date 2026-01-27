@@ -3,10 +3,24 @@
     <div class="header-text">
       <h1 class="report-title">הדוח שלי</h1>
       <span class="report-subtitle">כאן תוכלו לצפות בכל הגרפים ששמרתם במהלך הביקור באתר ולייצא גרפים נבחרים במגוון פורמטים לשימוש עתידי.</span>
+      <div class="export-btn-container">
         <button class="export-btn" (click)="exportToExcel()">
           <img src="/assets/export-report.svg" alt="^" class="export-icon"/>
           <span>ייצוא גרפים לאקסל</span>
         </button>
+        @if (showNoSelectionTooltip()) {
+          <div class="tooltip-overlay" (click)="closeNoSelectionTooltip()"></div>
+          <div class="tooltip-modal" (click)="$event.stopPropagation()">
+            <button class="close-btn" (click)="closeNoSelectionTooltip()">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <p class="tooltip-message">לא נבחרו גרפים לייצוא</p>
+          <p class="tooltip-message">יש לסמן את הגרפים שברצונך לייצא</p>
+        </div>
+      }
+      </div>   
     </div>
     <img src="/heros/REPORT.svg" alt="הדוח שלי" class="report-hero">
   </div>
@@ -31,21 +45,27 @@
                 <div class="first-line">
                   <h3 class="graph-report-title">{{ graph.title }}</h3>
                   <div class="graph-report-actions">
+                    @if (successMessage()) {
+                      <div class="success-message" [class.error]="messageType() === 'error'">
+                        {{ successMessage() }}
+                      </div>
+                    }
                     <button class="action-btn share-btn" title="שתף" (click)="toggleShareBar(graph)">
                       <img src="/assets/share.svg" alt="שתף"/>
-                    </button>
-                    <button class="action-btn export-btn" title="יצא לאקסל" (click)="exportToExcel()">
-                      <img src="/assets/excel.svg" alt="יצא לאקסל"/>
                     </button>
                     @if (graph.showShareBar) {
                       <div class="share-bar">
                         <app-share-bar
                           [url]="getShareUrl(graph)"
                           [title]="graph.title"
-                          (close)="closeShareBar(graph)">
+                          (close)="closeShareBar(graph)"
+                          (copied)="showSuccessMessage($event)">
                         </app-share-bar>
                       </div>
                     }
+                    <button class="action-btn export-btn" title="יצא לאקסל" (click)="exportToExcel()">
+                      <img src="/assets/excel.svg" alt="יצא לאקסל"/>
+                    </button>
                   </div>
                 </div>
                 <div class="second-line">
