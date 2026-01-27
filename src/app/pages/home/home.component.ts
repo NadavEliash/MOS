@@ -29,7 +29,15 @@ export class HomeComponent {
     return this.pageData()
      ? this.pageData()[2].Main_Header.match(/^(.*?)(\d+)(.*)$/)
      : '';
-  })
+  });
+  
+  HeaderData = computed(() => {
+    return this.pageData()?.find((d: any) => d.PagePart_ID === "H01");
+  });
+  
+  midData = computed(() => {
+    return this.pageData()?.find((d: any) => d.PagePart_ID === "C01");
+  });
 
   constructor() {
     this.homeService.getPageData('homePage');

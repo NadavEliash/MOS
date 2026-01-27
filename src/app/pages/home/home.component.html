@@ -3,7 +3,7 @@
     @if (pageData()) {
       <h1 class="title">{{ title()[1] }} <span class="year">{{ title()[2] }}</span>,</h1>
       <h1 class="title">{{ title()[3].replace(',', '') }}</h1>
-      <span class="subtitle">{{pageData()[2].Sub_Header}}</span>
+      <span class="subtitle">{{ HeaderData().Sub_Header}}</span>
     }
     <div class="search-wrap">
       <div class="search-bar" [ngClass]="isDrawerOpen ? 'open' : ''" role="search" aria-label="חיפוש בדוח" (keydown)="onKeyDown($event)">
@@ -55,9 +55,9 @@
   <section class="mid">
     @if (pageData()) { 
       <div class="mid-text">
-        <h2 class="mid-title">{{pageData()[1].Main_Header}}</h2>
-        <p class="mid-paragraph">{{pageData()[1].Text}}</p>
-        <a class="link" [href]="pageData()[1].Link">{{pageData()[1]['Link Text']}}
+        <h2 class="mid-title">{{ midData().Main_Header ?? '' }}</h2>
+        <p class="mid-paragraph">{{ midData().Text }}</p>
+        <a class="link" [href]="midData().Link" target="_blank">{{ midData()['Link Text']}}
           <img src="/assets/read-more.svg" alt="↖️" width="16" height="16" />
         </a>
       </div>
