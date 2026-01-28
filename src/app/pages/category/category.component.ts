@@ -152,7 +152,7 @@ export class CategoryComponent implements OnInit {
         this.categoryService.setSelectedMeasure(measureIds[0]);
       }
 
-      this.setMultiGraphData(chip);
+      this.handleChipSelection(chip);
     }
   }
 
@@ -291,18 +291,32 @@ export class CategoryComponent implements OnInit {
     const currentGraphData = this.graphData();
     const measureIds = event.map((e: FilterGroup) => e.measureId).filter((id: string, index: number, self: string[]) => self.indexOf(id) === index);
     
+    // Preserve chip metadata if it exists
+    const chipTitle = currentGraphData?.title;
+    const chipDescription = currentGraphData?.description;
+    const chipSubtitles = currentGraphData?.subtitles;
+    
     if (measureIds.length > 1) {
-      // Multi-measure mode: regenerate with all measures
-      this.setMultiMeasureGraphData(measureIds.map((id:string) => this.measures().find((m: Measure) => m.id === id)!).filter((m: Measure) => m));
+      // Multi-measure mode: regenerate with all measures and preserve chip metadata
+      this.setMultiMeasureGraphData(
+        measureIds.map((id:string) => this.measures().find((m: Measure) => m.id === id)!).filter((m: Measure) => m),
+        chipTitle,
+        chipDescription
+      );
     } else {
       // Single measure mode
       const measureId = event[0].measureId;
       this.updateActiveGraph('measure', measureId);
-      this.setGraphData(this.measures().find(m => m.id === measureId)!);
+      this.setGraphData(
+        this.measures().find(m => m.id === measureId)!,
+        chipTitle,
+        chipDescription,
+        chipSubtitles
+      );
     }
   }
 
-  async setGraphData(measure: Measure) {
+  async setGraphData(measure: Measure, chipTitle?: string, chipDescription?: string, chipSubtitles?: string) {
     const colors = graphColors;
     let colorIndex = 0;
 
@@ -401,7 +415,9 @@ export class CategoryComponent implements OnInit {
     }
     const newGraphData = {
       categoryId: measure.categoryId,
-      title: measure.name,
+      title: chipTitle || measure.name,
+      description: chipDescription,
+      subtitles: chipSubtitles,
       type: graphType,
       categories,
       series,
@@ -410,10 +426,10 @@ export class CategoryComponent implements OnInit {
     this.graphData.set(newGraphData);
   }
 
-  setMultiMeasureGraphData(measures: Measure[]) {
+  setMultiMeasureGraphData(measures: Measure[], chipTitle?: string, chipDescription?: string) {
     if (measures.length === 0) return;
     if (measures.length === 1) {
-      this.setGraphData(measures[0]);
+      this.setGraphData(measures[0], chipTitle, chipDescription);
       return;
     }
 
@@ -437,9 +453,34 @@ export class CategoryComponent implements OnInit {
 
     const series: any[] = [];
 
-    // Create series for each measure (one bar per measure)
+    // Check if any shared filters have checked labels
+    const activeFilters = sharedFilterGroups.filter(fg => 
+      fg.filter.id !== categories.filter.id && 
+      fg.filter.labels?.some(l => l.data.checked)
+    );
+
+    const hasActiveFilters = activeFilters.length > 0;
+    let filterColorMap = new Map<string, string>();
+    let checkedLabels: any[] = [];
+
+    // If there are active filters, prepare color mapping
+    if (hasActiveFilters) {
+      const filterGroup = activeFilters[0];
+      checkedLabels = filterGroup.filter.labels.filter(l => l.data.checked);
+      
+      // Assign colors to filter labels
+      const filterColorOffset = measures.length;
+      checkedLabels.forEach((label, idx) => {
+        filterColorMap.set(label.title, colors[(filterColorOffset + idx) % colors.length]);
+      });
+    }
+
+    // Create series for each measure with its stacked bars immediately after
     measures.forEach((measure, idx) => {
-      const measureName = measures.length > 1 ? measure.name : '';
+      const measureName = `מדד ${idx + 1}`;
+      const stackName = `measure${idx}`;
+      
+      // Add regular measure bar (always)
       const data = this.categoryService.getNoSeriesData(measure, categories, []);
       colorIndex++;
       series.push({
@@ -447,47 +488,31 @@ export class CategoryComponent implements OnInit {
         data: data,
         color: colors[colorIndex % colors.length]
       });
-    });
-
-    // Check if any shared filters have checked labels
-    const activeFilters = sharedFilterGroups.filter(fg => 
-      fg.filter.id !== categories.filter.id && 
-      fg.filter.labels?.some(l => l.data.checked)
-    );
-
-    // If there are active filters, create stacked bars
-    if (activeFilters.length > 0) {
-      const filterGroup = activeFilters[0];
-      const checkedLabels = filterGroup.filter.labels.filter(l => l.data.checked);
       
-      // Assign colors to filter labels
-      const filterColorMap = new Map<string, string>();
-      const filterColorOffset = measures.length;
-      checkedLabels.forEach((label, idx) => {
-        filterColorMap.set(label.title, colors[(filterColorOffset + idx) % colors.length]);
-      });
-
-      // Create stacked series for each measure
-      measures.forEach((measure, measureIdx) => {
+      // Add stacked bars for this measure if filters are active
+      if (hasActiveFilters) {
+        const filterGroup = activeFilters[0];
         checkedLabels.forEach(label => {
-          const data = this.categoryService.getSeriesData(measure, categories, [filterGroup], label);
+          const stackData = this.categoryService.getSeriesData(measure, categories, [filterGroup], label);
           series.push({
             name: label.title,
-            stack: measure.name,
-            data: data,
-            color: filterColorMap.get(label.title)!,
-            groupTitle: `מדד ${measureIdx + 1}`
+            stack: stackName,
+            data: stackData,
+            color: filterColorMap.get(label.title)!
           });
         });
-      });
-    }
+      }
+    });
 
     const measureIds = measures.map(m => m.id);
+    const graphType = hasActiveFilters ? 'stacked-column' : firstMeasure.graphType;
     const newGraphData = {
       categoryId: firstMeasure.categoryId,
-      title: measures.map(m => m.name).join(' + '),
+      title: chipTitle || measures.map(m => m.name).join(' + '),
+      description: chipDescription,
+      subtitles: chipTitle ? measures.map(m => m.name).join('#') : undefined,
       measureIds: measureIds,
-      type: firstMeasure.graphType,
+      type: graphType,
       categories: categories,
       series: series,
       filterGroups: sharedFilterGroups
@@ -496,33 +521,25 @@ export class CategoryComponent implements OnInit {
     this.graphData.set(newGraphData);
   }
 
-  setMultiGraphData(chip: Chip) {
+  handleChipSelection(chip: Chip) {
     if (!chip['Measure ID']) return;
-    const measureIds = chip['Measure ID'].split(',');
+    const measureIds = chip['Measure ID'].split(',').map((id: string) => id.trim());
     const measures = measureIds.map(id => this.measures().find(m => m.id === id)).filter(m => m) as Measure[];
     if (measures.length === 0) return;
 
     const firstMeasure = measures[0];
-    const colors = graphColors;
-    let colorIndex = 0;
-
     const allFilterGroups = this.filterGroups();
-    const measureFilterGroups = allFilterGroups.filter(fg => fg.measureId === firstMeasure.id);
-    const categories = measureFilterGroups.find(fg => fg.filter.id === firstMeasure.xAxis)!;
-
+    const chipFilterIds = chip.Filter_ID.split(',').map(f => f.trim());
+    
+    // Find shared filters across all measures
     const sharedFilterIds = measures.reduce((acc, measure) => {
       const ids = allFilterGroups.filter(fg => fg.measureId === measure.id).map(fg => fg.filter.id);
       return acc.filter(id => ids.includes(id));
     }, allFilterGroups.filter(fg => fg.measureId === measures[0].id).map(fg => fg.filter.id));
-
-    const sharedFilterGroups = sharedFilterIds.map(id => allFilterGroups.find(fg => fg.filter.id === id && fg.measureId === firstMeasure.id)).filter(fg => fg) as FilterGroup[];
-    
-    const chipFilterIds = chip.Filter_ID.split(',').map(f => f.trim());
     
     // Update filterGroups: uncheck all labels, then check only those in chip.Filter_ID
     this.filterGroups.update(groups => {
       return groups.map(group => {
-        // Check if this filter group belongs to one of the chip's measures
         const belongsToChipMeasure = measureIds.includes(group.measureId);
         
         if (belongsToChipMeasure) {
@@ -542,7 +559,7 @@ export class CategoryComponent implements OnInit {
           
           // Check xAxis labels (categories)
           if (group.filter.id === firstMeasure.xAxis) {
-            updatedLabels.slice(0, 10).forEach(label => label.data.checked = true);
+            updatedLabels?.slice(0, 10).forEach(label => label.data.checked = true);
           }
           
           return {
@@ -550,7 +567,7 @@ export class CategoryComponent implements OnInit {
             filter: {
               ...group.filter,
               labels: updatedLabels,
-              disabled: !isSharedFilter, // Disable if not in shared filters
+              disabled: !isSharedFilter,
               expanded: isChipFilter || group.filter.id === firstMeasure.xAxis
             }
           };
@@ -559,37 +576,12 @@ export class CategoryComponent implements OnInit {
       });
     });
     
-    const series: any[] = [];
-    
-    measures.forEach((measure, idx) => {
-      const measureName = measures.length > 1 ? 'מדד ' + (idx + 1) : '';
-      chipFilterIds.forEach(filterId => {
-        const filterData = this.categoryService.getMeasureTotalDataByFilter(measure, filterId, categories);
-        for (const [index, data] of filterData.entries()) {
-          if (index === 10) break;          
-          colorIndex++;
-          series.push({
-            name: `${measureName}`, //: ${data.filterValue}`,
-            data: data.values,
-            color: colors[colorIndex % colors.length]
-          });
-        }
-      });
-    });
-
-    const newGraphData = {
-      categoryId: firstMeasure.categoryId,
-      title: chip.Chip_Name,
-      subtitles: measures.map(m => m.name).join('#'),
-      description: chip.Chip_Description,
-      measureIds: measureIds,
-      type: firstMeasure.graphType,
-      categories: categories,
-      series: series,
-      filterGroups: sharedFilterGroups
-    };
-
-    this.graphData.set(newGraphData);
+    // Call appropriate graph function based on number of measures
+    if (measures.length > 1) {
+      this.setMultiMeasureGraphData(measures, chip.Chip_Name, chip.Chip_Description);
+    } else {
+      this.setGraphData(measures[0], chip.Chip_Name, chip.Chip_Description, measures.map(m => m.name).join('#'));
+    }
   }
 
   async reloadGraph() {

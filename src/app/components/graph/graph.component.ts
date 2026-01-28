@@ -129,6 +129,9 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
         formatter: (params: any) => {
           if (!Array.isArray(params)) return '';
           
+          // Check if there are any stacked bars in the series
+          const hasStackedBars = (chartData?.series || []).some((s: any) => s.stack);
+          
           // Filter out items with value of 0 or undefined
           const filteredParams = params.filter((param: any) => 
             param.value !== 0 && param.value !== undefined && param.value !== null
@@ -136,18 +139,45 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
           
           if (filteredParams.length === 0) return '';
           
-          const tooltipItems = filteredParams.map((param: any) => {
+          const tooltipItems = filteredParams.map((param: any, idx: number) => {
             const value = typeof param.value === 'number' 
               ? param.value.toLocaleString(undefined, { maximumFractionDigits: 2 }) 
               : param.value;
-            const title = param.seriesName?.length > 20 
-              ? param.seriesName.substring(0, 20) + '...' 
-              : param.seriesName;
+            
+            // Find the corresponding series by matching seriesIndex from ECharts
+            const seriesIndex = param.seriesIndex;
+            const reversedIndex = (chartData?.series?.length || 0) - 1 - seriesIndex;
+            const series = chartData?.series?.[reversedIndex];
+            const isStackedSeries = !!series?.stack;
+            
+            // Only use 'מדד + index' for non-stacked series when there are multiple measures
+            let title;
+            const hasMultipleMeasures = chartData?.measureIds && chartData.measureIds.length > 1;
+            if (hasMultipleMeasures && !isStackedSeries) {
+              // This is a measure bar, use 'מדד + index' pattern
+              // Only count non-stacked series (measure bars) for the index
+              const measureSeries = chartData.series.filter((s: any) => !s.stack);
+              const measureIndex = measureSeries.findIndex((s: any) => s.name === series?.name);
+              title = `מדד ${measureIndex + 1}`;
+            } else {
+              // This is a filter bar, use the actual name from the series object
+              const seriesName = series?.name || param.seriesName;
+              title = seriesName?.length > 20 
+                ? seriesName.substring(0, 20) + '...' 
+                : seriesName;
+            }
+            
             const color = param.color || '#000';
+            const isRegularBar = hasStackedBars && !isStackedSeries;
+            
+            // Apply bold and underline to regular bars when stacked bars exist
+            const titleStyle = isRegularBar 
+              ? 'font-weight: 700; text-decoration: underline;' 
+              : '';
             
             return `<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
               <div style="width: 12px; height: 12px; border-radius: 50%; background-color: ${color}; flex-shrink: 0;"></div>
-              <span style="color: #6b7a90; flex: 1; margin-right: 8px; text-align: right;">${title}</span>
+              <span style="color: #6b7a90; flex: 1; margin-right: 8px; text-align: right; ${titleStyle}">${title}</span>
               <span style="font-weight: 600; color: #123248; margin-right: 16px;">${value}</span>
             </div>`;
           }).reverse().join('');
@@ -186,7 +216,16 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
             }
             return filteredData.some((val: number) => val !== 0 && val !== null && val !== undefined);
           })
-          .map(s => {
+          .map((s, idx, arr) => {
+            // Only use 'מדד + index' for non-stacked series when there are multiple measures
+            const hasMultipleMeasures = chartData?.measureIds && chartData.measureIds.length > 1;
+            const isStackedSeries = s.stack;
+            if (hasMultipleMeasures && !isStackedSeries) {
+              // Only count non-stacked series (measure bars) for the index
+              const measureSeries = chartData.series.filter((series: any) => !series.stack);
+              const measureIndex = measureSeries.findIndex((series: any) => series.name === s.name);
+              return `מדד ${measureIndex + 1}`;
+            }
             return s.name.toString().trim();
           })
       },
@@ -209,6 +248,9 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
         const isLine = this.data?.type?.toLowerCase().includes('line');
         const isStacked = this.data?.type?.toLowerCase().includes('stacked');
         
+        // Check if there are any stacked bars in the entire series
+        const hasStackedBars = (chartData?.series || []).some((series: any) => series.stack);
+        
         // Filter data to match checked x-axis labels
         let filteredData = s.data;
         if (chartData?.categories?.filter?.labels) {
@@ -221,8 +263,19 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
         const seriesName = s.name.toString().trim();
         const groupTitle = (s as any).groupTitle;
         
+        // Only use 'מדד + index' for non-stacked series when there are multiple measures
+        let displayName = seriesName;
+        const hasMultipleMeasures = chartData?.measureIds && chartData.measureIds.length > 1;
+        const isStackedSeries = s.stack;
+        if (hasMultipleMeasures && !isStackedSeries) {
+          // Only count non-stacked series (measure bars) for the index
+          const measureSeries = chartData.series.filter((series: any) => !series.stack);
+          const measureIndex = measureSeries.findIndex((series: any) => series.name === s.name);
+          displayName = `מדד ${measureIndex + 1}`;
+        }
+        
         const seriesConfig: any = {
-            name: seriesName,
+            name: displayName,
             type: isLine ? 'line' : 'bar',
             data: filteredData,
             itemStyle: { color: s.color },
@@ -242,7 +295,7 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
                 borderColor: 'rgba(255, 255, 255, 0)',
                 borderRadius: [5, 5, 0, 0]
             };
-            seriesConfig.barWidth = 12;
+            seriesConfig.barWidth = hasStackedBars && !s.stack ? 18 : 12;
             seriesConfig.barGap = '20%';
             seriesConfig.label = {
                 show: false,
