@@ -26,9 +26,8 @@ export class HomeComponent {
   selectedResultIndex: number = -1;
 
   title = computed(() => {
-    return this.pageData()
-     ? this.pageData()[2].Main_Header.match(/^(.*?)(\d+)(.*)$/)
-     : '';
+    return this.pageData()?.find((d: any) => d.PagePart_ID === "H01")?.Main_Header.match(/^(.*?)(\d+)(.*)$/) ?? 
+    ['', 'נתוני הרווחה בישראל לשנת', `${new Date().getFullYear()}`, 'לחוקרים ואנשי המקצוע'];
   });
   
   HeaderData = computed(() => {
