@@ -156,6 +156,7 @@
   padding-block: 16px;
   cursor: pointer;
   font-size: 16px;
+  color: #333;
   gap: 8px;
   &:has(.left-arrow) { font-size: 18px; font-weight: 500; }
   &.expanded { color: #0068f5; font-weight: 500; .arrow { filter: brightness(0) saturate(100%) invert(42%) sepia(92%) saturate(6601%) hue-rotate(206deg) brightness(101%) contrast(101%); } }
