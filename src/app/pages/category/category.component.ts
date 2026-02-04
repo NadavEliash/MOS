@@ -47,7 +47,7 @@ export class CategoryComponent implements OnInit {
     })
   }
 
-  ngOnInit() {
+  ngOnInit() {    
     this.categoryService.getCategories()
     .then((categories) => {
       this.updateSavedCategories();
@@ -92,6 +92,7 @@ export class CategoryComponent implements OnInit {
 
   ngOnDestroy() {
     this.categoryService.selectedMeasure.set(undefined);
+    this.categoryService.selectedSavedGraph.set(undefined);
   }
 
   updateSavedCategories() {
