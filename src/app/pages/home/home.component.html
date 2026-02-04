@@ -11,13 +11,18 @@
           <img src="/assets/search-icon.svg" alt="search" width="20" height="20" />
         </button>
         <input
-          type="search"
+          type="text"
           class="search-input"
           placeholder="חיפוש בדוח לפי מילת מפתח. לדוגמה: אזרחים ותיקים, רשות מקומית, תקציב"
           aria-label="חיפוש בדוח"
           [value]="searchTerm()"
           (input)="onSearchInput($event)"
           />
+        @if (searchTerm()) {
+          <button class="clear-btn" type="button" aria-label="נקה חיפוש" (click)="resetSearch()" (keydown.enter)="resetSearch()">
+            <img src="/assets/close-icon.svg" alt="×" width="16" height="16" />
+          </button>
+        }
           @if (isDrawerOpen) {
           <div class="drawer">
             @if (searchResults.length > 0) {
@@ -46,10 +51,14 @@
       </div>
     </div>
     <div class="chips" role="navigation" aria-label="קישורים מהירים">
-      @for (chip of chips(); track chip.Category_ID) {<a class="chip" [ngClass]="{'no-tooltip': isDrawerOpen}" href="javascript:void(0)" (click)="onChipClick(chip.Category_ID)" [attr.title]="isDrawerOpen ? null : chip['ToolTip/Hover']" tabindex="0">
-        {{ chip.Category_Name }}
+      @for (chip of chips(); track chip.Category_ID) {
+      <div class="chip-wrapper" [ngClass]="{'no-tooltip': isDrawerOpen}">
+        <a class="chip" href="javascript:void(0)" (click)="onChipClick(chip.Category_ID)" (focus)="isDrawerOpen = false" [attr.title]="isDrawerOpen ? null : chip['ToolTip/Hover']" tabindex="0">
+          {{ chip.Category_Name }}
+        </a>
         <div class="chip-tooltip">{{ chip['ToolTip/Hover'] }}</div>
-      </a>}
+      </div>
+      }
     </div>
   </section>
   <section class="mid">

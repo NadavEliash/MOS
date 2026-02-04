@@ -90,6 +90,29 @@
   box-shadow: 0 0 0 4px rgba(6,74,157,0.08);
 }
 
+.clear-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  border: none;
+  background: rgba(6,74,157,0.08);
+  color: var(--color-dark-blue);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.clear-btn:hover {
+  background: rgba(6,74,157,0.14);
+}
+
+.clear-btn:focus {
+  outline: 2px solid var(--color-blue);
+  outline-offset: 2px;
+}
+
 .drawer {
   position: absolute;
   top: 60px;
@@ -194,6 +217,11 @@
   z-index: 2;
 }
 
+.chip-wrapper {
+  position: relative;
+  display: inline-flex;
+}
+
 .chip {
   display: inline-flex;
   align-items: center;
@@ -206,16 +234,14 @@
   background: transparent;
   text-decoration: none;
   font-size: 14px;
-  position: relative;
   box-sizing: border-box;
   text-align: center;
   white-space: nowrap; /* keep text on one line */
-  overflow: visible;
 }
 
-.chip:not(.no-tooltip):hover { background: rgba(6,74,157,0.03); }
+.chip:hover { background: rgba(6,74,157,0.03); }
 
-.chip.no-tooltip .chip-tooltip {
+.chip-wrapper.no-tooltip .chip-tooltip {
   display: none;
 }
 
@@ -253,7 +279,8 @@
   border-top: 10px solid #ffffff;
 }
 
-.chip:hover .chip-tooltip {
+.chip-wrapper:hover .chip-tooltip,
+.chip:focus + .chip-tooltip {
   opacity: 1;
   transform: translateX(-50%) translateY(0);
   pointer-events: auto;
