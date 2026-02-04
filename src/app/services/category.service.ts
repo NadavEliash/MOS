@@ -152,7 +152,21 @@ export class CategoryService {
         }
       }
       if (labels.size > 0) {
-        const labelsArray = Array.from(labels, ([title, data]) => ({ title, data }));
+        const labelsArray = Array.from(labels, ([title, data]) => ({ title, data }))
+          .sort((a, b) => {
+            const aStr = String(a.title);
+            const bStr = String(b.title);
+            const aNum = parseFloat(aStr);
+            const bNum = parseFloat(bStr);
+            
+            // If both are valid numbers, sort numerically
+            if (!isNaN(aNum) && !isNaN(bNum)) {
+              return aNum - bNum;
+            }
+            
+            // Otherwise, sort alphabetically with Hebrew locale
+            return aStr.localeCompare(bStr, 'he');
+          });
         if (labelsArray.length > 10) {
           labelsArray.forEach((label, index) => {
             if ((property === defaultX || property === defaultY) && index < 10) {
