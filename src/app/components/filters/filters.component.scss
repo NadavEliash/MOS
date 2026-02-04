@@ -79,6 +79,9 @@
   text-align: right;
   font-family: inherit;
   &:focus {
+    outline: none;
+  }
+  &:focus-visible {
     outline: 2px solid var(--color-blue);
     outline-offset: -2px;
     border-radius: 8px;
@@ -165,6 +168,9 @@
   font-family: inherit;
   padding: 8px;
   &:focus {
+    outline: none;
+  }
+  &:focus-visible {
     outline: 2px solid var(--color-blue);
     outline-offset: 2px;
     border-radius: 8px;
@@ -196,6 +202,9 @@
   text-align: right;
   font-family: inherit;
   &:focus {
+    outline: none;
+  }
+  &:focus-visible {
     outline: 2px solid var(--color-blue);
     outline-offset: -2px;
     border-radius: 8px;
@@ -223,6 +232,9 @@
     text-align: right;
     font-family: inherit;
     &:focus {
+    outline: none;
+    }
+    &:focus-visible {
       outline: 2px solid var(--color-blue);
       outline-offset: 2px;
     }
