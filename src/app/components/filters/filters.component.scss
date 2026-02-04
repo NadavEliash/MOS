@@ -103,6 +103,7 @@
   font-size: 16px;
   color: #333;
   margin-bottom: 16px;
+  position: relative;
   &.select-all { font-size: 14px; }
   &.in-measure { padding-block: 8px; }
   input[type="checkbox"] { 
@@ -111,6 +112,8 @@
     width: 24px;
     height: 24px;
     cursor: pointer;
+    right: 0;
+    z-index: 1;
   }
   input[type="checkbox"]:focus ~ .checkmark {
     outline: 2px solid var(--color-blue);

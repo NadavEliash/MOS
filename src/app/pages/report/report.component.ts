@@ -94,8 +94,12 @@ export class ReportComponent implements OnInit {
     });
   }
 
-  toggleShareBar(graph: ExtendedGraph): void {
-    graph.showShareBar = !graph.showShareBar;
+  toggleShareBar(graph: ExtendedGraph | null): void {
+    if (graph) {
+      graph.showShareBar = !graph.showShareBar;
+    } else {
+      this.categories().find(c => c.graphs.some(g => g.showShareBar))?.graphs.forEach(g => g.showShareBar = false);
+    }
   }
 
   closeShareBar(graph: ExtendedGraph): void {

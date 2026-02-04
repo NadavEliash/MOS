@@ -8,8 +8,6 @@ footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  max-width: 1200px;
-  margin: 0 auto;
   padding: 0 15px;
 }
 
@@ -22,6 +20,7 @@ footer {
     margin-left: 1.5rem;
     text-decoration: none;
     color: #333;
+    padding: 4px;
 
     &:hover {
       color: var(--color-blue);
@@ -32,6 +31,7 @@ footer {
     width: 100px;
     height: auto;
     margin-bottom: -8px;
+    padding: 4px;
   }
 }
 
@@ -42,6 +42,7 @@ footer {
   a {
     margin-right: 1.5rem;
     display: inline-block;
+    padding: 3px;
 
     img {
       transition: transform 0.3s;

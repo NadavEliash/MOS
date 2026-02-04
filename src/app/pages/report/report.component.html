@@ -4,7 +4,7 @@
       <h1 class="report-title">הדוח שלי</h1>
       <span class="report-subtitle">כאן תוכלו לצפות בכל הגרפים ששמרתם במהלך הביקור באתר ולייצא גרפים נבחרים במגוון פורמטים לשימוש עתידי.</span>
       <div class="export-btn-container">
-        <button class="export-btn" (click)="exportToExcel()">
+        <button class="export-btn" (click)="exportToExcel()" (focus)="toggleShareBar(null)">
           <img src="/assets/export-report.svg" alt="^" class="export-icon"/>
           <span>ייצוא גרפים לאקסל</span>
         </button>
@@ -51,7 +51,7 @@
                       </div>
                     }
                     <button class="action-btn share-btn" title="שתף" (click)="toggleShareBar(graph)">
-                      <img src="/assets/share.svg" alt="שתף"/>
+                      <img class="share-icon" src="/assets/share.svg" alt="שתף"/>
                     </button>
                     @if (graph.showShareBar) {
                       <div class="share-bar">
@@ -63,7 +63,7 @@
                         </app-share-bar>
                       </div>
                     }
-                    <button class="action-btn export-btn" title="יצא לאקסל" (click)="exportToExcel()">
+                    <button class="action-btn export-btn" title="יצא לאקסל" (click)="exportToExcel()" (focus)="toggleShareBar(null)">
                       <img src="/assets/excel.svg" alt="יצא לאקסל"/>
                     </button>
                   </div>
@@ -71,11 +71,11 @@
                 <div class="second-line">
 
                   <label class="checkbox-label">
-                    <input type="checkbox" [checked]="graph.selectedForExport" (change)="toggleExportSelection(graph.id)">
+                    <input type="checkbox" [checked]="graph.selectedForExport" (change)="toggleExportSelection(graph.id)" (keydown.enter)="$event.preventDefault(); toggleExportSelection(graph.id)">
                     <span class="checkmark"></span>
                     ייצוא לאקסל
                   </label>
-                  <button class="return-link" (click)="returnToGraph(graph)">
+                  <button class="return-link" (click)="returnToGraph(graph)" (focus)="toggleShareBar(null)" >
                     <span>חזרה לגרף</span>
                     <img src="/assets/return.svg" alt="→"/>
                   </button>

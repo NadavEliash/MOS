@@ -138,6 +138,12 @@
 
     &:hover { background: rgba(0, 0, 0, 0.05); }
     img { width: 20px; height: 20px; }
+
+    .share-icon {
+      display: block;
+      width: 20px;
+      height: 20px
+    }
   }
 
   .share-bar { position: absolute; top: 100%; left: 0; z-index: 10; }
@@ -155,8 +161,22 @@
   font-size: 14px;
   color: #333;
   gap: 6px;
+  position: relative;
 
-  input[type="checkbox"] { display: none; }
+  input[type="checkbox"] { 
+    position: absolute;
+    opacity: 0;
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+    right: 0;
+    z-index: 1;
+  }
+
+  input[type="checkbox"]:focus ~ .checkmark {
+    outline: 2px solid var(--color-blue);
+    outline-offset: 2px;
+  }
 
   .checkmark {
     width: 24px;
