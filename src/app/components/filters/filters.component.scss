@@ -118,7 +118,7 @@
     right: 0;
     z-index: 1;
   }
-  input[type="checkbox"]:focus ~ .checkmark {
+  input[type="checkbox"]:focus-visible ~ .checkmark {
     outline: 2px solid var(--color-blue);
     outline-offset: 2px;
   }
