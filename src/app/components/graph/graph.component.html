@@ -7,26 +7,28 @@
         <h4 class="graph-description">{{ graphData().description }}</h4>
       </div>
       <div class="graph-tools">
-        <div class="save-graph-wrapper" (click)="saveGraph()">
+        <button class="save-graph-wrapper" type="button" class="share-btns" (click)="saveGraph()" (focus)="toggleShareBar(false)">
           <img src="/assets/save-graph.svg" alt="save" class="tool-icon" (click)="saveGraph()" style="cursor: pointer;"/>
           <span class="save-graph">שמירת גרף</span>
-        </div>  
-          <img src="/assets/share.svg" alt="שתף" class="tool-icon" (click)="toggleShareBar()" style="cursor: pointer;"/>
+        </button>
+        <button type="button" class="share-btns" (click)="toggleShareBar()">
+          <img src="/assets/share.svg" alt="שתף" class="tool-icon" />
+        </button>  
           @if (showShareBar) {
-            <div class="share-bar">
+            <div type="button" class="share-bar">
               <app-share-bar
               [url]="getShareUrl()"
               [title]="graphData().title!"
               (close)="closeShareBar()"
               (copied)="showSuccessMessage($event)">
             </app-share-bar>
-          </div>}
+            </div>}
           @if (successMessage()) {
             <div class="success-message" [class.error]="messageType() === 'error'">
               {{ successMessage() }}
             </div>
           }
-          <button class="excel" (click)="exportToExcel()">
+          <button class="share-btns" (click)="exportToExcel()" (focus)="toggleShareBar(false)">
             <img src="/assets/excel.svg" alt="יצא לאקסל" class="tool-icon"/>
           </button>
       </div>

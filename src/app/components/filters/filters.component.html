@@ -9,40 +9,40 @@
         @if (showGrouped) {
             @for (group of groupedMeasures; track group.id) {
                 <div class="measure-item">
-                    <div class="measure-title" (click)="selectGroup(group)">
+                    <button type="button" class="measure-title" (click)="selectGroup(group)">
                         <span>{{ group.name }}</span>
                         <img class="left-arrow" src="/assets/measure-arrow.svg" alt="◀️"/>
-                    </div>
+                    </button>
                 </div>
             }
         } @else {
             @if (selectedGroupName) { 
-                <div class="grouped-measure-title" (click)="showGrouped = true">
+                <button type="button" class="grouped-measure-title" (click)="showGrouped = true">
                     <img class="right-arrow" src="/assets/measure-arrow.svg" alt="◀️"/>
                     <span class="selected-group-title">{{ selectedGroupName }}</span>
-                </div> }
+                </button> }
             @for (measure of measures; track measure.id) {
                 <div class="measure-item">
-                    <div class="measure-title" [class.expanded]="measure.expanded" (click)="toggleMeasure(measure)">
+                    <button type="button" class="measure-title" [class.expanded]="measure.expanded" (click)="toggleMeasure(measure)">
                         <span>{{ measure.name }}</span>
                         <img class="arrow" [class.expanded]="measure.expanded" src="/assets/filter-arrow.svg" alt="🔽"/>
-                    </div>
+                    </button>
                     @if (measure.expanded) {
                         <div class="filter-groups-container">
                             @for (group of getFilterGroupsForMeasure(measure.id); track group.filter.id) {
                                 <div class="filter-group-item" [class.disabled]="group.filter.disabled">
-                                    <div class="group-header" [class.expanded]="group.filter.expanded" (click)="!group.filter.disabled && toggleFilterGroup(group)">
+                                    <button type="button" class="group-header" [class.expanded]="group.filter.expanded" (click)="!group.filter.disabled && toggleFilterGroup(group)" [disabled]="group.filter.disabled">
                                         <img class="arrow-left" [class.expanded]="group.filter.expanded" src="/assets/measure-arrow.svg" alt="◀️"/>
                                         <span class="group-title">{{ group.filter.name }}</span>
-                                    </div>
+                                    </button>
                                     @if (group.filter.expanded) {
                                         <div class="group-content">
                                             @if (hasManyLabals(group)) {
-                                                <!-- <label class="checkbox-label select-all">
-                                                    <input type="checkbox" [checked]="areAllSelected(group)" (change)="toggleSelectAll(group)" [disabled]="group.filter.disabled">
+                                                <label class="checkbox-label select-all">
+                                                    <input type="checkbox" [checked]="areAllSelected(group)" (change)="toggleSelectAll(group)" (keydown.enter)="$event.preventDefault(); toggleSelectAll(group)" [disabled]="group.filter.disabled">
                                                     <span class="checkmark"></span>
-                                                    בחר הכל
-                                                </label> -->
+                                                    בחירה מרובה
+                                                </label>
                                                 <div class="search-wrapper">
                                                     <img class="search-icon" src="/assets/search-icon.svg" alt="🔍"/>
                                                     <input type="text" class="search-input" placeholder="חיפוש..." (input)="onSearchChange($event, group.filter.id)">
@@ -50,7 +50,7 @@
                                             }
                                             @for (label of getFilteredLabels(group); track label.title) {
                                                 <label class="checkbox-label">
-                                                    <input type="checkbox" [checked]="label.data.checked" (change)="onCheckboxChange(label)" [disabled]="group.filter.disabled">
+                                                    <input type="checkbox" [checked]="label.data.checked" (change)="onCheckboxChange(label)" (keydown.enter)="$event.preventDefault(); onCheckboxChange(label)" [disabled]="group.filter.disabled">
                                                     <span class="checkmark"></span>
                                                     {{ label.title }}
                                                 </label>

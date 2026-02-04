@@ -345,8 +345,8 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
     this.cookieService.exportToExcel([graph]);
   }
 
-  toggleShareBar(): void {
-    this.showShareBar = !this.showShareBar;
+  toggleShareBar(show?: boolean): void {
+    show !== undefined ? this.showShareBar = show : this.showShareBar = !this.showShareBar;
   }
 
   closeShareBar(): void {
