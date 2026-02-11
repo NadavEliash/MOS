@@ -353,7 +353,7 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
     this.showShareBar = false;
   }
 
-  getShareUrl(): string {
+  getShareUrl(): string {    
     if (!this.data) {
       return '';
     }
@@ -381,7 +381,7 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
     const baseUrl = window.location.origin;
     const graphDataString = JSON.stringify(shareableData);
     const encodedGraphData = encodeURIComponent(graphDataString);
-
+    
     return `${baseUrl}/category?id=${categoryId}&graph=${encodedGraphData}`;
   }
 

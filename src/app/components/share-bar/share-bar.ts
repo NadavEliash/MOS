@@ -16,14 +16,15 @@ export class ShareBar {
 
   shareViaMail(): void {
     const subject = encodeURIComponent(`שיתוף גרף: ${this.title}`);
-    const body = encodeURIComponent(`בדוק את הגרף הזה: ${this.url}`);
+    const body = encodeURIComponent(`גרף שיכול לעניין אותך מאתר נתוני הרווחה:\n${this.url}`);
     const mailtoUrl = `mailto:?subject=${subject}&body=${body}`;
     window.open(mailtoUrl, '_blank');
     this.close.emit();
   }
 
   shareViaWhatsapp(): void {
-    window.open(`https://wa.me/?text=${this.url}`, '_blank');
+    const message = `גרף שיכול לעניין אותך מאתר נתוני הרווחה:\n${this.url}`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
     this.close.emit();
   }
 

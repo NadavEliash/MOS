@@ -11,14 +11,14 @@ export const links = {
 }
 
 export const graphColors = [
-      "#7BD1F7",
-      "#006BF5",
-      "#064A9D",
-      "#FF70BF",
-      "#FF8497",
+      "#a3e2fd",
+      "#1379ff",
+      "#043775",
+      "#ff90cd",
+      "#ff5f77",
       "#DEAAFF",
-      "#70D7BD",
+      "#8df8dd",
       "#00F587",
-      "#FFBF1F",
+      "#ffa51f",
       "#F2DD54"
 ];
