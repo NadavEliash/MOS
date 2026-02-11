@@ -225,9 +225,14 @@ export class CategoryComponent implements OnInit {
   }
 
   onSelectMeasure(measureId: string) {
+    this.loadingGraph.set(false);
     if (!measureId) {
       this.graphData.set(undefined);
       return;
+    }
+    if (this.categoryService.views().every(v => v.id !== measureId)) {
+      this.graphData.set(undefined);
+      this.loadingGraph.set(true);
     }
     this.categoryService.setSelectedMeasure(measureId);
     this.updateActiveGraph('measure', measureId);
@@ -425,6 +430,7 @@ export class CategoryComponent implements OnInit {
       filterGroups: this.filterGroups()
     };
     this.graphData.set(newGraphData);
+    this.loadingGraph.set(false);
   }
 
   setMultiMeasureGraphData(measures: Measure[], chipTitle?: string, chipDescription?: string) {

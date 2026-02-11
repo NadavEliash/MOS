@@ -48,6 +48,7 @@ export class CategoryService {
 
   private layersMeasures: any[] = [];
   private allChips: Chip[] = [];
+  private pendingViewRequests = new Map<string, Promise<any>>();
 
   async getCategories(): Promise<Category[] | null> {
     if (this.categories()?.length! > 0) {
@@ -111,10 +112,28 @@ export class CategoryService {
   }
       
   async getView(measureId: string) {
+    // Check if view already exists
     if (this.views().some(v => v.id === measureId)) return;
-    let view = await this.apiService.getStatistics(measureId.replace(/\D+/g, ''));
-    this.views().push({id: measureId, data: view});
-    return {id: measureId, data: view};
+    
+    // Check if request is already in progress
+    if (this.pendingViewRequests.has(measureId)) {
+      return this.pendingViewRequests.get(measureId);
+    }
+    
+    // Create and store the promise
+    const requestPromise = this.apiService.getStatistics(measureId.replace(/\D+/g, ''))
+      .then(view => {
+        this.views().push({id: measureId, data: view});
+        this.pendingViewRequests.delete(measureId);
+        return {id: measureId, data: view};
+      })
+      .catch(error => {
+        this.pendingViewRequests.delete(measureId);
+        throw error;
+      });
+    
+    this.pendingViewRequests.set(measureId, requestPromise);
+    return requestPromise;
   }
 
   async getFilters() {
