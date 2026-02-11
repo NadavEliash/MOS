@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { footerLinks } from '../../services/static.data';
+import { links } from '../../services/static.data';
 
 @Component({
   selector: 'app-footer',
@@ -9,5 +9,5 @@ import { footerLinks } from '../../services/static.data';
   styleUrl: './footer.scss'
 })
 export class Footer {
-  links = footerLinks
+  links = links
 }

@@ -53,7 +53,10 @@
     <div class="chips" role="navigation" aria-label="קישורים מהירים">
       @for (chip of chips(); track chip.Category_ID) {
       <div class="chip-wrapper" [ngClass]="{'no-tooltip': isDrawerOpen}">
-        <a class="chip" href="javascript:void(0)" (click)="onChipClick(chip.Category_ID)" (focus)="isDrawerOpen = false" [attr.title]="isDrawerOpen ? null : chip['ToolTip/Hover']" tabindex="0">
+        <a class="chip" href="javascript:void(0)" 
+        (click)="onChipClick(chip.Category_ID)" 
+        (focus)="isDrawerOpen = false" 
+        [attr.aria-label]="isDrawerOpen ? null : chip['ToolTip/Hover']" tabindex="0">
           {{ chip.Category_Name }}
         </a>
         <div class="chip-tooltip">{{ chip['ToolTip/Hover'] }}</div>

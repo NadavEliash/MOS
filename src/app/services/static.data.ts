@@ -1,5 +1,6 @@
-export const footerLinks = {
+export const links = {
     ministrySite: 'https://www.gov.il/he/departments/molsa/govil-landing-page',
+    ministrySiteAbout: 'https://www.gov.il/he/departments/topics/molsa-policies-and-procedures/govil-landing-page',
     phone: '118',
     facebook: 'https://www.facebook.com/molsa.gov.il',
     x: 'https://x.com/Social_Israel',
