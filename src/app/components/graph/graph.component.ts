@@ -104,6 +104,13 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
     if (!this.chart) return;
     const chartData = this.graphData();
     const isLine = this.data?.type?.toLowerCase().includes('line');
+    
+    // Check if this is a rate measure (values are percentages)
+    const isRate = chartData?.series?.some(s => 
+      s.data.some((val: number) => val > 0 && val <= 100)
+    ) && chartData?.series?.every(s => 
+      s.data.every((val: number) => val === 0 || (val > 0 && val <= 100))
+    );
 
     const option: echarts.EChartsCoreOption = {
       tooltip: {
@@ -130,6 +137,13 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
         formatter: (params: any) => {
           if (!Array.isArray(params)) return '';
           
+          // Check if this is a rate measure (values are percentages)
+          const isRateMeasure = chartData?.series?.some(s => 
+            s.data.some((val: number) => val > 0 && val <= 100)
+          ) && chartData?.series?.every(s => 
+            s.data.every((val: number) => val === 0 || (val > 0 && val <= 100))
+          );
+          
           // Check if there are any stacked bars in the series
           const hasStackedBars = (chartData?.series || []).some((s: any) => s.stack);
           
@@ -142,7 +156,9 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
           
           const tooltipItems = filteredParams.map((param: any, idx: number) => {
             const value = typeof param.value === 'number' 
-              ? param.value.toLocaleString(undefined, { maximumFractionDigits: 2 }) 
+              ? (isRateMeasure 
+                  ? param.value.toLocaleString(undefined, { maximumFractionDigits: 2 }) + '%'
+                  : param.value.toLocaleString(undefined, { maximumFractionDigits: 2 }))
               : param.value;
             
             // Find the corresponding series by matching seriesIndex from ECharts
@@ -243,7 +259,11 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
         type: "value",
         axisLine: { show: false },
         splitLine: { lineStyle: { color: "rgba(90, 124, 167, 0.15)" } },
-        axisLabel: { color: "#866b90ff", fontFamily: "Rubik, sans-serif" }
+        axisLabel: { 
+          color: "#866b90ff", 
+          fontFamily: "Rubik, sans-serif",
+          formatter: isRate ? '{value}%' : '{value}'
+        }
       },
       series: [...(chartData?.series || [])].reverse().map(s => {
         const isLine = this.data?.type?.toLowerCase().includes('line');

@@ -201,6 +201,22 @@ export class CategoryService {
     return updatedLabels;
   }
 
+  private isMeasureRate(measure: Measure): boolean {
+    const viewData = this.views().find(v => v.id === measure.id)?.data;
+    if (!viewData || viewData.length === 0) return false;
+    
+    // Sample first 100 items to check if values are between 0-1
+    const sampleSize = Math.min(100, viewData.length);
+    const values = viewData.slice(0, sampleSize)
+      .map((item: any) => item[measure.value])
+      .filter((val: any) => val !== null && val !== undefined && !isNaN(val));
+    
+    if (values.length === 0) return false;
+    
+    // Check if there's sampled values that decimal
+    return values.some((val: number) => val % 1 !== 0);
+  }
+
   getSeriesData(measure: Measure, categories: FilterGroup, filterGroups: FilterGroup[], label: Label, firstLabel?: Label): number[] {
     let seriesData: number[] = [];
     const viewData = this.views().find(v => v.id === measure.id)?.data;
@@ -208,13 +224,14 @@ export class CategoryService {
     const filterGroup = filterGroups.find(fg => fg.filter.labels?.some(l => l.title === label.title));
     const moreFilterGroups = filterGroups.slice(1).filter(fg => fg.filter.labels?.some(l => l.data.checked));
     const moreFilterLabels = moreFilterGroups.map(fg => (fg.filter.labels?.filter(l => l.data.checked).map(l => l.title)));
+    const isRate = this.isMeasureRate(measure);
 
     // For stacked series: if firstLabel is provided, use it as an additional filter
     const firstFilterGroup = firstLabel ? filterGroups.find(fg => fg.filter.labels?.some(l => l.title === firstLabel.title)) : null;
 
     if (viewData && xAxis && filterGroup) {
       categories.filter.labels.forEach(l => {
-        const sum = viewData.reduce((acc: number, item: any) => {
+        const matchingItems = viewData.filter((item: any) => {
           const mainCondition = item[xAxis] === l.title && item[filterGroup.filter.property] === label.title;
           
           // If firstLabel is provided, add it as a condition
@@ -230,12 +247,21 @@ export class CategoryService {
             return true;
           });
 
-          if (mainCondition && firstLabelCondition && additionalFiltersCondition) {
-            acc+=item[measure.value];
+          return mainCondition && firstLabelCondition && additionalFiltersCondition;
+        });
+
+        let value = 0;
+        if (isRate) {
+          // Calculate average and convert to percentage
+          if (matchingItems.length > 0) {
+            const sum = matchingItems.reduce((acc: number, item: any) => acc + item[measure.value], 0);
+            value = (sum / matchingItems.length) < 1 ? (sum / matchingItems.length) * 100 : sum / matchingItems.length;
           }
-          return acc;
-        }, 0)
-        seriesData.push(sum);
+        } else {
+          // Calculate sum
+          value = matchingItems.reduce((acc: number, item: any) => acc + item[measure.value], 0);
+        }
+        seriesData.push(value);
       });
     }
 
@@ -246,6 +272,7 @@ export class CategoryService {
     let seriesData: number[] = [];
     const viewData = this.views().find(v => v.id === measure.id)?.data;
     const xAxis = this.filters()?.find(f => f.id === categories?.filter.id)?.property;
+    const isRate = this.isMeasureRate(measure);
     
     if (!viewData || !xAxis) return [];
 
@@ -270,13 +297,22 @@ export class CategoryService {
       this.filters()?.find(f => f.id === b)?.property
     ));
     categories?.filter.labels.forEach(l => {
-      const sum = viewData.reduce((acc: number, item: any) => {
-        if (item[xAxis] === l.title && !blockedFilters.some(f => item[f])) {                    
-          acc += item[measure.value];
+      const matchingItems = viewData.filter((item: any) => 
+        item[xAxis] === l.title && !blockedFilters.some(f => item[f])
+      );
+
+      let value = 0;
+      if (isRate) {
+        // Calculate average and convert to percentage
+        if (matchingItems.length > 0) {
+          const sum = matchingItems.reduce((acc: number, item: any) => acc + item[measure.value], 0);
+          value = (sum / matchingItems.length) < 1 ? (sum / matchingItems.length) * 100 : sum / matchingItems.length;
         }
-        return acc;
-      }, 0);
-      seriesData.push(sum);
+      } else {
+        // Calculate sum
+        value = matchingItems.reduce((acc: number, item: any) => acc + item[measure.value], 0);
+      }
+      seriesData.push(value);
     });
     return seriesData;
   }
@@ -334,16 +370,24 @@ export class CategoryService {
     let seriesData: number[] = [];
     const viewData = this.views().find(v => v.id === measure.id)?.data;
     const xAxis = this.filters()?.find(f => f.id === categories?.filter.id)?.property;
+    const isRate = this.isMeasureRate(measure);
 
     if (viewData && xAxis) {
       categories.filter.labels.forEach(l => {
-        const sum = viewData.reduce((acc: number, item: any) => {
-          if (item[xAxis] === l.title) {
-            acc += item[measure.value];
+        const matchingItems = viewData.filter((item: any) => item[xAxis] === l.title);
+        
+        let value = 0;
+        if (isRate) {
+          // Calculate average and convert to percentage
+          if (matchingItems.length > 0) {
+            const sum = matchingItems.reduce((acc: number, item: any) => acc + item[measure.value], 0);
+            value = (sum / matchingItems.length) < 1 ? (sum / matchingItems.length) * 100 : sum / matchingItems.length;
           }
-          return acc;
-        }, 0);
-        seriesData.push(sum);
+        } else {
+          // Calculate sum
+          value = matchingItems.reduce((acc: number, item: any) => acc + item[measure.value], 0);
+        }
+        seriesData.push(value);
       });
     }
 
