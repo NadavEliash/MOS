@@ -40,6 +40,7 @@
 .reset-button {
   background: transparent;
   border: none;
+  border-radius: 4px;
   padding: 8px 12px;
   font-size: 16px;
   color: #333;
@@ -243,7 +244,7 @@
   }
   .group-content {
     padding: 12px 8px 16px 28px;
-    background: #F1F  5FB;
+    background: #F1F5FB;
     border-radius: 0 0 8px 8px;
     .filter-item:last-child { margin-bottom: 0; }
   }

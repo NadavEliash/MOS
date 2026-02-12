@@ -110,6 +110,10 @@
   right: 32px;
   bottom: 10px;
   top: 140px;
+  opacity: 1;
+  &.no-category {
+  opacity: 0.3;
+}
 }
 
 .headless .chart {

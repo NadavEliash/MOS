@@ -38,7 +38,7 @@
         </div>}
     </div>}
   
-    <div #chartEl class="chart"></div> 
+    <div [ngClass]="{'no-category': !data?.series?.length}" #chartEl class="chart"></div> 
   } @else  {
     <div class="graph-error">
       <img src="/assets/graph-error.svg"/>
@@ -50,7 +50,7 @@
   
   @if (isLoading) {
     <span class="loader"></span>
-  } @else if (!data?.categories?.filter?.labels?.length || !data?.series?.length) {
+  } @else if (noCategory() || !data?.series?.length) {
     <div class="graph-error">
       <img src="/assets/graph-no-data.svg"/>
       <h2>לא נבחרו מדדים לגרף</h2>

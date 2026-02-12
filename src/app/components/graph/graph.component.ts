@@ -50,7 +50,7 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
   graphData = signal<GraphData>(this.emptyGraph);
   successMessage = signal<string | null>(null);
   messageType = signal<'success' | 'error'>('success');
-  
+  noCategory = signal<boolean>(false);
   @ViewChild("chartEl") chartEl: ElementRef<HTMLDivElement> | undefined;
 
   private chart?: echarts.ECharts;
@@ -75,6 +75,7 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['data'] || changes['chartType']) {
       this.getChartData();
+      this.noCategory.set(!this.data?.categories?.filter?.labels?.some(l => l.data.checked));
       if (this.chart) {
         this.updateChart();
       } else {

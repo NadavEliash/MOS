@@ -273,11 +273,38 @@ export class FiltersComponent implements OnChanges {
   }
 
   resetFilters() {
+    // Reset all filter selections
     this.filterGroupsInput.forEach(fg => {
         fg.filter.labels?.forEach(l => l.data.checked = false);
     });
     this.measures.forEach(m => this.updateBlockedFilters(m.id));
-    this.selectionChange.emit(this.filterGroupsInput);
+    
+    // If we're currently in measure view, go back to grouped view
+    if (!this.showGrouped && this.groupedMeasures.length > 0) {
+      // Collapse all measures
+      this.measures.forEach(m => m.expanded = false);
+      
+      // Go back to grouped view
+      this.showGrouped = true;
+      this.selectedGroupName = '';
+      
+      // Restore original measures list
+      this.measures = this.measuresInput
+        .filter((measure, idx, measures) => idx === measures.findIndex((m) => m.id === measure.id))
+        .map(m => ({
+          id: m.id,
+          name: m.name,
+          expanded: false,
+        }));
+    } else {
+      // If already in grouped view or no groups, just collapse all measures
+      this.measures.forEach(m => m.expanded = false);
+    }
+    
+    // Clear the graph
+    this.currentGraphData.set(undefined);
+    this.data = undefined;
+    this.selectMeasure.emit('');
   }
 
   hasManyLabals(group: InputFilterGroup): boolean {
