@@ -23,6 +23,7 @@ export class CategoryComponent implements OnInit {
   private apiService = inject(ApiService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  private abortController: AbortController | null = null;
   
   readonly categories = this.categoryService.categories;
   readonly measures = this.categoryService.measures;
@@ -107,6 +108,10 @@ export class CategoryComponent implements OnInit {
   }
 
   ngOnDestroy() {
+    // Cancel any ongoing background process
+    if (this.abortController) {
+      this.abortController.abort();
+    }
     this.categoryService.selectedMeasure.set(undefined);
     this.categoryService.selectedSavedGraph.set(undefined);
   }
@@ -126,33 +131,58 @@ export class CategoryComponent implements OnInit {
   }
 
   async onSelectCategory(id: string, resetGraph: boolean = false) {
+    // Cancel any previous background process
+    if (this.abortController) {
+      this.abortController.abort();
+    }
+    this.abortController = new AbortController();
+    const signal = this.abortController.signal;
+    
     this.graphData.set(undefined);
     this.loadingGraph.set(true);
     this.categoryService.setSelectedCategory(this.categories()!.find(c => c.Category_ID === id)?.Category_ID!);    
-    await this.categoryService.getChips(id);
-
-    this.filterGroups.set([]);
-    const measures = await this.categoryService.getMeasures(id);
-    const chipMeasures = measures.filter(m => this.chips()[0]['Measure ID']?.includes(m.id));
-
-    for (const measure of chipMeasures) {      
-      await this.categoryService.getView(measure.id);
-      this.setFilterGroups(measure);
-    };
     
-    if (resetGraph) {
-      this.onSelectChip(this.chips()[0].Chip_ID);
+    try {
+      if (signal.aborted) return;
+      await this.categoryService.getChips(id);
+
+      this.filterGroups.set([]);
+      if (signal.aborted) return;
+      const measures = await this.categoryService.getMeasures(id);
+      const chipMeasures = measures.filter(m => this.chips()[0]['Measure ID']?.includes(m.id));
+
+      for (const measure of chipMeasures) {
+        if (signal.aborted) return;
+        await this.categoryService.getView(measure.id);
+        this.setFilterGroups(measure);
+      };
+      
+      if (resetGraph) {
+        if (signal.aborted) return;
+        this.onSelectChip(this.chips()[0].Chip_ID);
+      }
+      this.loadingGraph.set(false);
+      
+      const otherMeasures = measures.filter(m => !this.chips()[0]['Measure ID']?.includes(m.id));
+      for (const measure of otherMeasures) {
+        if (signal.aborted) return;
+        await this.categoryService.getView(measure.id);
+        this.setFilterGroups(measure);
+      };
+    } catch (error: any) {
+      if (error.name !== 'AbortError') {
+        throw error;
+      }
     }
-    this.loadingGraph.set(false);
-    
-    const otherMeasures = measures.filter(m => !this.chips()[0]['Measure ID']?.includes(m.id));
-    for (const measure of otherMeasures) {
-      await this.categoryService.getView(measure.id);
-      this.setFilterGroups(measure);
-    };
   }
   
   onSelectChip(id: string) {
+    // Cancel any previous background process
+    if (this.abortController) {
+      this.abortController.abort();
+    }
+    this.abortController = new AbortController();
+    
     let updatedChips = this.chips();
     if (updatedChips.find(chip => chip.isActive)) {
       updatedChips.find(chip => chip.isActive)!.isActive = false;
@@ -241,6 +271,12 @@ export class CategoryComponent implements OnInit {
   }
 
   onSelectMeasure(measureId: string) {
+    // Cancel any previous background process
+    if (this.abortController) {
+      this.abortController.abort();
+    }
+    this.abortController = new AbortController();
+    
     this.loadingGraph.set(false);
     if (!measureId) {
       this.graphData.set(undefined);
@@ -276,24 +312,39 @@ export class CategoryComponent implements OnInit {
   }
 
   async getSpecificMeasure(measureId: string) {
-    const data = await this.apiService.getStatistics('layersMeasures');
-    const measureData = data.find((m: any) => m['Measure ID'] === measureId);
-    if (measureData) {
-      const measure = {
-        id: measureData['Measure ID'],
-        name: measureData['Measure Name'],
-        filters: measureData.Filters.split(', '),
-        blockedFilters: measureData['Blocked Filters']?.split(', '),
-        xAxis: measureData['X Axis Default'],
-        yAxis: measureData['Y Axis Default'],
-        value: measureData['Default Value Attribute'],
-        relations: measureData['Measure_Relations'],
-        graphType: measureData['Graph'],
-        categoryId: measureData.Category_ID
-      };
-      this.measures.update(m => [...m, measure]);
-      this.updateActiveGraph('measure', measureId);
-      this.setGraphData(this.measures().find(m => m.id === measureId)!);
+    // Cancel any previous background process
+    if (this.abortController) {
+      this.abortController.abort();
+    }
+    this.abortController = new AbortController();
+    const signal = this.abortController.signal;
+    
+    try {
+      if (signal.aborted) return;
+      const data = await this.apiService.getStatistics('layersMeasures');
+      const measureData = data.find((m: any) => m['Measure ID'] === measureId);
+      if (measureData) {
+        if (signal.aborted) return;
+        const measure = {
+          id: measureData['Measure ID'],
+          name: measureData['Measure Name'],
+          filters: measureData.Filters.split(', '),
+          blockedFilters: measureData['Blocked Filters']?.split(', '),
+          xAxis: measureData['X Axis Default'],
+          yAxis: measureData['Y Axis Default'],
+          value: measureData['Default Value Attribute'],
+          relations: measureData['Measure_Relations'],
+          graphType: measureData['Graph'],
+          categoryId: measureData.Category_ID
+        };
+        this.measures.update(m => [...m, measure]);
+        this.updateActiveGraph('measure', measureId);
+        this.setGraphData(this.measures().find(m => m.id === measureId)!);
+      }
+    } catch (error: any) {
+      if (error.name !== 'AbortError') {
+        throw error;
+      }
     }
   }
   
@@ -626,6 +677,12 @@ export class CategoryComponent implements OnInit {
   }
 
   onSelectSavedGraph(id: string) {
+    // Cancel any previous background process
+    if (this.abortController) {
+      this.abortController.abort();
+    }
+    this.abortController = new AbortController();
+    
     const savedData = this.savedGraphs().find(graph => graph.id === id);
     if (savedData) {
       const updatedSavedGraphs = this.savedGraphs().map(graph => ({ ...graph, isActive: false }));
@@ -644,18 +701,24 @@ export class CategoryComponent implements OnInit {
   }
 
   async getContent() {
-    const data = await this.apiService.getStatistics('dimRelevantContent');
-    const content = data.map((item: any) => ({
-      id: item.Article_ID,
-      categoryId: item.Category_ID,
-      title: item['כותרת מאמר'],
-      subtitle: item['נכתב ע\"י'],
-      description: item['תיאור מאמר'],
-      link: item['לינק למאמר'],
-      img: item.ImageSource
-    }))
-    this.articles.set(content);
-    this.linkedItems.set(content.filter((i: any) => i.categoryId === this.selectedCategory()?.Category_ID));
-    return content;
+    try {
+      const data = await this.apiService.getStatistics('dimRelevantContent');
+      const content = data.map((item: any) => ({
+        id: item.Article_ID,
+        categoryId: item.Category_ID,
+        title: item['כותרת מאמר'],
+        subtitle: item['נכתב ע"י'],
+        description: item['תיאור מאמר'],
+        link: item['לינק למאמר'],
+        img: item.ImageSource
+      }))
+      this.articles.set(content);
+      this.linkedItems.set(content.filter((i: any) => i.categoryId === this.selectedCategory()?.Category_ID));
+      return content;
+    } catch (error: any) {
+      if (error.name !== 'AbortError') {
+        throw error;
+      }
+    }
   }
 }
