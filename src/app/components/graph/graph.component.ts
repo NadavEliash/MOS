@@ -178,7 +178,7 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
               title = `מדד ${measureIndex + 1}`;
             } else {
               // This is a filter bar, use the actual name from the series object
-              const seriesName = series?.name || param.seriesName;
+              const seriesName = (series?.name || param.seriesName)?.toString().trim();
               title = seriesName?.length > 20 
                 ? seriesName.substring(0, 20) + '...' 
                 : seriesName;
