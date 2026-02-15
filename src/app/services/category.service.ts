@@ -252,10 +252,10 @@ export class CategoryService {
 
         let value = 0;
         if (isRate) {
-          // Calculate average and convert to percentage
+          // Calculate average
           if (matchingItems.length > 0) {
             const sum = matchingItems.reduce((acc: number, item: any) => acc + item[measure.value], 0);
-            value = (sum / matchingItems.length) < 1 ? (sum / matchingItems.length) * 100 : sum / matchingItems.length;
+            value = sum / matchingItems.length;
           }
         } else {
           // Calculate sum
@@ -303,10 +303,10 @@ export class CategoryService {
 
       let value = 0;
       if (isRate) {
-        // Calculate average and convert to percentage
+        // Calculate average
         if (matchingItems.length > 0) {
           const sum = matchingItems.reduce((acc: number, item: any) => acc + item[measure.value], 0);
-          value = (sum / matchingItems.length) <= 1 ? (sum / matchingItems.length) * 100 : sum / matchingItems.length;
+          value = sum / matchingItems.length;
         }
       } else {
         // Calculate sum
@@ -378,10 +378,10 @@ export class CategoryService {
         
         let value = 0;
         if (isRate) {
-          // Calculate average and convert to percentage
+          // Calculate average
           if (matchingItems.length > 0) {
             const sum = matchingItems.reduce((acc: number, item: any) => acc + item[measure.value], 0);
-            value = (sum / matchingItems.length) <= 1 ? (sum / matchingItems.length) * 100 : sum / matchingItems.length;
+            value = sum / matchingItems.length;
           }
         } else {
           // Calculate sum

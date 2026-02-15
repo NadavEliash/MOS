@@ -47,6 +47,22 @@ export class CategoryComponent implements OnInit {
     })
   }
 
+  private normalizeSeriesData(series: any[]): any[] {
+    // Collect all non-zero values from all series
+    const allValues = series.flatMap(s => s.data).filter((v: number) => v > 0);
+    
+    // Check if all non-zero values are between 0 and 1
+    if (allValues.length > 0 && allValues.every((v: number) => v <= 1)) {
+      // Multiply all values by 100
+      return series.map(s => ({
+        ...s,
+        data: s.data.map((v: number) => v * 100)
+      }));
+    }
+    
+    return series;
+  }
+
   ngOnInit() {    
     this.categoryService.getCategories()
     .then((categories) => {
@@ -426,7 +442,7 @@ export class CategoryComponent implements OnInit {
       subtitles: chipSubtitles,
       type: graphType,
       categories,
-      series,
+      series: this.normalizeSeriesData(series),
       filterGroups: this.filterGroups()
     };
     this.graphData.set(newGraphData);
@@ -521,7 +537,7 @@ export class CategoryComponent implements OnInit {
       measureIds: measureIds,
       type: graphType,
       categories: categories,
-      series: series,
+      series: this.normalizeSeriesData(series),
       filterGroups: sharedFilterGroups
     };
 
