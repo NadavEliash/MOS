@@ -36,6 +36,7 @@
   font-size: 18px;
   font-weight: 600;
   color: var(--color-dark-blue);
+
   &.long {
     font-size: 16px;
   }
@@ -101,7 +102,7 @@
   height: 24px;
   object-fit: contain;
   cursor: pointer;
-  filter: drop-shadow(0 2px 6px rgba(6,74,157,0.08));
+  filter: drop-shadow(0 2px 6px rgba(6, 74, 157, 0.08));
 }
 
 .chart {
@@ -111,9 +112,10 @@
   bottom: 10px;
   top: 140px;
   opacity: 1;
+
   &.no-category {
-  opacity: 0.3;
-}
+    opacity: 0.3;
+  }
 }
 
 .headless .chart {
@@ -139,7 +141,7 @@
     font-size: 20px;
     margin: 0;
   }
-  
+
   h3 {
     font-weight: 400;
     font-size: 16px;
@@ -182,9 +184,10 @@
   box-sizing: border-box;
   animation: animloader 0.3s 0.3s linear infinite alternate;
 }
+
 .loader::after,
 .loader::before {
-  content: '';  
+  content: '';
   box-sizing: border-box;
   width: 8px;
   height: 40px;
@@ -193,8 +196,9 @@
   position: absolute;
   bottom: 0;
   left: 20px;
-  animation: animloader1 0.3s  0.45s  linear infinite alternate;
+  animation: animloader1 0.3s 0.45s linear infinite alternate;
 }
+
 .loader::before {
   left: -20px;
   animation-delay: 0s;
@@ -205,6 +209,7 @@
     height: 40px;
     transform: translateY(0);
   }
+
   100% {
     height: 10px;
     transform: translateY(30px);
@@ -215,8 +220,26 @@
   0% {
     height: 48px;
   }
+
   100% {
     height: 4.8px;
   }
 }
-    
+
+.active-filters {
+  width: 100%;
+  margin-top: 4px;
+
+  .filter-item {
+    margin-bottom: 4px;
+    font-size: 14px;
+    color: #5878A4;
+    border-left: 1px solid #B5C7E2;
+    padding-left: 8px;
+    margin-left: 8px;
+
+    &:last-child {
+      border-left: none;
+    }
+  }
+}
