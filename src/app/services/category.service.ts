@@ -4,9 +4,9 @@ import { ApiService } from "./api.service";
 import { FilterGroup, Label, Measure } from "../interfaces";
 
 export interface Category {
-  Category_ID: string; 
-  Category_Name: string; 
-  ['ToolTip/Hover']: string; 
+  Category_ID: string;
+  Category_Name: string;
+  ['ToolTip/Hover']: string;
   Description: string;
   Link: string;
   group: string[];
@@ -35,7 +35,7 @@ export interface Chip {
 
 export class CategoryService {
   private apiService = inject(ApiService);
-  
+
   categories = signal<Category[] | null>(null);
   selectedCategory = signal<Category | undefined>(undefined);
   groupedMeasures = signal<any[]>([]);
@@ -57,36 +57,36 @@ export class CategoryService {
 
     let newCategories: Category[] = [];
     await this.apiService.getStatistics('categories').then((data) => {
-        newCategories = data.map((item: any) => ({
-          ...item,
-          chips: item.Chip_ID.split(', '),
-          group: item['Group Category ID']?.split(', '),
-          icon: `/icons/${item.Category_ID}.svg`,
-          isSaved: false,
-        }))
-      });
-      
-      this.categories.set(newCategories);
-      this.getGroupedMesures();
-      return newCategories;
-  } 
-  
+      newCategories = data.map((item: any) => ({
+        ...item,
+        chips: item.Chip_ID.split(', '),
+        group: item['Group Category ID']?.split(', '),
+        icon: `/icons/${item.Category_ID}.svg`,
+        isSaved: false,
+      }))
+    });
+
+    this.categories.set(newCategories);
+    this.getGroupedMesures();
+    return newCategories;
+  }
+
   async getChips(id: string) {
     if (this.categories()) {
       if (!this.allChips.length) {
         this.allChips = await this.apiService.getStatistics('chips');
       }
       this.chips.set(this.allChips.filter((chip: any) => chip.Category_ID === id)
-      .map((chip: any, idx: number) => {return {...chip, isActive: false}}));
+        .map((chip: any, idx: number) => { return { ...chip, isActive: false } }));
     }
   }
 
   async getGroupedMesures() {
     let groupedCategories: string[] = await this.apiService.getStatistics('groupCategories');
-    const groupedMeasures = groupedCategories.map((category:any) => ({
+    const groupedMeasures = groupedCategories.map((category: any) => ({
       id: category['Group Category ID'],
       name: category['Group Category Name'],
-      measures: category['MeasureIDs']?.replace('(', '').replace(')', '').trim().split(',').map((id:any) => id.trim())
+      measures: category['MeasureIDs']?.replace('(', '').replace(')', '').trim().split(',').map((id: any) => id.trim())
     }));
     this.groupedMeasures.set(groupedMeasures);
   }
@@ -94,12 +94,12 @@ export class CategoryService {
   async getMeasures(categoryId: string) {
     if (!this.layersMeasures.length) {
       this.layersMeasures = await this.apiService.getStatistics('layersMeasures')
-    } 
+    }
     const categoryMeasures = this.layersMeasures.filter((m: any) => m.Category_ID === categoryId).map((measure: any) => ({
       id: measure['Measure ID'],
       name: measure['Measure Name'],
       filters: measure.Filters.split(',').map((f: string) => f.trim()),
-      blockedFilters: measure['Blocked Filters']?.split(', '),
+      blockedFilters: this.parseBlockedFilters(measure['Blocked Filters']),
       xAxis: measure['X Axis Default'],
       yAxis: measure['Y Axis Default'],
       value: measure['Default Value Attribute'],
@@ -110,28 +110,40 @@ export class CategoryService {
     this.measures.set(categoryMeasures);
     return categoryMeasures;
   }
-      
+
+  parseBlockedFilters(str: string): any {
+    if (!str) return null;
+    const groups = str.match(/\[(.*?)\]/g);
+    if (groups) {
+      const parsedGroups = groups.map((group: string) =>
+        group.replace('[', '').replace(']', '').split(',').map(s => s.trim())
+      );
+      return parsedGroups.length === 1 ? parsedGroups[0] : parsedGroups;
+    }
+    return str.split(',').map((s: string) => s.trim());
+  }
+
   async getView(measureId: string) {
     // Check if view already exists
     if (this.views().some(v => v.id === measureId)) return;
-    
+
     // Check if request is already in progress
     if (this.pendingViewRequests.has(measureId)) {
       return this.pendingViewRequests.get(measureId);
     }
-    
+
     // Create and store the promise
     const requestPromise = this.apiService.getStatistics(measureId.replace(/\D+/g, ''))
       .then(view => {
-        this.views().push({id: measureId, data: view});
+        this.views().push({ id: measureId, data: view });
         this.pendingViewRequests.delete(measureId);
-        return {id: measureId, data: view};
+        return { id: measureId, data: view };
       })
       .catch(error => {
         this.pendingViewRequests.delete(measureId);
         throw error;
       });
-    
+
     this.pendingViewRequests.set(measureId, requestPromise);
     return requestPromise;
   }
@@ -142,7 +154,7 @@ export class CategoryService {
       id: item.Filter_ID,
       name: item.Filter_Name,
       property: item.DB_Attributes
-     })));
+    })));
   }
 
   getLabels(measureId: string, filterGroups: any[]) {
@@ -151,22 +163,22 @@ export class CategoryService {
     const measure = this.measures()?.find(f => f.id === measureId);
     const defaultX = this.filters().find(f => f.id === measure?.xAxis)?.property;
     let defaultY = measure?.yAxis;
-    
+
     filterGroups.forEach(filterGroup => {
       const property = this.filters()?.find(f => f.id === filterGroup.filter.id)?.property;
       if (!defaultY && property !== defaultX) defaultY = property;
-      const labels = new Map<string,{values: number[], checked: boolean, filterId: string}>();
+      const labels = new Map<string, { values: number[], checked: boolean, filterId: string }>();
       if (!view) return;
       for (const item of view) {
         if (item[property]) {
           const title = item[property];
-          if(!labels.has(title)) {  
+          if (!labels.has(title)) {
             labels.set(
               title, {
-                filterId: filterGroup.filter.id,
-                values: [],
-                checked: property === defaultX || property === defaultY ? true : false
-              });
+              filterId: filterGroup.filter.id,
+              values: [],
+              checked: property === defaultX || property === defaultY ? true : false
+            });
           }
         }
       }
@@ -177,12 +189,12 @@ export class CategoryService {
             const bStr = String(b.title);
             const aNum = parseFloat(aStr);
             const bNum = parseFloat(bStr);
-            
+
             // If both are valid numbers, sort numerically
             if (!isNaN(aNum) && !isNaN(bNum)) {
               return aNum - bNum;
             }
-            
+
             // Otherwise, sort alphabetically with Hebrew locale
             return aStr.localeCompare(bStr, 'he');
           });
@@ -204,15 +216,15 @@ export class CategoryService {
   private isMeasureRate(measure: Measure): boolean {
     const viewData = this.views().find(v => v.id === measure.id)?.data;
     if (!viewData || viewData.length === 0) return false;
-    
+
     // Sample first 100 items to check if values are between 0-1
     const sampleSize = Math.min(100, viewData.length);
     const values = viewData.slice(0, sampleSize)
       .map((item: any) => item[measure.value])
       .filter((val: any) => val !== null && val !== undefined && !isNaN(val));
-    
+
     if (values.length === 0) return false;
-    
+
     // Check if there's sampled values that decimal
     return values.some((val: number) => val % 1 !== 0);
   }
@@ -233,10 +245,10 @@ export class CategoryService {
       categories.filter.labels.forEach(l => {
         const matchingItems = viewData.filter((item: any) => {
           const mainCondition = item[xAxis] === l.title && item[filterGroup.filter.property] === label.title;
-          
+
           // If firstLabel is provided, add it as a condition
-          const firstLabelCondition = firstLabel && firstFilterGroup 
-            ? item[firstFilterGroup.filter.property] === firstLabel.title 
+          const firstLabelCondition = firstLabel && firstFilterGroup
+            ? item[firstFilterGroup.filter.property] === firstLabel.title
             : true;
 
           const additionalFiltersCondition = moreFilterGroups.every((fg, index) => {
@@ -273,12 +285,12 @@ export class CategoryService {
     const viewData = this.views().find(v => v.id === measure.id)?.data;
     const xAxis = this.filters()?.find(f => f.id === categories?.filter.id)?.property;
     const isRate = this.isMeasureRate(measure);
-    
+
     if (!viewData || !xAxis) return [];
 
     const firstFilterGroup = filterGroups.find(fg => fg.filter.property !== categories.filter.property);
     let blockedFilters: any[] = [];
-    
+
     if (measure.blockedFilters === null) {
       blockedFilters = [];
     } else {
@@ -292,12 +304,12 @@ export class CategoryService {
         }
       })
     }
-    
+
     blockedFilters = blockedFilters.filter(b => b !== firstFilterGroup?.filter.id).map(b => (
       this.filters()?.find(f => f.id === b)?.property
     ));
     categories?.filter.labels.forEach(l => {
-      const matchingItems = viewData.filter((item: any) => 
+      const matchingItems = viewData.filter((item: any) =>
         item[xAxis] === l.title && !blockedFilters.some(f => item[f])
       );
 
@@ -330,13 +342,13 @@ export class CategoryService {
     const firstFilterLabels = firstFilterGroup.filter.labels.filter(l => l.data.checked);
     const secondFilterLabels = secondFilterGroup.filter.labels.filter(l => l.data.checked);
 
-    
+
     categories.filter.labels.forEach(xAxisLabel => {
       secondFilterLabels.forEach(secondLabel => {
         const seriesName = secondLabel.title;
         const stackName = xAxisLabel.title;
         const seriesData: number[] = [];
-        
+
         firstFilterLabels.forEach(firstLabel => {
           const sum = viewData.reduce((acc: number, item: any) => {
             const xAxisCondition = item[xAxis] === xAxisLabel.title;
@@ -348,21 +360,21 @@ export class CategoryService {
             }
             return acc;
           }, 0);
-          
+
           seriesData.push(sum);
         });
 
-        series.push({ 
-          name: seriesName, 
-          stack: stackName, 
+        series.push({
+          name: seriesName,
+          stack: stackName,
           data: seriesData,
           firstFilterLabel: xAxisLabel.title,
           secondFilterLabel: secondLabel.title
         });
-        
+
       });
     });
-    
+
     return series;
   }
 
@@ -375,7 +387,7 @@ export class CategoryService {
     if (viewData && xAxis) {
       categories.filter.labels.forEach(l => {
         const matchingItems = viewData.filter((item: any) => item[xAxis] === l.title);
-        
+
         let value = 0;
         if (isRate) {
           // Calculate average
@@ -432,7 +444,7 @@ export class CategoryService {
   setSelectedCategory(id: string) {
     this.selectedCategory.set(this.categories()?.find(c => c.Category_ID === id)!);
   }
-  
+
   setSelectedMeasure(id: string) {
     this.selectedMeasure.set(id);
   }

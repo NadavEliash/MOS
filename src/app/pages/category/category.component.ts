@@ -329,8 +329,8 @@ export class CategoryComponent implements OnInit {
         const measure = {
           id: measureData['Measure ID'],
           name: measureData['Measure Name'],
-          filters: measureData.Filters.split(', '),
-          blockedFilters: measureData['Blocked Filters']?.split(', '),
+          filters: measureData.Filters.split(',').map((f: string) => f.trim()),
+          blockedFilters: this.categoryService.parseBlockedFilters(measureData['Blocked Filters']),
           xAxis: measureData['X Axis Default'],
           yAxis: measureData['Y Axis Default'],
           value: measureData['Default Value Attribute'],
