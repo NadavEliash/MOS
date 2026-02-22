@@ -55,19 +55,30 @@
                             </button>
                             @if (group.filter.expanded) {
                             <div class="group-content">
-                                @if (hasManyLabals(group)) {
+                                @if (hasManyLabels(group)) {
                                 <label class="checkbox-label select-all">
-                                    <input type="checkbox" [checked]="areAllSelected(group)"
+                                    <input type="checkbox" [checked]="isAnyFilteredSelected(group)"
                                         (change)="toggleSelectAll(group)"
                                         (keydown.enter)="$event.preventDefault(); toggleSelectAll(group)"
                                         [disabled]="group.filter.disabled">
                                     <span class="checkmark"></span>
-                                    בחירה מרובה
+                                    {{ isAnyFilteredSelected(group) ? 'נקה בחירה' : 'בחר הכל' }}
                                 </label>
                                 <div class="search-wrapper">
                                     <img class="search-icon" src="/assets/search-icon.svg" alt="🔍" />
-                                    <input type="text" class="search-input" placeholder="חיפוש..."
+                                    <input #searchInput type="text" class="search-input" placeholder="חיפוש..."
+                                        [value]="searchTerms.get(group.filter.id) || ''"
                                         (input)="onSearchChange($event, group.filter.id)">
+                                    @if (searchTerms.get(group.filter.id)) {
+                                    <button type="button" class="clear-search"
+                                        (click)="clearSearch(group.filter.id); searchInput.value = ''">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round">
+                                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                                        </svg>
+                                    </button>
+                                    }
                                 </div>
                                 }
                                 @for (label of getFilteredLabels(group); track label.title) {
@@ -79,6 +90,28 @@
                                     <span class="checkmark"></span>
                                     {{ label.title }}
                                 </label>
+                                } @empty {
+                                @if (searchTerms.get(group.filter.id)) {
+                                <div class="no-results">לא נמצאה התאמה</div>
+                                }
+                                }
+
+                                @if (searchTerms.get(group.filter.id) && getSelectedLabelsNotMatching(group).length > 0)
+                                {
+                                <div class="selected-labels-section">
+                                    <div class="selected-labels-divider"></div>
+                                    <div class="selected-labels-header">בחירות נוספות:</div>
+                                    @for (label of getSelectedLabelsNotMatching(group); track label.title) {
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" [checked]="label.data.checked"
+                                            (change)="onCheckboxChange(label)"
+                                            (keydown.enter)="$event.preventDefault(); onCheckboxChange(label)"
+                                            [disabled]="group.filter.disabled">
+                                        <span class="checkmark"></span>
+                                        {{ label.title }}
+                                    </label>
+                                    }
+                                </div>
                                 }
                             </div>
                             }

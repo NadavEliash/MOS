@@ -284,27 +284,37 @@ export class FiltersComponent implements OnChanges {
     this.selectMeasure.emit('');
   }
 
-  hasManyLabals(group: InputFilterGroup): boolean {
-    return group.filter.labels?.length > 10;
+  hasManyLabels(group: InputFilterGroup): boolean {
+    return group.filter.labels?.length > 15;
   }
 
-  areAllSelected(group: InputFilterGroup): boolean {
-    const filteredLabels = this.getFilteredLabels(group);
-    return filteredLabels.length > 0 && filteredLabels.every(label => label.data.checked);
+  isAnyFilteredSelected(group: InputFilterGroup): boolean {
+    return group.filter.labels?.some(label => label.data.checked) ?? false;
   }
 
   toggleSelectAll(group: InputFilterGroup): void {
-    const filteredLabels = this.getFilteredLabels(group);
-    const allSelected = this.areAllSelected(group);
-    filteredLabels.forEach(label => {
-      label.data.checked = !allSelected;
-    });
+    const anySelected = this.isAnyFilteredSelected(group);
+
+    if (anySelected) {
+      group.filter.labels.forEach(label => {
+        label.data.checked = false;
+      });
+    } else {
+      const filteredLabels = this.getFilteredLabels(group);
+      filteredLabels.forEach(label => {
+        label.data.checked = true;
+      });
+    }
     this.selectionChange.emit(this.filterGroupsInput.filter(fg => fg.measureId === group.measureId));
   }
 
   onSearchChange(event: Event, filterId: string) {
     const inputElement = event.target as HTMLInputElement;
     this.searchTerms.set(filterId, inputElement.value);
+  }
+
+  clearSearch(filterId: string) {
+    this.searchTerms.set(filterId, '');
   }
 
   getFilteredLabels(group: InputFilterGroup): Label[] {
@@ -314,6 +324,16 @@ export class FiltersComponent implements OnChanges {
     }
     return group.filter.labels.filter(label =>
       label.title.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }
+
+  getSelectedLabelsNotMatching(group: InputFilterGroup): Label[] {
+    const searchTerm = this.searchTerms.get(group.filter.id);
+    if (!searchTerm) return [];
+
+    const filtered = this.getFilteredLabels(group);
+    return group.filter.labels.filter(label =>
+      label.data.checked && !filtered.some(f => f.title === label.title)
     );
   }
 
