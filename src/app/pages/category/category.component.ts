@@ -1,4 +1,4 @@
-﻿import { Component, inject, signal, OnInit, effect } from '@angular/core';
+﻿import { Component, inject, signal, OnInit, effect, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { GraphComponent } from '../../components/graph/graph.component';
@@ -33,6 +33,7 @@ export class CategoryComponent implements OnInit {
   filterGroups = signal<FilterGroup[]>([]);
   graphData = signal<GraphData | undefined>(undefined);
   savedGraphs = signal<Graph[]>([]);
+  @ViewChild(FiltersComponent) filtersComponent?: FiltersComponent;
   articles = signal<any[]>([]);
   linkedItems = signal<any[]>([]);
   loadingGraph = signal<boolean>(false);
@@ -177,6 +178,7 @@ export class CategoryComponent implements OnInit {
   }
 
   onSelectChip(id: string) {
+    this.filtersComponent?.collapseAllMeasures();
 
     if (this.abortController) {
       this.abortController.abort();

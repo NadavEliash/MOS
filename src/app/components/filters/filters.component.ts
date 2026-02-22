@@ -132,6 +132,10 @@ export class FiltersComponent implements OnChanges {
     return this.filterGroupsInput.filter(fg => fg.measureId === measureId);
   }
 
+  collapseAllMeasures() {
+    this.measures.forEach(m => m.expanded = false);
+  }
+
   toggleMeasure(measure: MeasureView) {
     if (!measure) return;
 
