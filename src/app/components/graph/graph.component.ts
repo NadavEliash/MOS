@@ -230,6 +230,7 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
         right: 20,
         top: 10,
         orient: 'horizontal',
+        icon: 'circle',
         itemGap: 20,
         itemWidth: 12,
         itemHeight: 12,
