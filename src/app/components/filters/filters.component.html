@@ -46,6 +46,7 @@
                         @for (group of getFilterGroupsForMeasure(measure.id); track group.filter.id) {
                         <div class="filter-group-item" [class.disabled]="group.filter.disabled">
                             <button type="button" class="group-header" [class.expanded]="group.filter.expanded"
+                                [class.active]="hasActiveSelection(group)"
                                 (click)="!group.filter.disabled && toggleFilterGroup(group)"
                                 [disabled]="group.filter.disabled">
                                 <img class="arrow-left" [class.expanded]="group.filter.expanded"

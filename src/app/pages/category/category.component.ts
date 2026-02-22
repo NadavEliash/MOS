@@ -24,7 +24,7 @@ export class CategoryComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private abortController: AbortController | null = null;
-  
+
   readonly categories = this.categoryService.categories;
   readonly measures = this.categoryService.measures;
   chips = signal<Chip[]>([]);
@@ -39,9 +39,9 @@ export class CategoryComponent implements OnInit {
 
   constructor() {
     effect(() => {
-      this.chips.set(this.categoryService.chips().slice(0,5));
+      this.chips.set(this.categoryService.chips().slice(0, 5));
     })
-    
+
     effect(() => {
       this.selectedCategory.set(this.categoryService.selectedCategory());
       this.linkedItems.set(this.articles().filter((i: any) => i.categoryId === this.selectedCategory()?.Category_ID));
@@ -49,66 +49,66 @@ export class CategoryComponent implements OnInit {
   }
 
   private normalizeSeriesData(series: any[]): any[] {
-    // Collect all non-zero values from all series
+
     const allValues = series.flatMap(s => s.data).filter((v: number) => v > 0);
-    
-    // Check if all non-zero values are between 0 and 1
+
+
     if (allValues.length > 0 && allValues.every((v: number) => v <= 1)) {
-      // Multiply all values by 100
+
       return series.map(s => ({
         ...s,
         data: s.data.map((v: number) => v * 100)
       }));
     }
-    
+
     return series;
   }
 
-  ngOnInit() {    
+  ngOnInit() {
     this.categoryService.getCategories()
-    .then((categories) => {
-      this.updateSavedCategories();
-      
-      this.route.queryParams.subscribe(async (params) => {
-        const categoryId = params['id'];
-        const graph = params['graph'];
-        if (categoryId) {
-          this.router.navigate(['/category'], { replaceUrl: true });
-          this.categoryService.setSelectedCategory(categoryId);
-          await this.onSelectCategory(categoryId, !this.categoryService.selectedMeasure());
-          if (graph) {
-            const parsedShareData = JSON.parse(graph);
-            const currentFilterGroups = await this.categoryService.getFilters().then(() => this.filterGroups());
-            currentFilterGroups?.forEach(fg => {
-              fg.filter.labels?.forEach(l => l.data.checked = false);
-              const sharedFilter = parsedShareData.checkedFilters.find((cf: any) => cf.filterId === fg.filter.id);
-              if (sharedFilter) {
-                fg.filter.labels?.forEach(l => {
-                  if (sharedFilter.checkedLabels.includes(l.title)) {
-                    l.data.checked = true;
-                  }
-                });
-              }
-            });
-            this.filterGroups.set([...currentFilterGroups]);
-            this.setGraphData(this.measures().find(m => m.id === parsedShareData.measureId)!);
+      .then((categories) => {
+        this.updateSavedCategories();
+
+        this.route.queryParams.subscribe(async (params) => {
+          const categoryId = params['id'];
+          const graph = params['graph'];
+          if (categoryId) {
+            this.router.navigate(['/category'], { replaceUrl: true });
+            this.categoryService.setSelectedCategory(categoryId);
+            await this.onSelectCategory(categoryId, !this.categoryService.selectedMeasure());
+            if (graph) {
+              const parsedShareData = JSON.parse(graph);
+              const currentFilterGroups = await this.categoryService.getFilters().then(() => this.filterGroups());
+              currentFilterGroups?.forEach(fg => {
+                fg.filter.labels?.forEach(l => l.data.checked = false);
+                const sharedFilter = parsedShareData.checkedFilters.find((cf: any) => cf.filterId === fg.filter.id);
+                if (sharedFilter) {
+                  fg.filter.labels?.forEach(l => {
+                    if (sharedFilter.checkedLabels.includes(l.title)) {
+                      l.data.checked = true;
+                    }
+                  });
+                }
+              });
+              this.filterGroups.set([...currentFilterGroups]);
+              this.setGraphData(this.measures().find(m => m.id === parsedShareData.measureId)!);
+            }
+          } else if (this.categoryService.selectedMeasure()) {
+            this.getSpecificMeasure(this.categoryService.selectedMeasure()!);
+          } else if (this.categoryService.selectedSavedGraph()) {
+            this.onSelectSavedGraph(this.categoryService.selectedSavedGraph()!);
+          } else if (!this.categoryService.selectedCategory()) {
+            this.categoryService.setSelectedCategory(categories![0].Category_ID);
+            this.onSelectCategory(categories![0].Category_ID, true);
           }
-        } else if (this.categoryService.selectedMeasure()) {
-          this.getSpecificMeasure(this.categoryService.selectedMeasure()!);
-        } else if (this.categoryService.selectedSavedGraph()) {
-          this.onSelectSavedGraph(this.categoryService.selectedSavedGraph()!);
-        } else if (!this.categoryService.selectedCategory()) {
-          this.categoryService.setSelectedCategory(categories![0].Category_ID);
-          this.onSelectCategory(categories![0].Category_ID, true);
-        }
+        });
       });
-    });
     this.categoryService.getFilters();
     this.getContent();
   }
 
   ngOnDestroy() {
-    // Cancel any ongoing background process
+
     if (this.abortController) {
       this.abortController.abort();
     }
@@ -131,17 +131,17 @@ export class CategoryComponent implements OnInit {
   }
 
   async onSelectCategory(id: string, resetGraph: boolean = false) {
-    // Cancel any previous background process
+
     if (this.abortController) {
       this.abortController.abort();
     }
     this.abortController = new AbortController();
     const signal = this.abortController.signal;
-    
+
     this.graphData.set(undefined);
     this.loadingGraph.set(true);
-    this.categoryService.setSelectedCategory(this.categories()!.find(c => c.Category_ID === id)?.Category_ID!);    
-    
+    this.categoryService.setSelectedCategory(this.categories()!.find(c => c.Category_ID === id)?.Category_ID!);
+
     try {
       if (signal.aborted) return;
       await this.categoryService.getChips(id);
@@ -156,13 +156,13 @@ export class CategoryComponent implements OnInit {
         await this.categoryService.getView(measure.id);
         this.setFilterGroups(measure);
       };
-      
+
       if (resetGraph) {
         if (signal.aborted) return;
         this.onSelectChip(this.chips()[0].Chip_ID);
       }
       this.loadingGraph.set(false);
-      
+
       const otherMeasures = measures.filter(m => !this.chips()[0]['Measure ID']?.includes(m.id));
       for (const measure of otherMeasures) {
         if (signal.aborted) return;
@@ -175,25 +175,25 @@ export class CategoryComponent implements OnInit {
       }
     }
   }
-  
+
   onSelectChip(id: string) {
-    // Cancel any previous background process
+
     if (this.abortController) {
       this.abortController.abort();
     }
     this.abortController = new AbortController();
-    
+
     let updatedChips = this.chips();
     if (updatedChips.find(chip => chip.isActive)) {
       updatedChips.find(chip => chip.isActive)!.isActive = false;
-    } 
+    }
     updatedChips.find(chip => chip.Chip_ID === id)!.isActive = true;
     this.chips.set(updatedChips);
     this.updateActiveGraph('chip', id);
-    
+
     const chip = this.chips().find(chip => chip.Chip_ID === id);
     if (chip) {
-      // Set selected measure to trigger expansion in filters component
+
       const measureIds = chip['Measure ID']?.split(',').map((m: string) => m.trim());
       if (measureIds?.length > 0) {
         this.categoryService.setSelectedMeasure(measureIds[0]);
@@ -227,8 +227,8 @@ export class CategoryComponent implements OnInit {
 
   getBlockedFilters(measure: any, filterId: string) {
     let blocked: string[] = [];
-    
-    if ( !measure.blockedFilters ) return blocked;
+
+    if (!measure.blockedFilters) return blocked;
     measure.blockedFilters.forEach((b: any) => {
       if (Array.isArray(b)) {
         if (b.includes(filterId)) blocked.push(...b);
@@ -244,16 +244,16 @@ export class CategoryComponent implements OnInit {
     this.filterGroups.update(allGroups => {
       const updatedGroups = allGroups.map(group => {
         if (group.measureId === measureId) {
-          // Flatten all labels from the nested array
+
           const allLabels = updatedLabels.flat();
-          // Filter labels that match this filter group's id
+
           const labels = allLabels
             .filter(label => label.data.filterId === group.filter.id)
-            .map(label => ({ 
-              title: label.title, 
-              data: label.data, 
+            .map(label => ({
+              title: label.title,
+              data: label.data,
             }));
-          
+
           if (labels.length > 0) {
             return {
               ...group,
@@ -271,12 +271,12 @@ export class CategoryComponent implements OnInit {
   }
 
   onSelectMeasure(measureId: string) {
-    // Cancel any previous background process
+
     if (this.abortController) {
       this.abortController.abort();
     }
     this.abortController = new AbortController();
-    
+
     this.loadingGraph.set(false);
     if (!measureId) {
       this.graphData.set(undefined);
@@ -288,8 +288,8 @@ export class CategoryComponent implements OnInit {
     }
     this.categoryService.setSelectedMeasure(measureId);
     this.updateActiveGraph('measure', measureId);
-    
-    // Always show single measure when selected
+
+
     const measure = this.measures().find(m => m.id === measureId)!;
     this.setGraphData(measure);
   }
@@ -299,11 +299,11 @@ export class CategoryComponent implements OnInit {
       this.graphData.set(undefined);
       return;
     }
-    
+
     const measures = measureIds
       .map(id => this.measures().find(m => m.id === id))
       .filter(m => m) as Measure[];
-    
+
     if (measures.length > 1) {
       this.setMultiMeasureGraphData(measures);
     } else if (measures.length === 1) {
@@ -312,13 +312,12 @@ export class CategoryComponent implements OnInit {
   }
 
   async getSpecificMeasure(measureId: string) {
-    // Cancel any previous background process
     if (this.abortController) {
       this.abortController.abort();
     }
     this.abortController = new AbortController();
     const signal = this.abortController.signal;
-    
+
     try {
       if (signal.aborted) return;
       const data = await this.apiService.getStatistics('layersMeasures');
@@ -337,6 +336,8 @@ export class CategoryComponent implements OnInit {
           graphType: measureData['Graph'],
           categoryId: measureData.Category_ID
         };
+        this.onSelectCategory(measure.categoryId);
+        this.filterGroups.set(measure.filters);
         this.measures.update(m => [...m, measure]);
         this.updateActiveGraph('measure', measureId);
         this.setGraphData(this.measures().find(m => m.id === measureId)!);
@@ -347,11 +348,11 @@ export class CategoryComponent implements OnInit {
       }
     }
   }
-  
+
   onFiltersChange(event: any) {
     if (!event || event.length === 0) return;
-    
-    // Update the filterGroups signal with the modified data
+
+
     this.filterGroups.update(groups => {
       const updatedGroups = groups.map(group => {
         const updatedGroup = event.find((e: FilterGroup) => e.filter.id === group.filter.id && e.measureId === group.measureId);
@@ -359,25 +360,25 @@ export class CategoryComponent implements OnInit {
       });
       return updatedGroups;
     });
-    
-    // Check if we're in multi-measure mode
+
+
     const currentGraphData = this.graphData();
     const measureIds = event.map((e: FilterGroup) => e.measureId).filter((id: string, index: number, self: string[]) => self.indexOf(id) === index);
-    
-    // Preserve chip metadata if it exists
+
+
     const chipTitle = currentGraphData?.title;
     const chipDescription = currentGraphData?.description;
     const chipSubtitles = currentGraphData?.subtitles;
-    
+
     if (measureIds.length > 1) {
-      // Multi-measure mode: regenerate with all measures and preserve chip metadata
+
       this.setMultiMeasureGraphData(
-        measureIds.map((id:string) => this.measures().find((m: Measure) => m.id === id)!).filter((m: Measure) => m),
+        measureIds.map((id: string) => this.measures().find((m: Measure) => m.id === id)!).filter((m: Measure) => m),
         chipTitle,
         chipDescription
       );
     } else {
-      // Single measure mode
+
       const measureId = event[0].measureId;
       this.updateActiveGraph('measure', measureId);
       this.setGraphData(
@@ -394,7 +395,7 @@ export class CategoryComponent implements OnInit {
     let colorIndex = 0;
 
     let measureFilterGroups = this.filterGroups().filter(fg => fg.measureId === measure.id);
-    if (measureFilterGroups.length === 0) {      
+    if (measureFilterGroups.length === 0) {
       await this.categoryService.getView(measure.id);
       this.setFilterGroups(measure);
       measureFilterGroups = this.filterGroups().filter(fg => fg.measureId === measure.id);
@@ -403,38 +404,36 @@ export class CategoryComponent implements OnInit {
     const categories = measureFilterGroups.find(fg => fg.filter.id === measure.xAxis)!;
     const seriesFilterGroups = measureFilterGroups.filter(fg => fg.filter.property !== categories.filter.property);
     const activeSeriesFilterGroups = seriesFilterGroups.filter(fg => fg.filter.labels?.some(l => l.data.checked));
-    
+
     let series: any[] = [];
     let graphType = measure.graphType;
 
     if (activeSeriesFilterGroups.length === 2) {
       const firstFilterGroup = activeSeriesFilterGroups[0];
       const secondFilterGroup = activeSeriesFilterGroups[1];
-      
+
       const firstFilterLabels = firstFilterGroup.filter.labels.filter(l => l.data.checked);
       const secondFilterLabels = secondFilterGroup.filter.labels.filter(l => l.data.checked);
-      
-      // Assign colors to first filter labels
+
+
       const firstFilterColorMap = new Map<string, string>();
       firstFilterLabels.forEach((label, idx) => {
         firstFilterColorMap.set(label.title, colors[idx % colors.length]);
       });
-      
-      // Assign colors to second filter labels (offset by first filter count)
+
+
       const secondFilterColorMap = new Map<string, string>();
       const secondColorOffset = firstFilterLabels.length;
       secondFilterLabels.forEach((label, idx) => {
         secondFilterColorMap.set(label.title, colors[(secondColorOffset + idx) % colors.length]);
       });
 
-      // For each first filter label, create:
-      // 1. A regular bar showing total for that first filter label
-      // 2. A stacked bar showing breakdown of that same first filter label by second filter
+
       series = [];
-      
-      // For each first filter label, create the regular bar followed by its stacked breakdown
+
+
       firstFilterLabels.forEach(firstLabel => {
-        // Regular bar for this first filter label (no stack property)
+
         series.push({
           groupTitle: firstFilterGroup.filter.name,
           name: firstLabel.title,
@@ -442,30 +441,30 @@ export class CategoryComponent implements OnInit {
           color: firstFilterColorMap.get(firstLabel.title)!
         });
 
-        // Immediately add stacked bars showing breakdown of this first filter label by second filter
+
         secondFilterLabels.forEach(secondLabel => {
           const data = this.categoryService.getSeriesData(
-            measure, 
-            categories, 
-            [firstFilterGroup, secondFilterGroup], 
+            measure,
+            categories,
+            [firstFilterGroup, secondFilterGroup],
             secondLabel,
             firstLabel
           );
-          
+
           series.push({
             name: secondLabel.title,
-            stack: firstLabel.title, // Each first filter label gets its own stacked breakdown
+            stack: firstLabel.title,
             data: data,
             color: secondFilterColorMap.get(secondLabel.title)!,
             groupTitle: secondFilterGroup.filter.name
           });
         });
       });
-      
+
       graphType = 'stacked-column';
     } else {
       let seriesLabels = activeSeriesFilterGroups.flatMap(fg => fg.filter.labels.filter(l => l.data.checked));
-      
+
       if (seriesLabels.length === 0 && measureFilterGroups.length === 1) {
         series = [{
           groupTitle: measure.name,
@@ -515,7 +514,7 @@ export class CategoryComponent implements OnInit {
     const measureFilterGroups = allFilterGroups.filter(fg => fg.measureId === firstMeasure.id);
     const categories = measureFilterGroups.find(fg => fg.filter.id === firstMeasure.xAxis)!;
 
-    // Find shared filters across all measures
+
     const sharedFilterIds = measures.reduce((acc, measure) => {
       const ids = allFilterGroups.filter(fg => fg.measureId === measure.id).map(fg => fg.filter.id);
       return acc.filter(id => ids.includes(id));
@@ -527,9 +526,9 @@ export class CategoryComponent implements OnInit {
 
     const series: any[] = [];
 
-    // Check if any shared filters have checked labels
-    const activeFilters = sharedFilterGroups.filter(fg => 
-      fg.filter.id !== categories.filter.id && 
+
+    const activeFilters = sharedFilterGroups.filter(fg =>
+      fg.filter.id !== categories.filter.id &&
       fg.filter.labels?.some(l => l.data.checked)
     );
 
@@ -537,24 +536,24 @@ export class CategoryComponent implements OnInit {
     let filterColorMap = new Map<string, string>();
     let checkedLabels: any[] = [];
 
-    // If there are active filters, prepare color mapping
+
     if (hasActiveFilters) {
       const filterGroup = activeFilters[0];
       checkedLabels = filterGroup.filter.labels.filter(l => l.data.checked);
-      
-      // Assign colors to filter labels
+
+
       const filterColorOffset = measures.length;
       checkedLabels.forEach((label, idx) => {
         filterColorMap.set(label.title, colors[(filterColorOffset + idx) % colors.length]);
       });
     }
 
-    // Create series for each measure with its stacked bars immediately after
+
     measures.forEach((measure, idx) => {
       const measureName = `מדד ${idx + 1}`;
       const stackName = `measure${idx}`;
-      
-      // Add regular measure bar (always)
+
+
       const data = this.categoryService.getNoSeriesData(measure, categories, []);
       colorIndex++;
       series.push({
@@ -562,8 +561,8 @@ export class CategoryComponent implements OnInit {
         data: data,
         color: colors[colorIndex % colors.length]
       });
-      
-      // Add stacked bars for this measure if filters are active
+
+
       if (hasActiveFilters) {
         const filterGroup = activeFilters[0];
         checkedLabels.forEach(label => {
@@ -604,53 +603,53 @@ export class CategoryComponent implements OnInit {
     const firstMeasure = measures[0];
     const allFilterGroups = this.filterGroups();
     const chipFilterIds = chip.Filter_ID.split(',').map(f => f.trim());
-    
-    // Find shared filters across all measures
+
+
     const sharedFilterIds = measures.reduce((acc, measure) => {
       const ids = allFilterGroups.filter(fg => fg.measureId === measure.id).map(fg => fg.filter.id);
       return acc.filter(id => ids.includes(id));
     }, allFilterGroups.filter(fg => fg.measureId === measures[0].id).map(fg => fg.filter.id));
-    
-    // Update filterGroups: uncheck all labels, then check only those in chip.Filter_ID
+
+
     this.filterGroups.update(groups => {
       return groups.map(group => {
         const belongsToChipMeasure = measureIds.includes(group.measureId);
-        
+
         if (belongsToChipMeasure) {
           const isSharedFilter = sharedFilterIds.includes(group.filter.id);
           const isChipFilter = chipFilterIds.includes(group.filter.id);
-          
-          // Uncheck all labels first
+
+
           const updatedLabels = group.filter.labels?.map(label => ({
             ...label,
             data: { ...label.data, checked: false }
           }));
-          
-          // Check labels for chip filters (first 10 labels)
+
+
           if (isChipFilter) {
             updatedLabels?.slice(0, 10).forEach(label => label.data.checked = true);
           }
-          
-          // Check xAxis labels (categories)
+
+
           if (group.filter.id === firstMeasure.xAxis) {
             updatedLabels?.slice(0, 10).forEach(label => label.data.checked = true);
           }
-          
+
           return {
             ...group,
             filter: {
               ...group.filter,
               labels: updatedLabels,
               disabled: !isSharedFilter,
-              expanded: isChipFilter || group.filter.id === firstMeasure.xAxis
+              expanded: false
             }
           };
         }
         return group;
       });
     });
-    
-    // Call appropriate graph function based on number of measures
+
+
     if (measures.length > 1) {
       this.setMultiMeasureGraphData(measures, chip.Chip_Name, chip.Chip_Description);
     } else {
@@ -668,7 +667,7 @@ export class CategoryComponent implements OnInit {
   updateActiveGraph(type: 'chip' | 'savedGraph' | 'measure', id: string) {
     this.chips.update(chips => chips.map(c => ({ ...c, isActive: false })));
     this.savedGraphs.update(graphs => graphs.map(g => ({ ...g, isActive: false })));
-    
+
     if (type === 'chip') {
       this.chips.update(chips => chips.map(c => ({ ...c, isActive: c.Chip_ID === id })));
     } else if (type === 'savedGraph') {
@@ -677,12 +676,11 @@ export class CategoryComponent implements OnInit {
   }
 
   onSelectSavedGraph(id: string) {
-    // Cancel any previous background process
     if (this.abortController) {
       this.abortController.abort();
     }
     this.abortController = new AbortController();
-    
+
     const savedData = this.savedGraphs().find(graph => graph.id === id);
     if (savedData) {
       const updatedSavedGraphs = this.savedGraphs().map(graph => ({ ...graph, isActive: false }));

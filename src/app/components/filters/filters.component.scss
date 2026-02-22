@@ -385,6 +385,7 @@
   display: flex;
   flex-direction: column;
   flex: 1;
+  font-weight: 500;
 }
 
 .active-filters-summary {
@@ -393,6 +394,7 @@
 
 .summary-line {
   font-size: 14px;
+  font-weight: 400;
   color: #5878A4;
   margin-bottom: 2px;
 }
@@ -454,8 +456,16 @@
       border-radius: 8px 8px 0 0;
     }
 
+    &.active {
+      .group-title {
+        font-weight: 600;
+      }
+    }
+
     .group-title {
       font-size: 16px;
+      font-weight: 400;
+      color: #5878A4;
     }
   }
 
