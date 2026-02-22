@@ -392,9 +392,15 @@ export class CategoryComponent implements OnInit {
     }
   }
 
+  getLabelColor(labelTitle: string, group: FilterGroup, measure: Measure): string {
+    const colors = graphColors;
+    const filterIdx = measure.filters.indexOf(group.filter.id);
+    const labelIdx = group.filter.labels.findIndex(l => l.title === labelTitle);
+    return colors[(filterIdx + labelIdx) % colors.length];
+  }
+
   async setGraphData(measure: Measure, chipTitle?: string, chipDescription?: string, chipSubtitles?: string) {
     const colors = graphColors;
-    let colorIndex = 0;
 
     let measureFilterGroups = this.filterGroups().filter(fg => fg.measureId === measure.id);
     if (measureFilterGroups.length === 0) {
@@ -417,32 +423,15 @@ export class CategoryComponent implements OnInit {
       const firstFilterLabels = firstFilterGroup.filter.labels.filter(l => l.data.checked);
       const secondFilterLabels = secondFilterGroup.filter.labels.filter(l => l.data.checked);
 
-
-      const firstFilterColorMap = new Map<string, string>();
-      firstFilterLabels.forEach((label, idx) => {
-        firstFilterColorMap.set(label.title, colors[idx % colors.length]);
-      });
-
-
-      const secondFilterColorMap = new Map<string, string>();
-      const secondColorOffset = firstFilterLabels.length;
-      secondFilterLabels.forEach((label, idx) => {
-        secondFilterColorMap.set(label.title, colors[(secondColorOffset + idx) % colors.length]);
-      });
-
-
       series = [];
 
-
       firstFilterLabels.forEach(firstLabel => {
-
         series.push({
           groupTitle: firstFilterGroup.filter.name,
           name: firstLabel.title,
           data: this.categoryService.getSeriesData(measure, categories, [firstFilterGroup], firstLabel),
-          color: firstFilterColorMap.get(firstLabel.title)!
+          color: this.getLabelColor(firstLabel.title, firstFilterGroup, measure)
         });
-
 
         secondFilterLabels.forEach(secondLabel => {
           const data = this.categoryService.getSeriesData(
@@ -457,7 +446,7 @@ export class CategoryComponent implements OnInit {
             name: secondLabel.title,
             stack: firstLabel.title,
             data: data,
-            color: secondFilterColorMap.get(secondLabel.title)!,
+            color: this.getLabelColor(secondLabel.title, secondFilterGroup, measure),
             groupTitle: secondFilterGroup.filter.name
           });
         });
@@ -476,13 +465,12 @@ export class CategoryComponent implements OnInit {
         }]
       } else {
         series = seriesLabels.map(label => {
-          colorIndex++;
-          const filterGroup = seriesFilterGroups.find(fg => fg.filter.labels?.includes(label));
+          const filterGroup = seriesFilterGroups.find(fg => fg.filter.labels?.includes(label))!;
           return {
-            groupTitle: filterGroup?.filter.name,
+            groupTitle: filterGroup.filter.name,
             name: label.title,
             data: this.categoryService.getSeriesData(measure, categories, seriesFilterGroups, label),
-            color: colors[colorIndex % colors.length]
+            color: this.getLabelColor(label.title, filterGroup, measure)
           };
         });
       }
@@ -509,7 +497,6 @@ export class CategoryComponent implements OnInit {
     }
 
     const colors = graphColors;
-    let colorIndex = 0;
 
     const firstMeasure = measures[0];
     const allFilterGroups = this.filterGroups();
@@ -535,19 +522,11 @@ export class CategoryComponent implements OnInit {
     );
 
     const hasActiveFilters = activeFilters.length > 0;
-    let filterColorMap = new Map<string, string>();
     let checkedLabels: any[] = [];
-
 
     if (hasActiveFilters) {
       const filterGroup = activeFilters[0];
       checkedLabels = filterGroup.filter.labels.filter(l => l.data.checked);
-
-
-      const filterColorOffset = measures.length;
-      checkedLabels.forEach((label, idx) => {
-        filterColorMap.set(label.title, colors[(filterColorOffset + idx) % colors.length]);
-      });
     }
 
 
@@ -557,11 +536,10 @@ export class CategoryComponent implements OnInit {
 
 
       const data = this.categoryService.getNoSeriesData(measure, categories, []);
-      colorIndex++;
       series.push({
         name: measureName,
         data: data,
-        color: colors[colorIndex % colors.length]
+        color: colors[idx % colors.length]
       });
 
 
@@ -569,11 +547,14 @@ export class CategoryComponent implements OnInit {
         const filterGroup = activeFilters[0];
         checkedLabels.forEach(label => {
           const stackData = this.categoryService.getSeriesData(measure, categories, [filterGroup], label);
+          const filterIdx = firstMeasure.filters.indexOf(filterGroup.filter.id);
+          const labelIdx = filterGroup.filter.labels.findIndex((l: any) => l.title === label.title);
+
           series.push({
             name: label.title,
             stack: stackName,
             data: stackData,
-            color: filterColorMap.get(label.title)!
+            color: colors[(measures.length + filterIdx + labelIdx) % colors.length]
           });
         });
       }
