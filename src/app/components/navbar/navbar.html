@@ -3,15 +3,18 @@
         <a [href]="ministrySite" target="_blank" class="logo link" aria-label="בית">
             <img src="/assets/logo.svg" alt="logo" class="logo-img" />
         </a>
+        @if (!isHome()) {
         <a routerLink="/" class="link" aria-label="בית">
             <span>עמוד הבית</span>
         </a>
+        }
     </div>
     <div class="nav-left">
-        <a routerLink="/report" class="report link" [ngClass]="savedGraphsCount() ? '' : 'disabled'" aria-label="הדוח שלי">
+        <a routerLink="/report" class="report link" [ngClass]="savedGraphsCount() ? '' : 'disabled'"
+            aria-label="הדוח שלי">
             <div class="badge">
-            <img class="report-icon" src="/assets/my-report.svg" alt="🧾" />
-            @if (savedGraphsCount() > 0) {
+                <img class="report-icon" src="/assets/my-report.svg" alt="🧾" />
+                @if (savedGraphsCount() > 0) {
                 <div class="count-icon">
                     <img class="icon" src="/assets/category-badge.svg" alt="°">
                     <span class="count">{{savedGraphsCount()}}</span>
