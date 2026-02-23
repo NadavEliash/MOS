@@ -167,12 +167,20 @@ export class CategoryComponent implements OnInit {
       }
       this.loadingGraph.set(false);
 
-      const otherMeasures = measures.filter(m => !this.chips()[0]['Measure ID']?.includes(m.id));
-      for (const measure of otherMeasures) {
-        if (signal.aborted) return;
-        await this.categoryService.getView(measure.id);
-        this.setFilterGroups(measure);
-      };
+      const otherMeasures = measures.filter(m => !chipMeasures.some(cm => cm.id === m.id));
+      otherMeasures.forEach(measure => {
+        this.categoryService.getView(measure.id)
+          .then(() => {
+            if (!signal.aborted) {
+              this.setFilterGroups(measure);
+            }
+          })
+          .catch(error => {
+            if (error.name !== 'AbortError') {
+              console.error(`[CategoryComponent] Background load failed for measure ${measure.id}:`, error);
+            }
+          });
+      });
     } catch (error: any) {
       if (error.name !== 'AbortError') {
         this.loadingGraph.set(false);
