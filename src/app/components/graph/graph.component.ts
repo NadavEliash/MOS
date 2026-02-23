@@ -128,9 +128,7 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
     const isLine = this.data?.type?.toLowerCase().includes('line');
 
     const isRate = chartData?.series?.some(s =>
-      s.data.some((val: number) => val > 0 && val <= 100)
-    ) && chartData?.series?.every(s =>
-      s.data.every((val: number) => val === 0 || (val > 0 && val <= 100))
+      s.data.some((val: number) => val !== null && val !== undefined && val % 1 !== 0)
     );
 
     const reversedSeries = [...(chartData?.series || [])].reverse();
@@ -172,12 +170,6 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
         formatter: (params: any) => {
           if (!Array.isArray(params)) return '';
 
-          const isRateMeasure = chartData?.series?.some(s =>
-            s.data.some((val: number) => val > 0 && val <= 100)
-          ) && chartData?.series?.every(s =>
-            s.data.every((val: number) => val === 0 || (val > 0 && val <= 100))
-          );
-
           const filteredParams = params.filter((param: any) =>
             param.value !== 0 && param.value !== undefined && param.value !== null
           );
@@ -186,7 +178,7 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
 
           const tooltipItems = filteredParams.map((param: any, idx: number) => {
             const value = typeof param.value === 'number'
-              ? (isRateMeasure
+              ? (isRate
                 ? param.value.toLocaleString(undefined, { maximumFractionDigits: 2 }) + '%'
                 : param.value.toLocaleString(undefined, { maximumFractionDigits: 2 }))
               : param.value;

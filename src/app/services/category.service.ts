@@ -124,15 +124,12 @@ export class CategoryService {
   }
 
   async getView(measureId: string) {
-    // Check if view already exists
     if (this.views().some(v => v.id === measureId)) return;
 
-    // Check if request is already in progress
     if (this.pendingViewRequests.has(measureId)) {
       return this.pendingViewRequests.get(measureId);
     }
 
-    // Create and store the promise
     const requestPromise = this.apiService.getStatistics(measureId.replace(/\D+/g, ''))
       .then(view => {
         this.views().push({ id: measureId, data: view });
@@ -190,12 +187,10 @@ export class CategoryService {
             const aNum = parseFloat(aStr);
             const bNum = parseFloat(bStr);
 
-            // If both are valid numbers, sort numerically
             if (!isNaN(aNum) && !isNaN(bNum)) {
               return aNum - bNum;
             }
 
-            // Otherwise, sort alphabetically with Hebrew locale
             return aStr.localeCompare(bStr, 'he');
           });
         if (labelsArray.length > 10) {
@@ -217,7 +212,6 @@ export class CategoryService {
     const viewData = this.views().find(v => v.id === measure.id)?.data;
     if (!viewData || viewData.length === 0) return false;
 
-    // Sample first 100 items to check if values are between 0-1
     const sampleSize = Math.min(100, viewData.length);
     const values = viewData.slice(0, sampleSize)
       .map((item: any) => item[measure.value])
@@ -225,8 +219,11 @@ export class CategoryService {
 
     if (values.length === 0) return false;
 
-    // Check if there's sampled values that decimal
     return values.some((val: number) => val % 1 !== 0);
+  }
+
+  private normalizeRate(value: number): number {
+    return value > 100 ? value / 10 : value;
   }
 
   getSeriesData(measure: Measure, categories: FilterGroup, filterGroups: FilterGroup[], label: Label, firstLabel?: Label): number[] {
@@ -238,7 +235,6 @@ export class CategoryService {
     const moreFilterLabels = moreFilterGroups.map(fg => (fg.filter.labels?.filter(l => l.data.checked).map(l => l.title)));
     const isRate = this.isMeasureRate(measure);
 
-    // For stacked series: if firstLabel is provided, use it as an additional filter
     const firstFilterGroup = firstLabel ? filterGroups.find(fg => fg.filter.labels?.some(l => l.title === firstLabel.title)) : null;
 
     if (viewData && xAxis && filterGroup) {
@@ -246,7 +242,6 @@ export class CategoryService {
         const matchingItems = viewData.filter((item: any) => {
           const mainCondition = item[xAxis] === l.title && item[filterGroup.filter.property] === label.title;
 
-          // If firstLabel is provided, add it as a condition
           const firstLabelCondition = firstLabel && firstFilterGroup
             ? item[firstFilterGroup.filter.property] === firstLabel.title
             : true;
@@ -264,13 +259,11 @@ export class CategoryService {
 
         let value = 0;
         if (isRate) {
-          // Calculate average
           if (matchingItems.length > 0) {
             const sum = matchingItems.reduce((acc: number, item: any) => acc + item[measure.value], 0);
-            value = sum / matchingItems.length;
+            value = this.normalizeRate(sum / matchingItems.length);
           }
         } else {
-          // Calculate sum
           value = matchingItems.reduce((acc: number, item: any) => acc + item[measure.value], 0);
         }
         seriesData.push(value);
@@ -315,13 +308,11 @@ export class CategoryService {
 
       let value = 0;
       if (isRate) {
-        // Calculate average
         if (matchingItems.length > 0) {
           const sum = matchingItems.reduce((acc: number, item: any) => acc + item[measure.value], 0);
-          value = sum / matchingItems.length;
+          value = this.normalizeRate(sum / matchingItems.length);
         }
       } else {
-        // Calculate sum
         value = matchingItems.reduce((acc: number, item: any) => acc + item[measure.value], 0);
       }
       seriesData.push(value);
@@ -390,13 +381,11 @@ export class CategoryService {
 
         let value = 0;
         if (isRate) {
-          // Calculate average
           if (matchingItems.length > 0) {
             const sum = matchingItems.reduce((acc: number, item: any) => acc + item[measure.value], 0);
-            value = sum / matchingItems.length;
+            value = this.normalizeRate(sum / matchingItems.length);
           }
         } else {
-          // Calculate sum
           value = matchingItems.reduce((acc: number, item: any) => acc + item[measure.value], 0);
         }
         seriesData.push(value);
