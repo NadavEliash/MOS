@@ -392,11 +392,27 @@ export class CategoryComponent implements OnInit {
     }
   }
 
-  getLabelColor(labelTitle: string, group: FilterGroup, measure: Measure): string {
+  getLabelColor(labelTitle: string, group: FilterGroup, measure: Measure, offset: number = 0): string {
     const colors = graphColors;
-    const filterIdx = measure.filters.indexOf(group.filter.id);
-    const labelIdx = group.filter.labels.findIndex(l => l.title === labelTitle);
-    return colors[(filterIdx + labelIdx) % colors.length];
+    const allFilterGroups = this.filterGroups().filter(fg => fg.measureId === measure.id);
+
+    let cumulativeIdx = offset;
+
+    for (const filterId of measure.filters) {
+      const fg = allFilterGroups.find(g => g.filter.id === filterId);
+      if (!fg) continue;
+
+      if (fg.filter.id === group.filter.id) {
+        const labelIdx = fg.filter.labels.findIndex(l => l.title === labelTitle);
+        if (labelIdx !== -1) {
+          cumulativeIdx += labelIdx;
+        }
+        break;
+      }
+      cumulativeIdx += fg.filter.labels.length;
+    }
+
+    return colors[cumulativeIdx % colors.length];
   }
 
   async setGraphData(measure: Measure, chipTitle?: string, chipDescription?: string, chipSubtitles?: string) {
@@ -547,14 +563,11 @@ export class CategoryComponent implements OnInit {
         const filterGroup = activeFilters[0];
         checkedLabels.forEach(label => {
           const stackData = this.categoryService.getSeriesData(measure, categories, [filterGroup], label);
-          const filterIdx = firstMeasure.filters.indexOf(filterGroup.filter.id);
-          const labelIdx = filterGroup.filter.labels.findIndex((l: any) => l.title === label.title);
-
           series.push({
             name: label.title,
             stack: stackName,
             data: stackData,
-            color: colors[(measures.length + filterIdx + labelIdx) % colors.length]
+            color: this.getLabelColor(label.title, filterGroup, firstMeasure, measures.length)
           });
         });
       }
