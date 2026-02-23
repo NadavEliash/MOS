@@ -185,16 +185,7 @@ export class CategoryService {
       if (labels.size > 0) {
         const labelsArray = Array.from(labels, ([title, data]) => ({ title, data }))
           .sort((a, b) => {
-            const aStr = String(a.title);
-            const bStr = String(b.title);
-            const aNum = parseFloat(aStr);
-            const bNum = parseFloat(bStr);
-
-            if (!isNaN(aNum) && !isNaN(bNum)) {
-              return aNum - bNum;
-            }
-
-            return aStr.localeCompare(bStr, 'he');
+            return String(a.title).localeCompare(String(b.title), 'he', { numeric: true });
           });
         if (labelsArray.length > 10) {
           labelsArray.forEach((label, index) => {

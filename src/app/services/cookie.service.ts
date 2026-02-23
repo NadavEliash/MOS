@@ -14,7 +14,7 @@ export class CookieService {
 
   saveGraph(graph: Graph): boolean {
     // Check if the same graph already exists
-    const isDuplicate = this.savedGraphs().some(savedGraph => 
+    const isDuplicate = this.savedGraphs().some(savedGraph =>
       this.areGraphsEqual(savedGraph.data, graph.data)
     );
 
@@ -42,12 +42,12 @@ export class CookieService {
     const labels1 = graph1.categories?.filter?.labels
       ?.filter((l: any) => l.data.checked)
       .map((l: any) => l.title)
-      .sort() || [];
+      .sort((a: string, b: string) => a.localeCompare(b, undefined, { numeric: true })) || [];
     const labels2 = graph2.categories?.filter?.labels
       ?.filter((l: any) => l.data.checked)
       .map((l: any) => l.title)
-      .sort() || [];
-    
+      .sort((a: string, b: string) => a.localeCompare(b, undefined, { numeric: true })) || [];
+
     if (JSON.stringify(labels1) !== JSON.stringify(labels2)) {
       return false;
     }
@@ -56,12 +56,12 @@ export class CookieService {
     const series1 = graph1.series?.map((s: any) => ({
       name: s.name,
       data: s.data
-    })).sort((a: any, b: any) => a.name.localeCompare(b.name)) || [];
-    
+    })).sort((a: any, b: any) => a.name.localeCompare(b.name, undefined, { numeric: true })) || [];
+
     const series2 = graph2.series?.map((s: any) => ({
       name: s.name,
       data: s.data
-    })).sort((a: any, b: any) => a.name.localeCompare(b.name)) || [];
+    })).sort((a: any, b: any) => a.name.localeCompare(b.name, undefined, { numeric: true })) || [];
 
     return JSON.stringify(series1) === JSON.stringify(series2);
   }
@@ -69,7 +69,7 @@ export class CookieService {
   getSavedGraphs(): Graph[] {
     return this.savedGraphs();
   }
-  
+
   private getSavedGraphsFromLocalStorage(): Graph[] {
     try {
       const data = localStorage.getItem(this.SAVED_GRAPHS_KEY);
@@ -137,7 +137,7 @@ export class CookieService {
 
       csv += Array(8).fill('') + graph.title.replace(',', ' ') + '\n';
       csv += graph.subtitle + '\n';
-      
+
       const headerRow = [...xAxisLabels, ''];
       csv += headerRow.map(cell => `"${cell}"`).join(',') + '\n';
 
