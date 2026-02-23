@@ -1,9 +1,9 @@
 ﻿import { Component, inject, signal, OnInit, effect, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { GraphComponent } from '../../components/graph/graph.component';
 import { CategoryService, Category, Chip } from '../../services/category.service';
 import { CookieService } from '../../services/cookie.service';
+import { ErrorService } from '../../services/error.service';
 import { FiltersComponent } from "../../components/filters/filters.component";
 import { FilterGroup, Graph, GraphData, Measure } from '../../interfaces';
 import { graphColors } from '../../services/static.data';
@@ -21,6 +21,7 @@ export class CategoryComponent implements OnInit {
   private categoryService = inject(CategoryService);
   private cookieService = inject(CookieService);
   private apiService = inject(ApiService);
+  private errorService = inject(ErrorService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private abortController: AbortController | null = null;
@@ -37,6 +38,7 @@ export class CategoryComponent implements OnInit {
   articles = signal<any[]>([]);
   linkedItems = signal<any[]>([]);
   loadingGraph = signal<boolean>(false);
+  readonly graphError = this.errorService.graphError;
 
   constructor() {
     effect(() => {
@@ -141,6 +143,7 @@ export class CategoryComponent implements OnInit {
 
     this.graphData.set(undefined);
     this.loadingGraph.set(true);
+    this.errorService.clearGraphError();
     this.categoryService.setSelectedCategory(this.categories()!.find(c => c.Category_ID === id)?.Category_ID!);
 
     try {
@@ -172,7 +175,9 @@ export class CategoryComponent implements OnInit {
       };
     } catch (error: any) {
       if (error.name !== 'AbortError') {
-        throw error;
+        this.loadingGraph.set(false);
+        this.errorService.setGraphError(true);
+        console.error('[CategoryComponent] onSelectCategory error:', error);
       }
     }
   }
@@ -287,6 +292,7 @@ export class CategoryComponent implements OnInit {
     if (this.categoryService.views().every(v => v.id !== measureId)) {
       this.graphData.set(undefined);
       this.loadingGraph.set(true);
+      this.errorService.clearGraphError();
     }
     this.categoryService.setSelectedMeasure(measureId);
     this.updateActiveGraph('measure', measureId);
@@ -416,93 +422,101 @@ export class CategoryComponent implements OnInit {
   }
 
   async setGraphData(measure: Measure, chipTitle?: string, chipDescription?: string, chipSubtitles?: string) {
-    const colors = graphColors;
+    try {
+      const colors = graphColors;
 
-    let measureFilterGroups = this.filterGroups().filter(fg => fg.measureId === measure.id);
-    if (measureFilterGroups.length === 0) {
-      await this.categoryService.getView(measure.id);
-      this.setFilterGroups(measure);
-      measureFilterGroups = this.filterGroups().filter(fg => fg.measureId === measure.id);
-    };
+      let measureFilterGroups = this.filterGroups().filter(fg => fg.measureId === measure.id);
+      if (measureFilterGroups.length === 0) {
+        await this.categoryService.getView(measure.id);
+        this.setFilterGroups(measure);
+        measureFilterGroups = this.filterGroups().filter(fg => fg.measureId === measure.id);
+      };
 
-    const categories = measureFilterGroups.find(fg => fg.filter.id === measure.xAxis)!;
-    const seriesFilterGroups = measureFilterGroups.filter(fg => fg.filter.property !== categories.filter.property);
-    const activeSeriesFilterGroups = seriesFilterGroups.filter(fg => fg.filter.labels?.some(l => l.data.checked));
+      const categories = measureFilterGroups.find(fg => fg.filter.id === measure.xAxis)!;
+      const seriesFilterGroups = measureFilterGroups.filter(fg => fg.filter.property !== categories.filter.property);
+      const activeSeriesFilterGroups = seriesFilterGroups.filter(fg => fg.filter.labels?.some(l => l.data.checked));
 
-    let series: any[] = [];
-    let graphType = measure.graphType;
+      let series: any[] = [];
+      let graphType = measure.graphType;
 
-    if (activeSeriesFilterGroups.length === 2) {
-      const firstFilterGroup = activeSeriesFilterGroups[0];
-      const secondFilterGroup = activeSeriesFilterGroups[1];
+      if (activeSeriesFilterGroups.length === 2) {
+        const firstFilterGroup = activeSeriesFilterGroups[0];
+        const secondFilterGroup = activeSeriesFilterGroups[1];
 
-      const firstFilterLabels = firstFilterGroup.filter.labels.filter(l => l.data.checked);
-      const secondFilterLabels = secondFilterGroup.filter.labels.filter(l => l.data.checked);
+        const firstFilterLabels = firstFilterGroup.filter.labels.filter(l => l.data.checked);
+        const secondFilterLabels = secondFilterGroup.filter.labels.filter(l => l.data.checked);
 
-      series = [];
+        series = [];
 
-      firstFilterLabels.forEach(firstLabel => {
-        series.push({
-          groupTitle: firstFilterGroup.filter.name,
-          name: firstLabel.title,
-          data: this.categoryService.getSeriesData(measure, categories, [firstFilterGroup], firstLabel),
-          color: this.getLabelColor(firstLabel.title, firstFilterGroup, measure)
-        });
-
-        secondFilterLabels.forEach(secondLabel => {
-          const data = this.categoryService.getSeriesData(
-            measure,
-            categories,
-            [firstFilterGroup, secondFilterGroup],
-            secondLabel,
-            firstLabel
-          );
-
+        firstFilterLabels.forEach(firstLabel => {
           series.push({
-            name: secondLabel.title,
-            stack: firstLabel.title,
-            data: data,
-            color: this.getLabelColor(secondLabel.title, secondFilterGroup, measure),
-            groupTitle: secondFilterGroup.filter.name
+            groupTitle: firstFilterGroup.filter.name,
+            name: firstLabel.title,
+            data: this.categoryService.getSeriesData(measure, categories, [firstFilterGroup], firstLabel),
+            color: this.getLabelColor(firstLabel.title, firstFilterGroup, measure)
+          });
+
+          secondFilterLabels.forEach(secondLabel => {
+            const data = this.categoryService.getSeriesData(
+              measure,
+              categories,
+              [firstFilterGroup, secondFilterGroup],
+              secondLabel,
+              firstLabel
+            );
+
+            series.push({
+              name: secondLabel.title,
+              stack: firstLabel.title,
+              data: data,
+              color: this.getLabelColor(secondLabel.title, secondFilterGroup, measure),
+              groupTitle: secondFilterGroup.filter.name
+            });
           });
         });
-      });
 
-      graphType = 'stacked-column';
-    } else {
-      let seriesLabels = activeSeriesFilterGroups.flatMap(fg => fg.filter.labels.filter(l => l.data.checked));
-
-      if (seriesLabels.length === 0 && measureFilterGroups.length === 1) {
-        series = [{
-          groupTitle: measure.name,
-          name: measure.name,
-          data: this.categoryService.getNoSeriesData(measure, categories, seriesFilterGroups),
-          color: colors[0]
-        }]
+        graphType = 'stacked-column';
       } else {
-        series = seriesLabels.map(label => {
-          const filterGroup = seriesFilterGroups.find(fg => fg.filter.labels?.includes(label))!;
-          return {
-            groupTitle: filterGroup.filter.name,
-            name: label.title,
-            data: this.categoryService.getSeriesData(measure, categories, seriesFilterGroups, label),
-            color: this.getLabelColor(label.title, filterGroup, measure)
-          };
-        });
+        let seriesLabels = activeSeriesFilterGroups.flatMap(fg => fg.filter.labels.filter(l => l.data.checked));
+
+        if (seriesLabels.length === 0 && measureFilterGroups.length === 1) {
+          series = [{
+            groupTitle: measure.name,
+            name: measure.name,
+            data: this.categoryService.getNoSeriesData(measure, categories, seriesFilterGroups),
+            color: colors[0]
+          }]
+        } else {
+          series = seriesLabels.map(label => {
+            const filterGroup = seriesFilterGroups.find(fg => fg.filter.labels?.includes(label))!;
+            return {
+              groupTitle: filterGroup.filter.name,
+              name: label.title,
+              data: this.categoryService.getSeriesData(measure, categories, seriesFilterGroups, label),
+              color: this.getLabelColor(label.title, filterGroup, measure)
+            };
+          });
+        }
+      }
+      const newGraphData = {
+        categoryId: measure.categoryId,
+        title: chipTitle || measure.name,
+        description: chipDescription,
+        subtitles: chipSubtitles,
+        type: graphType,
+        categories,
+        series: this.normalizeSeriesData(series),
+        filterGroups: this.filterGroups()
+      };
+      this.graphData.set(newGraphData);
+      this.loadingGraph.set(false);
+    } catch (error: any) {
+      if (error.name !== 'AbortError') {
+        this.loadingGraph.set(false);
+        this.errorService.setGraphError(true);
+        console.error('[CategoryComponent] setGraphData error:', error);
       }
     }
-    const newGraphData = {
-      categoryId: measure.categoryId,
-      title: chipTitle || measure.name,
-      description: chipDescription,
-      subtitles: chipSubtitles,
-      type: graphType,
-      categories,
-      series: this.normalizeSeriesData(series),
-      filterGroups: this.filterGroups()
-    };
-    this.graphData.set(newGraphData);
-    this.loadingGraph.set(false);
   }
 
   setMultiMeasureGraphData(measures: Measure[], chipTitle?: string, chipDescription?: string) {

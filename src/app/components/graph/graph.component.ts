@@ -1,4 +1,4 @@
-﻿import { AfterViewInit, Component, ElementRef, Input, OnChanges, OnDestroy, SimpleChanges, ViewChild, computed, inject, output, signal } from "@angular/core";
+﻿import { AfterViewInit, Component, ElementRef, Input, OnChanges, OnDestroy, SimpleChanges, ViewChild, computed, effect, inject, output, signal } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import * as echarts from "echarts/core";
 import { BarChart, LineChart } from "echarts/charts";
@@ -25,6 +25,7 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input() filterGroups: FilterGroup[] | null = null;
   @Input() headless = false;
   @Input() isLoading = false;
+  @Input() hasError = false;
 
   emptyGraph: GraphData = {
     categoryId: '',
@@ -79,6 +80,12 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
       })
       .filter((s): s is string => s !== null);
   });
+
+  constructor() {
+    effect(() => {
+      console.log(this.hasError);
+    });
+  }
 
   showSuccessMessage(message: string, type: 'success' | 'error' = 'success'): void {
     this.successMessage.set(message);

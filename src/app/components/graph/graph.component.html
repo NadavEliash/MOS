@@ -1,6 +1,6 @@
 ﻿<div class="graph-wrapper" [class.headless]="headless">
 
-  @if (graphData()) {
+  @if (graphData() && !hasError) {
   @if (!headless) {<div class="graph-header">
     <div class="graph-titles">
       <h3 class="graph-title" [ngClass]="{'long': graphData().title.length > 30}">{{ graphData().title }}</h3>
@@ -48,16 +48,16 @@
   <div [ngClass]="{'no-category': !data?.series?.length}" #chartEl class="chart"></div>
   } @else {
   <div class="graph-error">
-    <img src="/assets/graph-error.svg" />
+    <img src="/assets/graph-error.jpeg" />
     <h2>משהו השתבש...</h2>
     <h3>לא הצלחנו להציג את הנתונים בגרף</h3>
     <button (click)="reload()">נסו שוב</button>
   </div>
   }
 
-  @if (isLoading) {
+  @if (isLoading && !hasError) {
   <span class="loader"></span>
-  } @else if (noCategory() || !data?.series?.length) {
+  } @else if (!hasError && (noCategory() || !data?.series?.length)) {
   <div class="graph-error">
     <img src="/assets/graph-no-data.svg" />
     <h2>לא נבחרו מדדים לגרף</h2>

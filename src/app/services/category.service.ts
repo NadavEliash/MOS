@@ -1,6 +1,7 @@
 ﻿import { inject, Injectable } from "@angular/core";
 import { signal } from "@angular/core";
 import { ApiService } from "./api.service";
+import { ErrorService } from "./error.service";
 import { FilterGroup, Label, Measure } from "../interfaces";
 
 export interface Category {
@@ -35,6 +36,7 @@ export interface Chip {
 
 export class CategoryService {
   private apiService = inject(ApiService);
+  private errorService = inject(ErrorService);
 
   categories = signal<Category[] | null>(null);
   selectedCategory = signal<Category | undefined>(undefined);
@@ -138,6 +140,7 @@ export class CategoryService {
       })
       .catch(error => {
         this.pendingViewRequests.delete(measureId);
+        this.errorService.setGraphError(true);
         throw error;
       });
 

@@ -11,7 +11,12 @@ export class ApiService {
 
   constructor(private http: HttpClient) { }
 
-  getStatistics(id: string): Promise<any> {
-    return firstValueFrom(this.http.get(`${this.BASE_URL}${id}`));
+  async getStatistics(id: string): Promise<any> {
+    try {
+      return await firstValueFrom(this.http.get(`${this.BASE_URL}${id}`));
+    } catch (error) {
+      console.error(`[ApiService] getStatistics failed for "${id}":`, error);
+      throw error;
+    }
   }
 }
