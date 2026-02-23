@@ -130,7 +130,7 @@ export class FiltersComponent implements OnChanges {
   }
 
   getFilterGroupsForMeasure(measureId: string): InputFilterGroup[] {
-    return this.filterGroupsInput.filter(fg => fg.measureId === measureId);
+    return this.filterGroupsInput.filter(fg => fg.measureId === measureId && fg.filter.labels?.length > 0);
   }
 
   collapseAllMeasures() {
