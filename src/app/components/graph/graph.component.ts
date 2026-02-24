@@ -113,7 +113,42 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
   }
 
   private getChartData() {
-    this.graphData.set(this.data || this.emptyGraph);
+    if (!this.data) {
+      this.graphData.set(this.emptyGraph);
+      return;
+    }
+    const processedData: GraphData = {
+      ...this.data,
+      series: this.handleDuplicateSeriesNames(this.data.series)
+    };
+
+    this.graphData.set(processedData);
+  }
+
+  private handleDuplicateSeriesNames(series: any[]): any[] {
+    if (!series) return [];
+    const nameToGroups = new Map<string, Set<string>>();
+    series.forEach(s => {
+      const name = s.name?.toString().trim();
+      const group = s.groupTitle?.toString().trim();
+      if (name && group) {
+        if (!nameToGroups.has(name)) nameToGroups.set(name, new Set());
+        nameToGroups.get(name)!.add(group);
+      }
+    });
+
+    return series.map(s => {
+      const name = s.name?.toString().trim();
+      const group = s.groupTitle?.toString().trim();
+
+      if (name && group && nameToGroups.get(name)!.size > 1) {
+        return {
+          ...s,
+          name: `${name} (${group})`
+        };
+      }
+      return s;
+    });
   }
 
   private initChart() {

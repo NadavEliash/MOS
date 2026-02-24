@@ -225,12 +225,12 @@ export class CategoryService {
     let seriesData: number[] = [];
     const viewData = this.views().find(v => v.id === measure.id)?.data;
     const xAxis = this.filters()?.find(f => f.id === categories?.filter.id)?.property;
-    const filterGroup = filterGroups.find(fg => fg.filter.labels?.some(l => l.title === label.title));
-    const moreFilterGroups = filterGroups.slice(1).filter(fg => fg.filter.labels?.some(l => l.data.checked));
+    const filterGroup = filterGroups.find(fg => fg.filter.id === label.data.filterId);
+    const moreFilterGroups = filterGroups.filter(fg => fg.filter.id !== label.data.filterId && (!firstLabel || fg.filter.id !== firstLabel.data.filterId) && fg.filter.labels?.some(l => l.data.checked));
     const moreFilterLabels = moreFilterGroups.map(fg => (fg.filter.labels?.filter(l => l.data.checked).map(l => l.title)));
     const isRate = this.isMeasureRate(measure);
 
-    const firstFilterGroup = firstLabel ? filterGroups.find(fg => fg.filter.labels?.some(l => l.title === firstLabel.title)) : null;
+    const firstFilterGroup = firstLabel ? filterGroups.find(fg => fg.filter.id === firstLabel.data.filterId) : null;
 
     if (viewData && xAxis && filterGroup) {
       categories.filter.labels.forEach(l => {

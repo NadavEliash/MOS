@@ -367,7 +367,6 @@ export class CategoryComponent implements OnInit {
   onFiltersChange(event: any) {
     if (!event || event.length === 0) return;
 
-
     this.filterGroups.update(groups => {
       const updatedGroups = groups.map(group => {
         const updatedGroup = event.find((e: FilterGroup) => e.filter.id === group.filter.id && e.measureId === group.measureId);
@@ -376,10 +375,8 @@ export class CategoryComponent implements OnInit {
       return updatedGroups;
     });
 
-
     const currentGraphData = this.graphData();
     const measureIds = event.map((e: FilterGroup) => e.measureId).filter((id: string, index: number, self: string[]) => self.indexOf(id) === index);
-
 
     const chipTitle = currentGraphData?.title;
     const chipDescription = currentGraphData?.description;
