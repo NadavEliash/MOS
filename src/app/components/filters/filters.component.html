@@ -127,7 +127,7 @@
     </div>
     <div class="graph">
         <app-graph [data]="currentGraphData()" [filterGroups]="filterGroupsInput" [isLoading]="isLoading"
-            [hasError]="hasError" (graphSaved)="onGraphSaved()">
+            [hasError]="hasError" (graphSaved)="onGraphSaved()" (graphReload)="graphReload.emit()">
         </app-graph>
     </div>
 </div>

@@ -31,6 +31,7 @@ export class FiltersComponent implements OnChanges {
   @Output() selectMeasure = new EventEmitter<string>();
   @Output() selectMultipleMeasures = new EventEmitter<string[]>();
   @Output() graphSaved = new EventEmitter<void>();
+  @Output() graphReload = new EventEmitter<void>();
 
   @ViewChild(GraphComponent) graphComponent!: GraphComponent;
 

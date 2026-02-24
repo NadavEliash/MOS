@@ -51,7 +51,7 @@
       <app-Filters [categoryGroups]="categoryGroups()" [measures]="measures()" [filterGroups]="filterGroups()"
         [graphData]="graphData()" (selectionChange)="onFiltersChange($event)" (selectMeasure)="onSelectMeasure($event)"
         (selectMultipleMeasures)="onSelectMultipleMeasures($event)" (graphSaved)="onGraphSaved()"
-        [isLoading]="loadingGraph()" [hasError]="graphError()">
+        (graphReload)="onGraphReload()" [isLoading]="loadingGraph()" [hasError]="graphError()">
       </app-Filters>
     </div>
     @if (savedGraphs().length > 0) {<div class="saved-graphs">

@@ -151,6 +151,10 @@
   button {
     background-color: transparent;
     border: none;
+    cursor: pointer;
+    text-decoration: underline;
+    color: var(--color-blue);
+    margin-top: 12px;
   }
 }
 

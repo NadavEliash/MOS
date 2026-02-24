@@ -673,7 +673,16 @@ export class CategoryComponent implements OnInit {
     }
   }
 
-  async reloadGraph() {
+  onGraphReload() {
+    this.errorService.clearGraphError();
+    const activeChip = this.chips().find(c => c.isActive);
+    if (activeChip) {
+      this.onSelectChip(activeChip.Chip_ID);
+    } else if (this.categoryService.selectedMeasure()) {
+      this.onSelectMeasure(this.categoryService.selectedMeasure()!);
+    } else if (this.selectedCategory()) {
+      this.onSelectCategory(this.selectedCategory()!.Category_ID, true);
+    }
   }
 
   onGraphSaved() {

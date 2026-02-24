@@ -81,12 +81,6 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
       .filter((s): s is string => s !== null);
   });
 
-  constructor() {
-    effect(() => {
-      console.log(this.hasError);
-    });
-  }
-
   showSuccessMessage(message: string, type: 'success' | 'error' = 'success'): void {
     this.successMessage.set(message);
     this.messageType.set(type);
