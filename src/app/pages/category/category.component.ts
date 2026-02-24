@@ -208,7 +208,6 @@ export class CategoryComponent implements OnInit {
 
     const chip = this.chips().find(chip => chip.Chip_ID === id);
     if (chip) {
-
       const measureIds = chip['Measure ID']?.split(',').map((m: string) => m.trim());
       if (measureIds?.length > 0) {
         this.categoryService.setSelectedMeasure(measureIds[0]);
@@ -486,8 +485,7 @@ export class CategoryComponent implements OnInit {
         graphType = 'stacked-column';
       } else {
         let seriesLabels = activeSeriesFilterGroups.flatMap(fg => fg.filter.labels.filter(l => l.data.checked));
-
-        if (seriesLabels.length === 0 && measureFilterGroups.length === 1) {
+        if (seriesLabels.length === 0 && (measureFilterGroups.length === 1 || this.chips().find(chip => chip.isActive)?.Filter_ID === measure.xAxis)) {
           series = [{
             groupTitle: measure.name,
             name: measure.name,

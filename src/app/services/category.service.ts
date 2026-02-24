@@ -79,6 +79,7 @@ export class CategoryService {
         this.allChips = await this.apiService.getStatistics('chips');
       }
       this.chips.set(this.allChips.filter((chip: any) => chip.Category_ID === id)
+        .filter((chip: any) => chip['Measure ID'] && chip['Filter_ID'])
         .map((chip: any, idx: number) => { return { ...chip, isActive: false } }));
     }
   }
@@ -361,67 +362,6 @@ export class CategoryService {
     });
 
     return series;
-  }
-
-  getMeasureTotalData(measure: Measure, filters: string[], categories: FilterGroup): number[] {
-    let seriesData: number[] = [];
-    const viewData = this.views().find(v => v.id === measure.id)?.data;
-    const xAxis = this.filters()?.find(f => f.id === categories?.filter.id)?.property;
-    const isRate = this.isMeasureRate(measure);
-
-    if (viewData && xAxis) {
-      categories.filter.labels.forEach(l => {
-        const matchingItems = viewData.filter((item: any) => item[xAxis] === l.title);
-
-        let value = 0;
-        if (isRate) {
-          if (matchingItems.length > 0) {
-            const sum = matchingItems.reduce((acc: number, item: any) => acc + item[measure.value], 0);
-            value = this.normalizeRate(sum / matchingItems.length);
-          }
-        } else {
-          value = matchingItems.reduce((acc: number, item: any) => acc + item[measure.value], 0);
-        }
-        seriesData.push(value);
-      });
-    }
-
-    return seriesData;
-  }
-
-  getMeasureTotalDataByFilter(measure: Measure, filterId: string, categories: FilterGroup): any[] {
-    const viewData = this.views().find(v => v.id === measure.id)?.data;
-    const xAxis = this.filters()?.find(f => f.id === categories?.filter.id)?.property;
-    const filterProperty = this.filters()?.find(f => f.id === filterId)?.property;
-
-    if (!viewData || !xAxis || !filterProperty) return [];
-
-    const filterValues = new Set<string>();
-    viewData.forEach((item: any) => {
-      if (item[filterProperty]) {
-        filterValues.add(item[filterProperty]);
-      }
-    });
-
-    const result = Array.from(filterValues).map(filterValue => {
-      const seriesData: number[] = [];
-
-      categories.filter.labels.forEach(categoryLabel => {
-        const sum = viewData.reduce((acc: number, item: any) => {
-          if (item[xAxis] === categoryLabel.title && item[filterProperty] === filterValue) {
-            acc += item[measure.value];
-          }
-          return acc;
-        }, 0);
-        seriesData.push(sum);
-      });
-
-      return {
-        filterValue,
-        values: seriesData
-      };
-    });
-    return result;
   }
 
   setSelectedCategory(id: string) {
