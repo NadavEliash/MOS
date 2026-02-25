@@ -315,7 +315,6 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
         }
 
         const seriesName = s.name.toString().trim();
-        const groupTitle = (s as any).groupTitle;
 
         let displayName = seriesName;
         const hasMultipleMeasures = chartData?.measureIds && chartData.measureIds.length > 1;
@@ -329,7 +328,7 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
         const seriesConfig: any = {
           name: displayName,
           type: isLine ? 'line' : 'bar',
-          data: filteredData,
+          data: isLine ? filteredData : filteredData.map(v => v === 0 ? null : v),
           itemStyle: { color: s.color },
           z: 10
         };
@@ -348,6 +347,7 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
             borderRadius: [5, 5, 0, 0]
           };
           seriesConfig.barWidth = hasVisibleStackedBars && !s.stack ? 18 : 12;
+          seriesConfig.barMinHeight = 6;
           seriesConfig.barGap = '20%';
           seriesConfig.label = {
             show: false,
