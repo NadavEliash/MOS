@@ -11,7 +11,7 @@
 
 
 :root {
-    /* Light variants */
+	/* Light variants */
 	--color-light-blue: #78D1F7;
 	--color-blue: #0068F5;
 	--color-dark-blue: #064A9D;
@@ -53,7 +53,8 @@ $color-yellow: #F2DD54;
 }
 
 /* Global font family */
-html, body {
+html,
+body {
 	font-family: 'Rubik', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
 	margin: 0;
 	padding: 0;
@@ -61,11 +62,11 @@ html, body {
 }
 
 .page {
-  background: var(--color-light-gray);
-  min-height: 100svh;
+	background: var(--color-light-gray);
+	min-height: calc(100svh - 85px);
 }
 
-button, input {
+button,
+input {
 	font-family: inherit;
 }
-
