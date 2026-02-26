@@ -1,4 +1,4 @@
-import { Pipe, PipeTransform } from '@angular/core';
+import { Pipe, PipeTransform, SecurityContext } from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 @Pipe({
@@ -7,18 +7,36 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 })
 export class HighlightPipe implements PipeTransform {
 
-  constructor(private sanitizer: DomSanitizer) {}
+  constructor(private sanitizer: DomSanitizer) { }
+
+  private encodeHtml(value: string): string {
+    return value
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#x27;');
+  }
+
+  private escapeRegExp(value: string): string {
+    return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  }
 
   transform(text: string | undefined, searchTerm: string): SafeHtml | string {
     if (!searchTerm || !text) {
       return text || '';
     }
 
-    // Use a regex to find all occurrences of the search term, case-insensitively
-    const pattern = new RegExp(searchTerm, 'gi');
-    const highlightedText = text.replace(pattern, (match) => `<mark style="background-color: transparent; font-weight: 700;">${match}</mark>`);
+    const encodedText = this.encodeHtml(text);
+    const encodedTerm = this.encodeHtml(searchTerm);
+    const safePattern = new RegExp(this.escapeRegExp(encodedTerm), 'gi');
 
-    // Sanitize the HTML to prevent security risks before rendering
-    return this.sanitizer.bypassSecurityTrustHtml(highlightedText);
+    const highlightedHtml = encodedText.replace(
+      safePattern,
+      (match) => `<mark style="background-color: transparent; font-weight: 700;">${match}</mark>`
+    );
+
+    const sanitized = this.sanitizer.sanitize(SecurityContext.HTML, highlightedHtml) ?? '';
+    return this.sanitizer.bypassSecurityTrustHtml(sanitized);
   }
 }
