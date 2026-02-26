@@ -217,10 +217,6 @@ export class CategoryService {
     return values.some((val: number) => val % 1 !== 0);
   }
 
-  private normalizeRate(value: number): number {
-    return value > 100 ? value / 10 : value;
-  }
-
   getSeriesData(measure: Measure, categories: FilterGroup, filterGroups: FilterGroup[], label: Label, firstLabel?: Label): number[] {
     let seriesData: number[] = [];
     const viewData = this.views().find(v => v.id === measure.id)?.data;
@@ -256,7 +252,7 @@ export class CategoryService {
         if (isRate) {
           if (matchingItems.length > 0) {
             const sum = matchingItems.reduce((acc: number, item: any) => acc + item[measure.value], 0);
-            value = this.normalizeRate(sum / matchingItems.length);
+            value = sum / matchingItems.length;
           }
         } else {
           value = matchingItems.reduce((acc: number, item: any) => acc + item[measure.value], 0);
@@ -305,7 +301,7 @@ export class CategoryService {
       if (isRate) {
         if (matchingItems.length > 0) {
           const sum = matchingItems.reduce((acc: number, item: any) => acc + item[measure.value], 0);
-          value = this.normalizeRate(sum / matchingItems.length);
+          value = sum / matchingItems.length;
         }
       } else {
         value = matchingItems.reduce((acc: number, item: any) => acc + item[measure.value], 0);

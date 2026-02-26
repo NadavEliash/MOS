@@ -167,6 +167,11 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
       s.data.some((val: number) => val !== null && val !== undefined && val % 1 !== 0)
     );
 
+    const maxSeriesValue = chartData?.series?.reduce((max: number, s: any) =>
+      Math.max(max, ...s.data.filter((v: number) => v !== null && v !== undefined).map(Number)), 0
+    ) ?? 0;
+    const isPercentRate = isRate && maxSeriesValue <= 100;
+
     const reversedSeries = [...(chartData?.series || [])].reverse();
     const visibleSeries = reversedSeries.filter(s => {
       let filteredData = s.data;
@@ -214,7 +219,7 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
 
           const tooltipItems = filteredParams.map((param: any, idx: number) => {
             const value = typeof param.value === 'number'
-              ? (isRate
+              ? (isPercentRate
                 ? param.value.toLocaleString(undefined, { maximumFractionDigits: 2 }) + '%'
                 : param.value.toLocaleString(undefined, { maximumFractionDigits: 2 }))
               : param.value;
@@ -299,7 +304,7 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
         axisLabel: {
           color: "#866b90ff",
           fontFamily: "Rubik, sans-serif",
-          formatter: isRate ? '{value}%' : '{value}'
+          formatter: isPercentRate ? '{value}%' : '{value}'
         }
       },
       series: visibleSeries.map(s => {
