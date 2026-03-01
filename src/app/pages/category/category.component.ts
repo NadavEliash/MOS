@@ -522,11 +522,19 @@ export class CategoryComponent implements OnInit {
     }
   }
 
-  setMultiMeasureGraphData(measures: Measure[], chipTitle?: string, chipDescription?: string) {
+  async setMultiMeasureGraphData(measures: Measure[], chipTitle?: string, chipDescription?: string) {
     if (measures.length === 0) return;
     if (measures.length === 1) {
       this.setGraphData(measures[0], chipTitle, chipDescription);
       return;
+    }
+
+    for (const measure of measures) {
+      let measureFilterGroups = this.filterGroups().filter(fg => fg.measureId === measure.id);
+      if (measureFilterGroups.length === 0) {
+        await this.categoryService.getView(measure.id);
+        this.setFilterGroups(measure);
+      }
     }
 
     const colors = graphColors;
