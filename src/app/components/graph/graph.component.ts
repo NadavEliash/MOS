@@ -340,6 +340,9 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
 
         if (isLine) {
           seriesConfig.smooth = true;
+          seriesConfig.symbol = 'circle';
+          seriesConfig.symbolSize = 7;
+          seriesConfig.itemStyle = { color: s.color };
           seriesConfig.label = { show: false };
         } else {
           if (isStacked) {

@@ -5,8 +5,11 @@
   box-shadow: 0px 8px 33.6px 16px #00357D0A;
   backdrop-filter: blur(4px);
   border-radius: 32px;
-  height: 600px;
+  min-height: 600px;
   position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 
   &.headless {
     padding: 16px 20px;
@@ -106,11 +109,8 @@
 }
 
 .chart {
-  position: absolute;
-  left: 32px;
-  right: 32px;
-  bottom: 10px;
-  top: 140px;
+  display: block;
+  min-height: 400px;
   opacity: 1;
 
   &.no-category {
@@ -129,11 +129,16 @@
 }
 
 .graph-error {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   height: 100%;
+  width: 100%;
   text-align: center;
 
   h2 {
@@ -173,15 +178,16 @@
 }
 
 .loader {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   width: 8px;
   height: 40px;
   border-radius: 4px;
   display: inline-block;
   margin-left: 20px;
   margin-top: 10px;
-  position: relative;
-  right: 50%;
-  top: 40%;
   scale: 1.1;
   background: currentColor;
   color: var(--color-blue);
