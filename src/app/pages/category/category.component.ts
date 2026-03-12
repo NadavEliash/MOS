@@ -1,4 +1,4 @@
-﻿import { Component, inject, signal, OnInit, effect, ViewChild } from '@angular/core';
+import { Component, inject, signal, OnInit, effect, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CategoryService, Category, Chip } from '../../services/category.service';
@@ -52,18 +52,13 @@ export class CategoryComponent implements OnInit {
   }
 
   private normalizeSeriesData(series: any[]): any[] {
-
     const allValues = series.flatMap(s => s.data).filter((v: number) => v > 0);
-
-
     if (allValues.length > 0 && allValues.every((v: number) => v <= 1)) {
-
       return series.map(s => ({
         ...s,
         data: s.data.map((v: number) => v * 100)
       }));
     }
-
     return series;
   }
 
@@ -438,6 +433,15 @@ export class CategoryComponent implements OnInit {
 
       const categories = measureFilterGroups.find(fg => fg.filter.id === measure.xAxis)!;
       const seriesFilterGroups = measureFilterGroups.filter(fg => fg.filter.property !== categories.filter.property);
+
+      if (!this.chips().some(c => c.isActive) && !this.savedGraphs().some(sg => sg.isActive)) {
+        const hasActiveSeries = seriesFilterGroups.some(fg => fg.filter.labels?.some(l => l.data.checked));
+        if (!hasActiveSeries && seriesFilterGroups.length > 0) {
+          seriesFilterGroups[0].filter.labels?.slice(0, 10).forEach(l => l.data.checked = true);
+          this.filterGroups.set([...this.filterGroups()]);
+        }
+      }
+
       const activeSeriesFilterGroups = seriesFilterGroups.filter(fg => fg.filter.labels?.some(l => l.data.checked));
 
       let series: any[] = [];
