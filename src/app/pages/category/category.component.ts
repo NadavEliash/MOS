@@ -421,6 +421,11 @@ export class CategoryComponent implements OnInit {
   }
 
   async setGraphData(measure: Measure, chipTitle?: string, chipDescription?: string, chipSubtitles?: string) {
+    if (!measure) {
+      console.warn('[CategoryComponent] setGraphData called with undefined measure');
+      this.loadingGraph.set(false);
+      return;
+    }
     try {
       const colors = graphColors;
 

@@ -1,4 +1,4 @@
-﻿import { AfterViewInit, Component, ElementRef, Input, OnChanges, OnDestroy, SimpleChanges, ViewChild, computed, effect, inject, output, signal } from "@angular/core";
+import { AfterViewInit, Component, ElementRef, Input, OnChanges, OnDestroy, SimpleChanges, ViewChild, computed, effect, inject, output, signal } from "@angular/core";
 import { CommonModule } from "@angular/common";
 import * as echarts from "echarts/core";
 import { BarChart, LineChart } from "echarts/charts";
@@ -448,6 +448,7 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
   private onResize = () => this.chart?.resize();
 
   reload() {
+    this.chart?.clear();
     this.graphReload.emit();
   }
 }
