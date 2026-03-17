@@ -96,13 +96,18 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['data'] || changes['chartType']) {
+    if (changes['hasError'] && !this.hasError && changes['hasError'].previousValue === true) {
+      this.chart?.dispose();
+      this.chart = undefined;
+    }
+
+    if (changes['data'] || changes['chartType'] || changes['hasError']) {
       this.getChartData();
       this.noCategory.set(!this.data?.categories?.filter?.labels?.some(l => l.data.checked));
       if (this.chart) {
         this.updateChart();
       } else {
-        setTimeout(() => { this.initChart(); this.updateChart() });
+        setTimeout(() => { this.initChart(); this.updateChart(); });
       }
     }
   }
