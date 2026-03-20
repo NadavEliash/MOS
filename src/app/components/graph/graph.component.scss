@@ -236,6 +236,34 @@
   }
 }
 
+.loading {
+  position: fixed;
+  top: 50%;
+  right: calc(50% - 64px);
+  margin-top: 80px;
+  font-size: 16px;
+  color: var(--color-blue);
+}
+
+.loading::after {
+  content: ".";
+  animation: loading 1s infinite;
+}
+
+@keyframes loading {
+  0% {
+    content: ".";
+  }
+
+  50% {
+    content: "..";
+  }
+
+  100% {
+    content: "...";
+  }
+}
+
 .active-filters {
   width: 100%;
   margin-top: 4px;

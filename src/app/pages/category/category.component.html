@@ -1,4 +1,4 @@
-﻿<section class="page category">
+<section class="page category">
   <section class="category-header">
     <div class="options-bar" role="navigation" aria-label="אפשרויות קטגוריה">
       <div class="options-inner">
@@ -51,7 +51,7 @@
       <app-Filters [categoryGroups]="categoryGroups()" [measures]="measures()" [filterGroups]="filterGroups()"
         [graphData]="graphData()" (selectionChange)="onFiltersChange($event)" (selectMeasure)="onSelectMeasure($event)"
         (selectMultipleMeasures)="onSelectMultipleMeasures($event)" (graphSaved)="onGraphSaved()"
-        (graphReload)="onGraphReload()" [isLoading]="loadingGraph()" [hasError]="graphError()">
+        (graphReload)="onGraphReload()" [isLoading]="loadingGraph()">
       </app-Filters>
     </div>
     @if (savedGraphs().length > 0) {<div class="saved-graphs">

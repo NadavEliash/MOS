@@ -4,14 +4,45 @@ import { Injectable, signal } from '@angular/core';
     providedIn: 'root'
 })
 export class ErrorService {
-    /** True when the latest measure/graph API call failed */
-    graphError = signal<boolean>(false);
+    /** Set of measure IDs that failed to load */
+    private failedMeasures = signal<Set<string>>(new Set());
 
-    setGraphError(hasError: boolean): void {
-        this.graphError.set(hasError);
+    failedMeasuresSignal = this.failedMeasures.asReadonly();
+
+    setGraphError(measureId: string | boolean): void {
+        if (typeof measureId === 'boolean') {
+            if (measureId) {
+                this.failedMeasures.update(prev => {
+                    const next = new Set(prev);
+                    next.add('global');
+                    return next;
+                });
+            } else {
+                this.failedMeasures.set(new Set());
+            }
+            return;
+        }
+
+        this.failedMeasures.update(prev => {
+            const next = new Set(prev);
+            next.add(measureId);
+            return next;
+        });
     }
 
-    clearGraphError(): void {
-        this.graphError.set(false);
+    clearGraphError(measureId?: string): void {
+        if (measureId) {
+            this.failedMeasures.update(prev => {
+                const next = new Set(prev);
+                next.delete(measureId);
+                return next;
+            });
+        } else {
+            this.failedMeasures.set(new Set());
+        }
+    }
+
+    hasError(measureId: string): boolean {
+        return this.failedMeasures().has(measureId);
     }
 }

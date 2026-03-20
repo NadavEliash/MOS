@@ -1,4 +1,4 @@
-﻿import { inject, Injectable } from "@angular/core";
+import { inject, Injectable } from "@angular/core";
 import { signal } from "@angular/core";
 import { ApiService } from "./api.service";
 import { ErrorService } from "./error.service";
@@ -141,7 +141,7 @@ export class CategoryService {
       })
       .catch(error => {
         this.pendingViewRequests.delete(measureId);
-        this.errorService.setGraphError(true);
+        this.errorService.setGraphError(measureId);
         throw error;
       });
 

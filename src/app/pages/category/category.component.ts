@@ -38,7 +38,7 @@ export class CategoryComponent implements OnInit {
   articles = signal<any[]>([]);
   linkedItems = signal<any[]>([]);
   loadingGraph = signal<boolean>(false);
-  readonly graphError = this.errorService.graphError;
+
 
   constructor() {
     effect(() => {
@@ -141,48 +141,72 @@ export class CategoryComponent implements OnInit {
     this.errorService.clearGraphError();
     this.categoryService.setSelectedCategory(this.categories()!.find(c => c.Category_ID === id)?.Category_ID!);
 
+    if (signal.aborted) return;
     try {
-      if (signal.aborted) return;
       await this.categoryService.getChips(id);
-
-      this.filterGroups.set([]);
-      if (signal.aborted) return;
-      const measures = await this.categoryService.getMeasures(id);
-      const chipMeasures = measures.filter(m => this.chips()[0]['Measure ID']?.includes(m.id));
-
-      for (const measure of chipMeasures) {
-        if (signal.aborted) return;
-        await this.categoryService.getView(measure.id);
-        this.setFilterGroups(measure);
-      };
-
-      if (resetGraph) {
-        if (signal.aborted) return;
-        this.onSelectChip(this.chips()[0].Chip_ID);
-      }
-      this.loadingGraph.set(false);
-
-      const otherMeasures = measures.filter(m => !chipMeasures.some(cm => cm.id === m.id));
-      otherMeasures.forEach(measure => {
-        this.categoryService.getView(measure.id)
-          .then(() => {
-            if (!signal.aborted) {
-              this.setFilterGroups(measure);
-            }
-          })
-          .catch(error => {
-            if (error.name !== 'AbortError') {
-              console.error(`[CategoryComponent] Background load failed for measure ${measure.id}:`, error);
-            }
-          });
-      });
     } catch (error: any) {
       if (error.name !== 'AbortError') {
-        this.loadingGraph.set(false);
         this.errorService.setGraphError(true);
-        console.error('[CategoryComponent] onSelectCategory error:', error);
+        console.error('[CategoryComponent] getChips error:', error);
       }
     }
+
+    if (signal.aborted) return;
+    this.filterGroups.set([]);
+    let measures: Measure[] = [];
+    try {
+      measures = await this.categoryService.getMeasures(id);
+    } catch (error: any) {
+      if (error.name !== 'AbortError') {
+        this.errorService.setGraphError(true);
+        console.error('[CategoryComponent] getMeasures error:', error);
+      }
+    }
+
+    if (signal.aborted) return;
+    const chipMeasures = (this.chips()?.length > 0 && measures?.length > 0)
+      ? measures.filter(m => this.chips()[0]['Measure ID']?.includes(m.id))
+      : [];
+
+    for (const measure of chipMeasures) {
+      if (signal.aborted) break;
+      try {
+        await this.categoryService.getView(measure.id);
+        this.setFilterGroups(measure);
+      } catch (error: any) {
+        if (error.name !== 'AbortError') {
+          this.errorService.setGraphError(measure.id);
+          console.error(`[CategoryComponent] getView error for measure ${measure.id}:`, error);
+        }
+      }
+    };
+
+    if (resetGraph) {
+      if (signal.aborted) return;
+      if (this.chips()?.length > 0) {
+        this.onSelectChip(this.chips()[0].Chip_ID);
+      }
+    }
+    this.loadingGraph.set(false);
+
+    const otherMeasures = (measures?.length > 0)
+      ? measures.filter(m => !chipMeasures.some(cm => cm.id === m.id))
+      : [];
+
+    otherMeasures.forEach(measure => {
+      this.categoryService.getView(measure.id)
+        .then(() => {
+          if (!signal.aborted) {
+            this.setFilterGroups(measure);
+          }
+        })
+        .catch(error => {
+          if (error.name !== 'AbortError') {
+            this.errorService.setGraphError(measure.id);
+            console.error(`[CategoryComponent] Background load failed for measure ${measure.id}:`, error);
+          }
+        });
+    });
   }
 
   onSelectChip(id: string) {
@@ -525,7 +549,8 @@ export class CategoryComponent implements OnInit {
     } catch (error: any) {
       if (error.name !== 'AbortError') {
         this.loadingGraph.set(false);
-        this.errorService.setGraphError(true);
+        this.errorService.setGraphError(measure.id);
+
         console.error('[CategoryComponent] setGraphData error:', error);
       }
     }
@@ -689,7 +714,7 @@ export class CategoryComponent implements OnInit {
 
   onGraphReload() {
     this.errorService.clearGraphError();
-    const activeChip = this.chips().find(c => c.isActive);
+    const activeChip = this.chips().find(chip => chip.isActive);
     if (activeChip) {
       this.onSelectChip(activeChip.Chip_ID);
     } else if (this.categoryService.selectedMeasure()) {

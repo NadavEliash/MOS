@@ -8,6 +8,9 @@ import { CookieService } from "../../services/cookie.service";
 import { ShareBar } from "../share-bar/share-bar";
 import { FilterGroup, Graph, GraphData } from "../../interfaces";
 
+import { ErrorService } from "../../services/error.service";
+import { CategoryService } from "../../services/category.service";
+
 echarts.use([BarChart, LineChart, GridComponent, TooltipComponent, LegendComponent, TitleComponent, CanvasRenderer]);
 
 export type ChartType = 'line' | 'stacked-column';
@@ -25,7 +28,6 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input() filterGroups: FilterGroup[] | null = null;
   @Input() headless = false;
   @Input() isLoading = false;
-  @Input() hasError = false;
 
   emptyGraph: GraphData = {
     categoryId: '',
@@ -56,9 +58,21 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
 
   private chart?: echarts.ECharts;
   private cookieService = inject(CookieService);
+  private errorService = inject(ErrorService);
+  private categoryService = inject(CategoryService);
 
   showShareBar = false;
 
+  hasError = computed(() => {
+    const errorState = this.errorService.failedMeasuresSignal();
+    if (errorState.has('global')) return true;
+
+    const measureId = this.categoryService.selectedMeasure();
+    if (!measureId) return false;
+    return errorState.has(measureId);
+  });
+
+  
   activeFilters = computed(() => {
     const data = this.graphData();
     if (!data || !data.categories?.measureId) return [];
@@ -96,10 +110,8 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    if (changes['hasError'] && !this.hasError && changes['hasError'].previousValue === true) {
-      this.chart?.dispose();
-      this.chart = undefined;
-    }
+    this.chart?.dispose();
+    this.chart = undefined;
 
     if (changes['data'] || changes['chartType'] || changes['hasError']) {
       this.getChartData();
