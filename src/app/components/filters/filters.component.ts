@@ -37,6 +37,7 @@ export class FiltersComponent implements OnChanges {
 
   private categoryService = inject(CategoryService);
   private cookieService = inject(CookieService);
+  private elRef = inject(ElementRef);
 
   currentGraphData = signal<GraphData | undefined>(undefined);
 
@@ -108,15 +109,36 @@ export class FiltersComponent implements OnChanges {
           this.selectGroup(this.groupedMeasures.find(g => g.measures.includes(selectedMeasure?.id)));
         }
 
+        let shouldScroll = false;
+
         if (data.measureIds && data.measureIds.length > 0) {
           data.measureIds.forEach((measureId: string) => {
             const measure = this.measures.find(m => m.id === measureId);
             if (measure) {
+              if (!measure.expanded) shouldScroll = true;
               measure.expanded = true;
             }
           });
         } else if (selectedMeasure) {
-          this.measures.find((m: MeasureView) => m.id === selectedMeasure.id)!.expanded = true;
+          const m = this.measures.find((m: MeasureView) => m.id === selectedMeasure.id);
+          if (m) {
+            if (!m.expanded) shouldScroll = true;
+            m.expanded = true;
+          }
+        }
+
+        if (shouldScroll) {
+          setTimeout(() => {
+            const activeFilters = this.elRef.nativeElement.querySelectorAll('.group-header.active');
+            if (activeFilters.length > 0) {
+              activeFilters[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+            } else {
+              const openedMeasures = this.elRef.nativeElement.querySelectorAll('.measure-title.expanded');
+              if (openedMeasures.length > 0) {
+                openedMeasures[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+              }
+            }
+          }, 300);
         }
       } else {
         this.currentGraphData.set(undefined);

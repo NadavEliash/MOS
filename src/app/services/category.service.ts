@@ -272,7 +272,9 @@ export class CategoryService {
 
     if (!viewData || !xAxis) return [];
 
-    const firstFilterGroup = filterGroups.find(fg => fg.filter.property !== categories.filter.property);
+    const seriesFilterGroups = filterGroups.filter(fg => fg.filter.property !== categories?.filter.property);
+    const firstFilterGroup = seriesFilterGroups[0];
+    const hasMoreFilterGroups = seriesFilterGroups.length > 1;
     let blockedFilters: any[] = [];
 
     if (measure.blockedFilters === null) {
@@ -293,9 +295,15 @@ export class CategoryService {
       this.filters()?.find(f => f.id === b)?.property
     ));
     categories?.filter.labels.forEach(l => {
-      const matchingItems = viewData.filter((item: any) =>
-        item[xAxis] === l.title && !blockedFilters.some(f => item[f])
-      );
+      const matchingItems = viewData.filter((item: any) => {
+        let isMatch = item[xAxis] === l.title && !blockedFilters.some(f => item[f]);
+        
+        if (isMatch && hasMoreFilterGroups && firstFilterGroup) {
+          isMatch = !!item[firstFilterGroup.filter.property];
+        }
+
+        return isMatch;
+      });
 
       let value = 0;
       if (isRate) {

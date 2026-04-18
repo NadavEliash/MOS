@@ -110,17 +110,13 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
   }
 
   ngOnChanges(changes: SimpleChanges): void {
-    this.chart?.dispose();
-    this.chart = undefined;
+    if (changes['data']) {
+      this.chart?.dispose();
+      this.chart = undefined;
 
-    if (changes['data'] || changes['chartType'] || changes['hasError']) {
       this.getChartData();
       this.noCategory.set(!this.data?.categories?.filter?.labels?.some(l => l.data.checked));
-      if (this.chart) {
-        this.updateChart();
-      } else {
-        setTimeout(() => { this.initChart(); this.updateChart(); });
-      }
+      setTimeout(() => { this.initChart(); });
     }
   }
 
@@ -187,7 +183,7 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
     const maxSeriesValue = chartData?.series?.reduce((max: number, s: any) =>
       Math.max(max, ...s.data.filter((v: number) => v !== null && v !== undefined).map(Number)), 0
     ) ?? 0;
-    const isPercentRate = isRate && maxSeriesValue <= 100;
+    const isPercentRate = isRate && maxSeriesValue <= 1;
 
     const reversedSeries = [...(chartData?.series || [])].reverse();
     const visibleSeries = reversedSeries.filter(s => {

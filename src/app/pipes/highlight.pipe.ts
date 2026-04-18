@@ -36,7 +36,6 @@ export class HighlightPipe implements PipeTransform {
       (match) => `<mark style="background-color: transparent; font-weight: 700;">${match}</mark>`
     );
 
-    const sanitized = this.sanitizer.sanitize(SecurityContext.HTML, highlightedHtml) ?? '';
-    return this.sanitizer.bypassSecurityTrustHtml(sanitized);
+    return this.sanitizer.bypassSecurityTrustHtml(highlightedHtml);
   }
 }

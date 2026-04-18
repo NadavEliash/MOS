@@ -1,5 +1,5 @@
 import { Component, inject, signal, OnInit, effect, ViewChild } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CategoryService, Category, Chip } from '../../services/category.service';
 import { CookieService } from '../../services/cookie.service';
@@ -8,6 +8,7 @@ import { FiltersComponent } from "../../components/filters/filters.component";
 import { FilterGroup, Graph, GraphData, Measure } from '../../interfaces';
 import { graphColors } from '../../services/static.data';
 import { ApiService } from '../../services/api.service';
+import { combineLatest } from 'rxjs';
 
 @Component({
   selector: 'app-category',
@@ -24,6 +25,7 @@ export class CategoryComponent implements OnInit {
   private errorService = inject(ErrorService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  private location = inject(Location);
   private abortController: AbortController | null = null;
 
   readonly categories = this.categoryService.categories;
@@ -67,14 +69,20 @@ export class CategoryComponent implements OnInit {
       .then((categories) => {
         this.updateSavedCategories();
 
-        this.route.queryParams.subscribe(async (params) => {
-          const categoryId = params['id'];
-          const graph = params['graph'];
+        combineLatest([this.route.params, this.route.queryParams]).subscribe(async ([params, queryParams]) => {
+          const categoryId = params['id'] || queryParams['id'];
+          const graph = params['graph'] || queryParams['graph'];
+          
           if (categoryId) {
-            this.router.navigate(['/category'], { replaceUrl: true });
-            this.categoryService.setSelectedCategory(categoryId);
-            await this.onSelectCategory(categoryId, !this.categoryService.selectedMeasure());
-            if (graph) {
+            this.location.replaceState(`/category/${categoryId}`);
+            
+            if (this.categoryService.selectedCategory()?.Category_ID !== categoryId) {
+              this.categoryService.setSelectedCategory(categoryId);
+              await this.onSelectCategory(categoryId, !this.categoryService.selectedMeasure());
+            }
+            if (this.categoryService.selectedMeasure()) {
+              this.getSpecificMeasure(this.categoryService.selectedMeasure()!);
+            } else if (graph) {
               const parsedShareData = JSON.parse(graph);
               const currentFilterGroups = await this.categoryService.getFilters().then(() => this.filterGroups());
               currentFilterGroups?.forEach(fg => {
@@ -91,8 +99,6 @@ export class CategoryComponent implements OnInit {
               this.filterGroups.set([...currentFilterGroups]);
               this.setGraphData(this.measures().find(m => m.id === parsedShareData.measureId)!);
             }
-          } else if (this.categoryService.selectedMeasure()) {
-            this.getSpecificMeasure(this.categoryService.selectedMeasure()!);
           } else if (this.categoryService.selectedSavedGraph()) {
             this.onSelectSavedGraph(this.categoryService.selectedSavedGraph()!);
           } else if (!this.categoryService.selectedCategory()) {
@@ -129,6 +135,7 @@ export class CategoryComponent implements OnInit {
   }
 
   async onSelectCategory(id: string, resetGraph: boolean = false) {
+    this.location.replaceState(`/category/${id}`);
 
     if (this.abortController) {
       this.abortController.abort();
@@ -351,7 +358,6 @@ export class CategoryComponent implements OnInit {
     }
     this.abortController = new AbortController();
     const signal = this.abortController.signal;
-
     try {
       if (signal.aborted) return;
       const data = await this.apiService.getStatistics('layersMeasures');
@@ -404,19 +410,14 @@ export class CategoryComponent implements OnInit {
     if (measureIds.length > 1) {
 
       this.setMultiMeasureGraphData(
-        measureIds.map((id: string) => this.measures().find((m: Measure) => m.id === id)!).filter((m: Measure) => m),
-        chipTitle,
-        chipDescription
+        measureIds.map((id: string) => this.measures().find((m: Measure) => m.id === id)!).filter((m: Measure) => m)
       );
     } else {
 
       const measureId = event[0].measureId;
       this.updateActiveGraph('measure', measureId);
       this.setGraphData(
-        this.measures().find(m => m.id === measureId)!,
-        chipTitle,
-        chipDescription,
-        chipSubtitles
+        this.measures().find(m => m.id === measureId)!
       );
     }
   }
@@ -463,14 +464,6 @@ export class CategoryComponent implements OnInit {
       const categories = measureFilterGroups.find(fg => fg.filter.id === measure.xAxis)!;
       const seriesFilterGroups = measureFilterGroups.filter(fg => fg.filter.property !== categories.filter.property);
 
-      if (!this.chips().some(c => c.isActive) && !this.savedGraphs().some(sg => sg.isActive)) {
-        const hasActiveSeries = seriesFilterGroups.some(fg => fg.filter.labels?.some(l => l.data.checked));
-        if (!hasActiveSeries && seriesFilterGroups.length > 0) {
-          seriesFilterGroups[0].filter.labels?.slice(0, 10).forEach(l => l.data.checked = true);
-          this.filterGroups.set([...this.filterGroups()]);
-        }
-      }
-
       const activeSeriesFilterGroups = seriesFilterGroups.filter(fg => fg.filter.labels?.some(l => l.data.checked));
 
       let series: any[] = [];
@@ -515,7 +508,7 @@ export class CategoryComponent implements OnInit {
         graphType = 'stacked-column';
       } else {
         let seriesLabels = activeSeriesFilterGroups.flatMap(fg => fg.filter.labels.filter(l => l.data.checked));
-        if (seriesLabels.length === 0 && (measureFilterGroups.length === 1 || this.chips().find(chip => chip.isActive)?.Filter_ID === measure.xAxis)) {
+        if (seriesLabels.length === 0) {
           series = [{
             groupTitle: measure.name,
             name: measure.name,
@@ -610,7 +603,8 @@ export class CategoryComponent implements OnInit {
       const stackName = `measure${idx}`;
 
 
-      const data = this.categoryService.getNoSeriesData(measure, categories, []);
+      const measureFilterGroups = allFilterGroups.filter(fg => fg.measureId === measure.id);
+      const data = this.categoryService.getNoSeriesData(measure, categories, measureFilterGroups);
       series.push({
         name: measureName,
         data: data,
