@@ -37,9 +37,9 @@
   </section>
 
   <section class="category-mid">
-    <h2>ניתוח מדדים</h2>
+    <h2>ניתוח נתונים</h2>
     <div class="research">
-      <span>חקרו:</span>
+      <span>המלצות לחקר:</span>
       @for (chip of chips(); track chip.Chip_ID) {
       <button class="research-option" [ngClass]="chip.isActive ? 'selected' : ''" (click)="onSelectChip(chip.Chip_ID)">
         <span>{{chip.Chip_Name}}</span>

@@ -49,7 +49,9 @@ export class CategoryComponent implements OnInit {
 
     effect(() => {
       this.selectedCategory.set(this.categoryService.selectedCategory());
-      this.linkedItems.set(this.articles().filter((i: any) => i.categoryId === this.selectedCategory()?.Category_ID));
+      this.linkedItems.set(this.articles()
+      .filter((i: any) => !!i.title && i.subtitle !== i.link)
+      .filter((i: any) => i.categoryId === this.selectedCategory()?.Category_ID));
     })
   }
 
@@ -632,7 +634,7 @@ export class CategoryComponent implements OnInit {
       categoryId: firstMeasure.categoryId,
       title: chipTitle || measures.map(m => m.name).join(' + '),
       description: chipDescription,
-      subtitles: chipTitle ? measures.map(m => m.name).join('#') : undefined,
+      subtitles: measures.map(m => m.name).join('#'),
       measureIds: measureIds,
       type: graphType,
       categories: categories,
