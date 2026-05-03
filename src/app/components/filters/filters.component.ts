@@ -321,18 +321,9 @@ export class FiltersComponent implements OnChanges {
   }
 
   toggleSelectAll(group: InputFilterGroup): void {
-    const anySelected = this.isAnyFilteredSelected(group);
-
-    if (anySelected) {
-      group.filter.labels.forEach(label => {
-        label.data.checked = false;
-      });
-    } else {
-      const filteredLabels = this.getFilteredLabels(group);
-      filteredLabels.forEach(label => {
-        label.data.checked = true;
-      });
-    }
+    group.filter.labels.forEach(label => {
+      label.data.checked = false;
+    });
     this.selectionChange.emit(this.filterGroupsInput.filter(fg => fg.measureId === group.measureId));
   }
 
@@ -369,7 +360,10 @@ export class FiltersComponent implements OnChanges {
     const measure = this.measuresInput.find(m => m.id === measureId);
     const filterGroupsForMeasure = this.filterGroupsInput.filter(fg => fg.measureId === measureId);
 
-    filterGroupsForMeasure.forEach(group => group.filter.disabled = false);
+    filterGroupsForMeasure.forEach(group => {
+      group.filter.disabled = false;
+      group.filter.disabledReason = undefined;
+    });
 
     const activeFilterIds = new Set(
       filterGroupsForMeasure
@@ -381,9 +375,15 @@ export class FiltersComponent implements OnChanges {
       ? new Set([...activeFilterIds].filter(id => id !== measure.xAxis))
       : activeFilterIds;
     if (activeNonXAxisFilterIds.size === 2) {
+      const blockingNames = [...activeNonXAxisFilterIds]
+        .map(id => filterGroupsForMeasure.find(g => g.filter.id === id)?.filter.name)
+        .filter(Boolean)
+        .join(' ו/או ');
+
       filterGroupsForMeasure.forEach(group => {
         if (!activeFilterIds.has(group.filter.id)) {
           group.filter.disabled = true;
+          group.filter.disabledReason = `כדי לבחור בפילוח זה יש לבטל סימון בפילוח לפי ${blockingNames}`;
         }
       });
       return;
@@ -402,14 +402,21 @@ export class FiltersComponent implements OnChanges {
 
     blockedGroups.forEach((group: string[]) => {
       const fixedGroup = group.map(id => id.replace('[', ''));
-      const isGroupActive = fixedGroup.some(id => activeFilterIds.has(id));
+      const activeIdsInGroup = fixedGroup.filter(id => activeFilterIds.has(id));
+      const isGroupActive = activeIdsInGroup.length > 0;
 
       if (isGroupActive) {
+        const blockingNames = activeIdsInGroup
+          .map(id => filterGroupsForMeasure.find(g => g.filter.id === id)?.filter.name)
+          .filter(Boolean)
+          .join(' ו/או ');
+
         fixedGroup.forEach(filterId => {
           if (!activeFilterIds.has(filterId)) {
             const groupToDisable = filterGroupsForMeasure.find(g => g.filter.id === filterId);
             if (groupToDisable) {
               groupToDisable.filter.disabled = true;
+              groupToDisable.filter.disabledReason = `כדי לבחור בפילוח זה יש לבטל סימון בפילוח לפי ${blockingNames}`;
             }
           }
         });

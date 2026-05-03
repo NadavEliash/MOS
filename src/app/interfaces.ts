@@ -26,6 +26,7 @@ export interface Filter {
   labels: Label[];
   blocked?: string[];
   disabled?: boolean;
+  disabledReason?: string;
 }
 
 export interface Label {

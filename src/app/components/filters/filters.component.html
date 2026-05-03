@@ -47,23 +47,17 @@
                         <div class="filter-group-item" [class.disabled]="group.filter.disabled">
                             <button type="button" class="group-header" [class.expanded]="group.filter.expanded"
                                 [class.active]="hasActiveSelection(group)"
-                                (click)="!group.filter.disabled && toggleFilterGroup(group)"
-                                [disabled]="group.filter.disabled">
+                                (click)="toggleFilterGroup(group)">
                                 <img class="arrow-left" [class.expanded]="group.filter.expanded"
                                     src="/assets/measure-arrow.svg" alt="◀️" />
                                 <span class="group-title">{{ group.filter.name }}</span>
                             </button>
                             @if (group.filter.expanded) {
+                            @if (group.filter.name === 'שנה') { <span class="years-disclaimer">מופיעות שנים עם נתונים זמינים בלבד</span> }
+                            @if (group.filter.disabled && group.filter.disabledReason) { <span class="years-disclaimer">{{ group.filter.disabledReason }}</span> }
                             <div class="group-content">
                                 @if (hasManyLabels(group)) {
-                                <label class="checkbox-label select-all">
-                                    <input type="checkbox" [checked]="isAnyFilteredSelected(group)"
-                                        (change)="toggleSelectAll(group)"
-                                        (keydown.enter)="$event.preventDefault(); toggleSelectAll(group)"
-                                        [disabled]="group.filter.disabled">
-                                    <span class="checkmark"></span>
-                                    {{ isAnyFilteredSelected(group) ? 'נקה בחירה' : 'בחר הכל' }}
-                                </label>
+                                <button class="clear-all" (click)="toggleSelectAll(group)" [disabled]="!isAnyFilteredSelected(group)">נקה בחירה</button>
                                 <div class="search-wrapper">
                                     <img class="search-icon" src="/assets/search-icon.svg" alt="🔍" />
                                     <input #searchInput type="text" class="search-input" placeholder="חיפוש..."

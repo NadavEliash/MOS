@@ -150,10 +150,6 @@
   &.expanded {
     color: #0068f5;
 
-    .group-title {
-      color: #0068f5;
-    }
-
     .arrow {
       filter: brightness(0) saturate(100%) invert(42%) sepia(92%) saturate(6601%) hue-rotate(206deg) brightness(101%) contrast(101%);
     }
@@ -185,10 +181,6 @@
   margin-bottom: 16px;
   position: relative;
 
-  &.select-all {
-    font-size: 14px;
-  }
-
   &.in-measure {
     padding-block: 8px;
   }
@@ -219,6 +211,21 @@
 
   &:hover .checkmark {
     border-color: #0068f5;
+  }
+}
+
+.clear-all {
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  font-size: 16px;
+  color: #333;
+  cursor: pointer;
+  margin-bottom: 16px;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
   }
 }
 
@@ -409,9 +416,6 @@
     &.expanded {
       transform: rotate(-180deg);
     }
-
-    margin-top: 4px;
-    /* Align arrow with top line */
   }
 }
 
@@ -461,7 +465,20 @@
 
 .filter-group-item {
   &.disabled {
-    opacity: 0.5;
+    .group-content {
+      opacity: 0.5;
+
+      .checkbox-label {
+        cursor: default;
+        input[type="checkbox"] {
+          cursor: default;
+        }
+        &:hover .checkmark {
+          cursor: default;
+          border: 2px solid #d0d0d0;
+        }
+      }
+    }
   }
 
   .group-header {
@@ -499,12 +516,22 @@
     .group-title {
       font-size: 16px;
       font-weight: 400;
-      color: #5878A4;
     }
   }
 
+  .years-disclaimer {
+    display: block;
+    background: #F1F5FB;
+    width: 100%;
+    font-size: 16px;
+    font-weight: 400;
+    color: #5878A4;
+    padding-block: 4px;
+    padding-right: 36px;
+  }
+
   .group-content {
-    padding: 12px 8px 16px 28px;
+    padding: 12px 36px 16px 28px;
     background: #F1F5FB;
     border-radius: 0 0 8px 8px;
 
