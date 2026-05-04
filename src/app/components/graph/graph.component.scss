@@ -165,12 +165,18 @@
 
 .success-message {
   position: absolute;
-  top: 40px;
+  top: 30px;
   left: 50%;
   transform: translateX(-50%);
-  width: 200px;
+  width: 180px;
   color: #28a745;
   font-size: 14px;
+  background: #f8f8f8;
+  padding: 12px;
+  border-radius: 4px;
+  z-index: 10;
+  text-align: center;
+  
 
   &.error {
     color: #dc3545;

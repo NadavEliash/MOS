@@ -71,12 +71,22 @@ export class FiltersComponent implements OnChanges {
       this.selectedGroupName = '';
 
       if (this.data) {
-        const selectedMeasure = this.measures.find(m => m.id === this.data?.categories?.measureId);
-        if (this.showGrouped) {
-          this.selectGroup(this.groupedMeasures.find(g => g.measures.includes(selectedMeasure?.id)));
+        const targetMeasureId = this.data.categories?.measureId || (this.data.measureIds && this.data.measureIds.length > 0 ? this.data.measureIds[0] : undefined);
+        const targetGroup = this.groupedMeasures.find(g => g.measures.includes(targetMeasureId));
+        if (this.showGrouped && targetGroup) {
+          this.selectGroup(targetGroup);
         }
-        this.measures.find((m: MeasureView) => m.id === selectedMeasure?.id)!.expanded = true;
-      };
+
+        if (this.data.measureIds && this.data.measureIds.length > 0) {
+          this.data.measureIds.forEach((measureId: string) => {
+            const measure = this.measures.find(m => m.id === measureId);
+            if (measure) measure.expanded = true;
+          });
+        } else {
+          const selectedMeasure = this.measures.find(m => m.id === this.data?.categories?.measureId);
+          if (selectedMeasure) selectedMeasure.expanded = true;
+        }
+      }
     }
 
     if (changes['filterGroupsInput']) {
@@ -104,10 +114,14 @@ export class FiltersComponent implements OnChanges {
       if (data) {
         this.currentGraphData.set(data);
         this.data = data;
-        const selectedMeasure = this.measures.find(m => m.id === this.data?.categories?.measureId);
-        if (this.showGrouped) {
-          this.selectGroup(this.groupedMeasures.find(g => g.measures.includes(selectedMeasure?.id)));
+        const targetMeasureId = data.categories?.measureId || (data.measureIds && data.measureIds.length > 0 ? data.measureIds[0] : undefined);
+        const targetGroup = this.groupedMeasures.find(g => g.measures.includes(targetMeasureId));
+        
+        if (targetGroup && (this.showGrouped || this.selectedGroupName !== targetGroup.name)) {
+          this.selectGroup(targetGroup);
         }
+
+        const selectedMeasure = this.measures.find(m => m.id === data.categories?.measureId);
 
         let shouldScroll = false;
 

@@ -77,14 +77,15 @@ export class CategoryComponent implements OnInit {
           
           if (categoryId) {
             this.location.replaceState(`/category/${categoryId}`);
-            
-            if (this.categoryService.selectedCategory()?.Category_ID !== categoryId) {
-              this.categoryService.setSelectedCategory(categoryId);
-              await this.onSelectCategory(categoryId, !this.categoryService.selectedMeasure());
-            }
             if (this.categoryService.selectedMeasure()) {
               this.getSpecificMeasure(this.categoryService.selectedMeasure()!);
-            } else if (graph) {
+            }
+            if (this.categoryService.selectedCategory()?.Category_ID !== categoryId) {
+              this.categoryService.setSelectedCategory(categoryId);
+              await this.onSelectCategory(categoryId, !this.categoryService.selectedMeasure() && !graph);
+            }
+            if (graph) {
+              this.loadingGraph.set(true);
               const parsedShareData = JSON.parse(graph);
               const currentFilterGroups = await this.categoryService.getFilters().then(() => this.filterGroups());
               currentFilterGroups?.forEach(fg => {
@@ -100,6 +101,7 @@ export class CategoryComponent implements OnInit {
               });
               this.filterGroups.set([...currentFilterGroups]);
               this.setGraphData(this.measures().find(m => m.id === parsedShareData.measureId)!);
+              this.loadingGraph.set(false);
             }
           } else if (this.categoryService.selectedSavedGraph()) {
             this.onSelectSavedGraph(this.categoryService.selectedSavedGraph()!);
@@ -193,7 +195,7 @@ export class CategoryComponent implements OnInit {
     if (resetGraph) {
       if (signal.aborted) return;
       if (this.chips()?.length > 0) {
-        this.onSelectChip(this.chips()[0].Chip_ID);
+        await this.onSelectChip(this.chips()[0].Chip_ID);
       }
     }
     this.loadingGraph.set(false);
@@ -218,7 +220,7 @@ export class CategoryComponent implements OnInit {
     });
   }
 
-  onSelectChip(id: string) {
+  async onSelectChip(id: string) {
     this.filtersComponent?.collapseAllMeasures();
 
     if (this.abortController) {
@@ -241,7 +243,7 @@ export class CategoryComponent implements OnInit {
         this.categoryService.setSelectedMeasure(measureIds[0]);
       }
 
-      this.handleChipSelection(chip);
+      await this.handleChipSelection(chip);
     }
   }
 
@@ -645,11 +647,26 @@ export class CategoryComponent implements OnInit {
     this.graphData.set(newGraphData);
   }
 
-  handleChipSelection(chip: Chip) {
+  async handleChipSelection(chip: Chip) {
     if (!chip['Measure ID']) return;
     const measureIds = chip['Measure ID'].split(',').map((id: string) => id.trim());
     const measures = measureIds.map(id => this.measures().find(m => m.id === id)).filter(m => m) as Measure[];
     if (measures.length === 0) return;
+
+    try {
+      for (const measure of measures) {
+        let measureFilterGroups = this.filterGroups().filter(fg => fg.measureId === measure.id);
+        if (measureFilterGroups.length === 0) {
+          await this.categoryService.getView(measure.id);
+          this.setFilterGroups(measure);
+        }
+      }
+    } catch (error: any) {
+      if (error.name !== 'AbortError') {
+        console.error('[CategoryComponent] Error loading view for chip:', error);
+      }
+      return;
+    }
 
     const firstMeasure = measures[0];
     const allFilterGroups = this.filterGroups();
@@ -708,11 +725,11 @@ export class CategoryComponent implements OnInit {
     }
   }
 
-  onGraphReload() {
+  async onGraphReload() {
     this.errorService.clearGraphError();
     const activeChip = this.chips().find(chip => chip.isActive);
     if (activeChip) {
-      this.onSelectChip(activeChip.Chip_ID);
+      await this.onSelectChip(activeChip.Chip_ID);
     } else if (this.categoryService.selectedMeasure()) {
       this.onSelectMeasure(this.categoryService.selectedMeasure()!);
     } else if (this.selectedCategory()) {
