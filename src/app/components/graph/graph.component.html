@@ -1,17 +1,17 @@
 <div class="graph-wrapper" [class.headless]="headless">
 
   @if (graphData() && !hasError()) {
-  @if (!headless) {<div class="graph-header">
+  <div class="graph-header">
     <div class="graph-titles">
-      <h3 class="graph-title" [ngClass]="{'long': graphData().title.length > 30}">{{ graphData().title }}</h3>
+      @if (!headless) {<h3 class="graph-title" [ngClass]="{'long': graphData().title.length > 30}">{{ graphData().title }}</h3>}
       <h4 class="graph-description">{{ graphData().description }}</h4>
     </div>
     <div class="graph-tools">
-      <button class="save-graph-wrapper" type="button" class="share-btns" (click)="saveGraph()"
+      @if (!headless) {<button class="save-graph-wrapper" type="button" class="share-btns" (click)="saveGraph()"
         (focus)="toggleShareBar(false)">
         <img src="/assets/save-graph.svg" alt="save" class="tool-icon" (click)="saveGraph()" style="cursor: pointer;" />
         <span class="save-graph">שמירת גרף</span>
-      </button>
+      </button>}
       <button type="button" class="share-btns" (click)="toggleShareBar()">
         <img src="/assets/share.svg" alt="שתף" class="tool-icon" />
       </button>
@@ -43,7 +43,7 @@
       }
     </div>
     }
-  </div>}
+  </div>
 
   <div [ngClass]="{'no-category': !data?.series?.length}" #chartEl class="chart"></div>
   } @else {

@@ -1,11 +1,11 @@
 import { Component, inject, signal, OnInit, effect, ViewChild } from '@angular/core';
 import { CommonModule, Location } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
-import { CategoryService, Category, Chip } from '../../services/category.service';
+import { CategoryService } from '../../services/category.service';
 import { CookieService } from '../../services/cookie.service';
 import { ErrorService } from '../../services/error.service';
 import { FiltersComponent } from "../../components/filters/filters.component";
-import { FilterGroup, Graph, GraphData, Measure } from '../../interfaces';
+import { FilterGroup, Graph, GraphData, Measure, Category, Chip } from '../../interfaces';
 import { graphColors } from '../../services/static.data';
 import { ApiService } from '../../services/api.service';
 import { combineLatest } from 'rxjs';
@@ -53,17 +53,6 @@ export class CategoryComponent implements OnInit {
       .filter((i: any) => !!i.title && i.subtitle !== i.link)
       .filter((i: any) => i.categoryId === this.selectedCategory()?.Category_ID));
     })
-  }
-
-  private normalizeSeriesData(series: any[]): any[] {
-    const allValues = series.flatMap(s => s.data).filter((v: number) => v > 0);
-    if (allValues.length > 0 && allValues.every((v: number) => v <= 1)) {
-      return series.map(s => ({
-        ...s,
-        data: s.data.map((v: number) => v * 100)
-      }));
-    }
-    return series;
   }
 
   ngOnInit() {
@@ -363,11 +352,12 @@ export class CategoryComponent implements OnInit {
     this.abortController = new AbortController();
     const signal = this.abortController.signal;
     try {
+      
       if (signal.aborted) return;
       const data = await this.apiService.getStatistics('layersMeasures');
       const measureData = data.find((m: any) => m['Measure ID'] === measureId);
       if (measureData) {
-        if (signal.aborted) return;
+        // if (signal.aborted) return;
         const measure = {
           id: measureData['Measure ID'],
           name: measureData['Measure Name'],
@@ -384,7 +374,7 @@ export class CategoryComponent implements OnInit {
         this.filterGroups.set(measure.filters);
         this.measures.update(m => [...m, measure]);
         this.updateActiveGraph('measure', measureId);
-        this.setGraphData(this.measures().find(m => m.id === measureId)!);
+        this.setGraphData(this.measures().find(m => m.id === measureId)!);        
       }
     } catch (error: any) {
       if (error.name !== 'AbortError') {
@@ -538,7 +528,7 @@ export class CategoryComponent implements OnInit {
         subtitles: chipSubtitles,
         type: graphType,
         categories,
-        series: this.normalizeSeriesData(series),
+        series,
         filterGroups: this.filterGroups()
       };
       this.graphData.set(newGraphData);
@@ -640,7 +630,7 @@ export class CategoryComponent implements OnInit {
       measureIds: measureIds,
       type: graphType,
       categories: categories,
-      series: this.normalizeSeriesData(series),
+      series: series,
       filterGroups: sharedFilterGroups
     };
 
@@ -650,7 +640,7 @@ export class CategoryComponent implements OnInit {
   async handleChipSelection(chip: Chip) {
     if (!chip['Measure ID']) return;
     const measureIds = chip['Measure ID'].split(',').map((id: string) => id.trim());
-    const measures = measureIds.map(id => this.measures().find(m => m.id === id)).filter(m => m) as Measure[];
+    const measures = measureIds.map(id => this.measures().find(m => m.id === id)).filter((m: any) => m) as Measure[];
     if (measures.length === 0) return;
 
     try {

@@ -1,3 +1,29 @@
+export interface Category {
+  Category_ID: string;
+  Category_Name: string;
+  ['ToolTip/Hover']: string;
+  Description: string;
+  Link: string;
+  group: string[];
+  chips: string[];
+  icon: string;
+  isSaved: boolean;
+}
+
+export interface Chip {
+  Category_ID: string;
+  Category_Name: string;
+  Chip_Description: string;
+  Chip_ID: string;
+  Chip_Name: string;
+  Filter_ID: string;
+  Filter_Name: string;
+  Measure: string;
+  ['Measure ID']: string;
+  ['ToolTip/Hover']: string;
+  isActive: boolean;
+}
+
 export interface Measure {
   id: string;
   name: string;
@@ -9,6 +35,7 @@ export interface Measure {
   yAxis: string;
   value: string;
   categoryId: string;
+  calculation: string;
 }
 
 export interface FilterGroup {

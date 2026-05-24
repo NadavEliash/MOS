@@ -4,8 +4,8 @@ import { Router } from '@angular/router';
 import { GraphComponent } from '../../components/graph/graph.component';
 import { ShareBar } from '../../components/share-bar/share-bar';
 import { CookieService } from '../../services/cookie.service';
-import { CategoryService, Category } from '../../services/category.service';
-import { Graph } from '../../interfaces';
+import { CategoryService } from '../../services/category.service';
+import { Graph, Category } from '../../interfaces';
 
 interface ExtendedGraph extends Graph {
   selectedForExport?: boolean;

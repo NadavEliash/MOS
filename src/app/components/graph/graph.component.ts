@@ -179,11 +179,16 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
     const isRate = chartData?.series?.some(s =>
       s.data.some((val: number) => val !== null && val !== undefined && val % 1 !== 0)
     );
-
     const maxSeriesValue = chartData?.series?.reduce((max: number, s: any) =>
       Math.max(max, ...s.data.filter((v: number) => v !== null && v !== undefined).map(Number)), 0
     ) ?? 0;
     const isPercentRate = isRate && maxSeriesValue <= 1;
+    if (isPercentRate) {
+      chartData.series.forEach((s: any) => {
+        s.data = s.data.map((v: number) => v !== null && v !== undefined ? v * 100 : v);
+      });
+    }
+
 
     const reversedSeries = [...(chartData?.series || [])].reverse();
     const visibleSeries = reversedSeries.filter(s => {

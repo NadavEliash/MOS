@@ -53,7 +53,7 @@
                                 <span class="group-title">{{ group.filter.name }}</span>
                             </button>
                             @if (group.filter.expanded) {
-                            @if (group.filter.name === 'שנה') { <span class="years-disclaimer">מופיעות שנים עם נתונים זמינים בלבד</span> }
+                            @if (group.filter.id.includes('YER0') && group.filter.labels.length < 4) { <span class="years-disclaimer">מופיעות שנים עם נתונים זמינים בלבד</span> }
                             @if (group.filter.disabled && group.filter.disabledReason) { <span class="years-disclaimer">{{ group.filter.disabledReason }}</span> }
                             <div class="group-content">
                                 @if (hasManyLabels(group)) {

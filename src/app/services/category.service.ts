@@ -2,33 +2,7 @@ import { inject, Injectable } from "@angular/core";
 import { signal } from "@angular/core";
 import { ApiService } from "./api.service";
 import { ErrorService } from "./error.service";
-import { FilterGroup, Label, Measure } from "../interfaces";
-
-export interface Category {
-  Category_ID: string;
-  Category_Name: string;
-  ['ToolTip/Hover']: string;
-  Description: string;
-  Link: string;
-  group: string[];
-  chips: string[];
-  icon: string;
-  isSaved: boolean;
-}
-
-export interface Chip {
-  Category_ID: string;
-  Category_Name: string;
-  Chip_Description: string;
-  Chip_ID: string;
-  Chip_Name: string;
-  Filter_ID: string;
-  Filter_Name: string;
-  Measure: string;
-  ['Measure ID']: string;
-  ['ToolTip/Hover']: string;
-  isActive: boolean;
-}
+import { Category, Chip, FilterGroup, Label, Measure } from "../interfaces";
 
 @Injectable({
   providedIn: "root"
@@ -108,8 +82,9 @@ export class CategoryService {
       value: measure['Default Value Attribute'],
       relations: measure['Measure_Relations'],
       graphType: measure['Graph'],
-      categoryId: measure.Category_ID
-    }));
+      categoryId: measure.Category_ID,
+      calculation: measure.Calculation
+    }))    
     this.measures.set(categoryMeasures);
     return categoryMeasures;
   }
@@ -203,7 +178,7 @@ export class CategoryService {
     return updatedLabels;
   }
 
-  private isMeasureRate(measure: Measure): boolean {
+  private isMeasureRate(measure: Measure): boolean {    
     const viewData = this.views().find(v => v.id === measure.id)?.data;
     if (!viewData || viewData.length === 0) return false;
 
@@ -213,8 +188,8 @@ export class CategoryService {
       .filter((val: any) => val !== null && val !== undefined && !isNaN(val));
 
     if (values.length === 0) return false;
-
-    return values.some((val: number) => val % 1 !== 0);
+    
+    return values.some((val: number) => val % 1 !== 0) && !Boolean(measure.calculation);
   }
 
   getSeriesData(measure: Measure, categories: FilterGroup, filterGroups: FilterGroup[], label: Label, firstLabel?: Label): number[] {
@@ -260,7 +235,6 @@ export class CategoryService {
         seriesData.push(value);
       });
     }
-
     return seriesData;
   }
 
