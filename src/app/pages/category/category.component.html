@@ -7,10 +7,11 @@
           [ngClass]="selectedCategory()?.Category_ID === category.Category_ID ? 'selected' : ''"
           (click)="onSelectCategory(category.Category_ID, true)"
           [class.active]="selectedCategory()?.Category_ID === category.Category_ID"
-          aria-pressed="{{selectedCategory()?.Category_ID === category.Category_ID}}">
+          [attr.aria-label]="category.Category_Name + (selectedCategory()?.Category_ID === category.Category_ID ? ' - נבחר' : '')"
+          [attr.aria-pressed]="selectedCategory()?.Category_ID === category.Category_ID">
           <span class="icon-box" aria-hidden="true">
-            <img [src]="category.icon" [alt]="category.Category_Name">
-            @if (category.isSaved) {<img class="badge" src="/assets/category-badge.svg" alt="°">}
+            <img [src]="category.icon" [alt]="''" aria-hidden="true">
+            @if (category.isSaved) {<img class="badge" src="/assets/category-badge.svg" alt="" aria-hidden="true">}
           </span>
           <span class="option-label">{{ category.Category_Name }}</span>
           <span class="option-underline" aria-hidden="true"></span>
@@ -23,27 +24,30 @@
       <div class="header-text">
         <h1 class="category-title">{{ selectedCategory()?.Category_Name || '' }}</h1>
         <p class="category-description">{{ selectedCategory()?.Description || '' }}</p>
-        <a [href]="selectedCategory()?.Link || '#'" target="_blank" rel="noopener noreferrer">
+        <a [href]="selectedCategory()?.Link || '#'" target="_blank" rel="noopener noreferrer" aria-label="קראו עוד על {{ selectedCategory()?.Category_Name }} (יפתח בחלון חדש)">
           <span class="link">קראו עוד
-            <img src="/assets/read-more.svg" alt="+">
+            <img src="/assets/read-more.svg" alt="" aria-hidden="true">
           </span>
         </a>
       </div>
       <div class="header-image">
         <img class="category-image" [src]="`/heros/${selectedCategory()?.Category_ID}.svg`"
-          [alt]="selectedCategory()?.Category_Name ?? ''">
+          [alt]="selectedCategory()?.Category_Name ?? ''" aria-hidden="true">
       </div>
     </div>
   </section>
 
   <section class="category-mid">
     <h2>ניתוח נתונים</h2>
-    <div class="research">
-      <span>המלצות לחקר:</span>
+    <div class="research" role="group" aria-label="המלצות לחקר">
+      <span aria-label="המלצות לחקר">המלצות לחקר:</span>
       @for (chip of chips(); track chip.Chip_ID) {
-      <button class="research-option" [ngClass]="chip.isActive ? 'selected' : ''" (click)="onSelectChip(chip.Chip_ID)">
+      <button type="button" class="research-option" [ngClass]="chip.isActive ? 'selected' : ''" (click)="onSelectChip(chip.Chip_ID)"
+        [attr.aria-pressed]="chip.isActive"
+        [attr.aria-label]="chip.Chip_Name + (chip.isActive ? ' - נבחר' : '')"
+        [title]="chip['ToolTip/Hover']">
         <span>{{chip.Chip_Name}}</span>
-        <div class="chip-tooltip">{{ chip['ToolTip/Hover'] }}</div>
+        <div class="chip-tooltip" aria-hidden="true">{{ chip['ToolTip/Hover'] }}</div>
       </button>
       }
     </div>
@@ -62,7 +66,7 @@
           <span>{{graph.title}}</span>
         </button>
         <button class="remove-btn" (click)="removeSavedGraph(graph.id)">
-          <img src="/assets/remove.svg" alt="x">
+          <img src="/assets/remove.svg" alt="מחק">
         </button>
       </div>
       }

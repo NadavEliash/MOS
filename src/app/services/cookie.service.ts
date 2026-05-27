@@ -135,11 +135,11 @@ export class CookieService {
         .filter((l: any) => l.data.checked)
         .map((l: any) => l.title);
 
-      csv += Array(8).fill('') + graph.title.replace(',', ' ') + '\n';
-      csv += graph.subtitle + '\n';
+      csv += `"${graph.title.replace(/"/g, '""')}"` + '\n';
+      csv += `"${graph.subtitle.replace(/"/g, '""')}"` + '\n';
 
       const headerRow = [...xAxisLabels, ''];
-      csv += headerRow.map(cell => `"${cell}"`).join(',') + '\n';
+      csv += headerRow.map(cell => `"${cell}"`).join(',') + `${graph.data.categories.filter.name}` + '\n';
 
       graph.data.series.forEach((s: any) => {
         const row = [...s.data, s.name];

@@ -1,14 +1,17 @@
-<div class="share-bar-overlay" (click)="onClose()">
-  <div class="share-bar" (click)="$event.stopPropagation()">
-    <div class="share-buttons">
-      <button class="share-button" (click)="shareViaMail()" title="שתף באימייל">
-        <img src="/assets/mail.svg" alt="אימייל" class="share-icon">
+<div class="share-bar-overlay" (click)="onClose()" role="presentation">
+  <div class="share-bar" (click)="$event.stopPropagation()" role="dialog" aria-label="אפשרויות שיתוף">
+    <button type="button" class="close-button" (click)="onClose()" aria-label="סגור תפריט שיתוף" style="display:none"></button>
+    <div class="share-buttons" role="group" aria-label="דרכי שיתוף">
+      <button type="button" class="share-button" (click)="shareViaMail()" aria-label="שתף באימייל">
+        <img src="/assets/mail.svg" alt="" class="share-icon" aria-hidden="true">
+        <span class="sr-only">שתף באימייל</span>
       </button>
-      <button class="share-button" (click)="shareViaWhatsapp()" title="שתף בווטסאפ">
-        <img src="/assets/whatsapp.svg" alt="ווטסאפ" class="share-icon">
+      <button type="button" class="share-button" (click)="shareViaWhatsapp()" aria-label="שתף בווטסאפ">
+        <img src="/assets/whatsapp.svg" alt="" class="share-icon" aria-hidden="true">
+        <span class="sr-only">שתף בווטסאפ</span>
       </button>
-      <button class="share-button copy" (click)="copyLink()" title="העתק קישור">
-        <img src="/assets/link.svg" alt="קישור" class="share-icon">
+      <button type="button" class="share-button copy" (click)="copyLink()" aria-label="העתק קישור">
+        <img src="/assets/link.svg" alt="" class="share-icon" aria-hidden="true">
         <span>העתקת לינק</span>
       </button>
     </div>

@@ -4,15 +4,15 @@
       <h1 class="report-title">הדוח שלי</h1>
       <span class="report-subtitle">כאן תוכלו לצפות בכל הגרפים ששמרתם במהלך הביקור באתר ולייצא גרפים נבחרים במגוון פורמטים לשימוש עתידי.</span>
       <div class="export-btn-container">
-        <button class="export-btn" (click)="exportToExcel()" (focus)="toggleShareBar(null)">
-          <img src="/assets/export-report.svg" alt="^" class="export-icon"/>
+        <button type="button" class="export-btn" (click)="exportToExcel()" (focus)="toggleShareBar(null)" aria-label="ייצוא כל הגרפים המסומנים לאקסל">
+          <img src="/assets/export-report.svg" alt="לייצא" class="export-icon" aria-hidden="true"/>
           <span>ייצוא גרפים לאקסל</span>
         </button>
         @if (showNoSelectionTooltip()) {
-          <div class="tooltip-overlay" (click)="closeNoSelectionTooltip()"></div>
-          <div class="tooltip-modal" (click)="$event.stopPropagation()">
-            <button class="close-btn" (click)="closeNoSelectionTooltip()">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <div class="tooltip-overlay" (click)="closeNoSelectionTooltip()" role="presentation"></div>
+          <div class="tooltip-modal" (click)="$event.stopPropagation()" role="dialog" aria-label="הודעה - לא נבחרו גרפים">
+            <button type="button" class="close-btn" (click)="closeNoSelectionTooltip()" aria-label="סגור הודעה">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
               <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           </button>
@@ -22,7 +22,7 @@
       }
       </div>   
     </div>
-    <img src="/heros/REPORT.svg" alt="הדוח שלי" class="report-hero">
+    <img src="/heros/REPORT.svg" alt="איור" class="report-hero">
   </div>
 
   <div class="report-content">
@@ -43,21 +43,21 @@
             <div class="graph-report-item">
               <div class="graph-report-header">
                 <div class="first-line">
-                  <div class="graph-report-title-group">
+                  <div class="graph-report-title-group" role="group" aria-label="תיאור גרף">
                     <h3 class="graph-report-title">{{ graph.title }}</h3>
                     <p class="graph-report-description">{{ graph.subtitle }}</p>
                   </div>
                   <div class="graph-report-actions">
                     @if (successMessage()) {
-                      <div class="success-message" [class.error]="messageType() === 'error'">
+                      <div class="success-message" [class.error]="messageType() === 'error'" role="status" aria-live="polite" aria-atomic="true">
                         {{ successMessage() }}
                       </div>
                     }
-                    <button class="action-btn share-btn" title="שתף" (click)="toggleShareBar(graph)">
-                      <img class="share-icon" src="/assets/share.svg" alt="שתף"/>
+                    <button type="button" class="action-btn share-btn" aria-label="שתף את גרף {{ graph.title }}" (click)="toggleShareBar(graph)">
+                      <img class="share-icon" src="/assets/share.svg" alt="שתף" aria-hidden="true"/>
                     </button>
                     @if (graph.showShareBar) {
-                      <div class="share-bar">
+                      <div class="share-bar" role="region" aria-label="אפשרויות שיתוף לגרף {{ graph.title }}">
                         <app-share-bar
                           [url]="getShareUrl(graph)"
                           [title]="graph.title"
@@ -66,40 +66,40 @@
                         </app-share-bar>
                       </div>
                     }
-                    <button class="action-btn export-btn" title="יצא לאקסל" (click)="exportToExcel()" (focus)="toggleShareBar(null)">
-                      <img src="/assets/excel.svg" alt="יצא לאקסל"/>
+                    <button type="button" class="action-btn export-btn" aria-label="לייצא את גרף {{ graph.title }} לאקסל - הנתונים יוצגו בהתאם לפילטרים שנבחרו" (click)="exportSingleGraphToExcel(graph)" (focus)="toggleShareBar(null)">
+                      <img src="/assets/excel.svg" alt="ייצוא לאקסל" aria-hidden="true"/>
                     </button>
                   </div>
                 </div>
                 <div class="second-line">
                   <label class="checkbox-label">
-                    <input type="checkbox" [checked]="graph.selectedForExport" (change)="toggleExportSelection(graph.id)" (keydown.enter)="$event.preventDefault(); toggleExportSelection(graph.id)">
-                    <span class="checkmark"></span>
+                    <input type="checkbox" [checked]="graph.selectedForExport" (change)="toggleExportSelection(graph.id)" (keydown.enter)="$event.preventDefault(); toggleExportSelection(graph.id)" [attr.aria-label]="'בחר את גרף ' + graph.title + ' לייצוא'">
+                    <span class="checkmark" aria-hidden="true"></span>
                     ייצוא לאקסל
                   </label>
-                  <button class="return-link" (click)="returnToGraph(graph)" (focus)="toggleShareBar(null)" >
+                  <button type="button" class="return-link" (click)="returnToGraph(graph)" (focus)="toggleShareBar(null)" aria-label="חזור לגרף {{ graph.title }}">
                     <span>חזרה לגרף</span>
-                    <img src="/assets/return.svg" alt="→"/>
+                    <img src="/assets/return.svg" alt="חזור" aria-hidden="true"/>
                   </button>
                 </div>
               </div>
 
               <div class="graph-report-content">
-                <div class="filters-panel">
+                <div class="filters-panel" role="region" aria-label="פילוחים של גרף {{ graph.title }}">
                   <h4>פילוח לפי</h4>
                   <div class="filters-content">
                     @if (graph.data) {
                       <div class="filter-group">
-                        <span class="filter-title">{{ graph.data.categories.filter.name }}:</span>
-                        <div class="filter-values">
+                        <h5 class="filter-title" aria-label="קבוצת פילוח: {{graph.data.categories.filter.name}}">{{ graph.data.categories.filter.name }}</h5>
+                        <div class="filter-values" aria-label="ערכים שנבחרו">
                           @for (label of graph.data.categories.filter.labels; track $index) {
-                            <span class="filter-value">{{ label.title }}</span>
+                            <span class="filter-value"><span style="color: transparent;">,</span>{{ label.title }}</span>
                           }
                         </div>
-                        <span class="filter-title">{{ graph.data.series[0].groupTitle }}:</span>
-                        <div class="filter-values">
+                        <h5 class="filter-title" aria-label="קבוצת פילוח: {{graph.data.series[0].groupTitle}}">{{ graph.data.series[0].groupTitle }}</h5>
+                        <div class="filter-values" aria-label="ערכים שנבחרו">
                           @for (serie of graph.data.series; track $index) {
-                            <span class="filter-value">{{ serie.name }}</span>
+                            <span class="filter-value"><span style="color: transparent;">,</span>{{ serie.name }}</span>
                           }
                         </div>
                       </div>

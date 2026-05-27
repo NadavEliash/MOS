@@ -41,6 +41,32 @@ export class ReportComponent implements OnInit {
       this.successMessage.set(null);
     }, 2000);
   }
+  
+  private cleanGraphSeries(graph: ExtendedGraph): ExtendedGraph {
+    if (!graph.data || !graph.data.series) {
+      return graph;
+    }
+
+    // Filter out series containing 'מדד' and remove duplicates
+    const seenNames = new Set<string>();
+    const cleanedSeries = graph.data.series
+      .filter((series: any) => !series.name.includes('מדד'))
+      .filter((series: any) => {
+        if (seenNames.has(series.name)) {
+          return false; // Skip duplicate
+        }
+        seenNames.add(series.name);
+        return true;
+      });
+
+    return {
+      ...graph,
+      data: {
+        ...graph.data,
+        series: cleanedSeries
+      }
+    };
+  }
 
   ngOnInit(): void {
     this.loadSavedGraphs();
@@ -55,7 +81,12 @@ export class ReportComponent implements OnInit {
         category,
         graphs: savedGraphs.filter(graph => graph.data.categoryId === category.Category_ID)
       })).filter(c => c.graphs.length > 0)
-        .map(c => ({ ...c, graphs: c.graphs.map(graph => ({...graph, selectedForExport: true, showShareBar: false}))
+        .map(c => ({ 
+          ...c, 
+          graphs: c.graphs.map(graph => {
+            const cleanedGraph = this.cleanGraphSeries({...graph, selectedForExport: true, showShareBar: false});
+            return cleanedGraph;
+          })
         }));
       
       this.categories.set(graphsByCategories!)
@@ -69,7 +100,11 @@ export class ReportComponent implements OnInit {
       this.showNoSelectionTooltip.set(true);
       return;
     }
-    this.cookieService.exportToExcel();
+    this.cookieService.exportToExcel(selectedGraphs);
+  }
+
+  exportSingleGraphToExcel(graph: ExtendedGraph): void {
+    this.cookieService.exportToExcel([graph]);
   }
 
   closeNoSelectionTooltip(): void {
@@ -89,6 +124,7 @@ export class ReportComponent implements OnInit {
   }
 
   returnToGraph(graph: ExtendedGraph): void {
+    console.log(graph);
     this.router.navigate(['/category']).then(() => {
       this.categoryService.setSelectedSavedGraph(graph.id);
     });

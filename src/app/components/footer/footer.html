@@ -1,17 +1,18 @@
-<footer>
+<footer role="contentinfo">
   <div class="footer-container">
     <div class="footer-right">
-      <a [href]="links.ministrySite" target="_blank"><img src="assets/logo.svg" alt="logo" class="logo"></a>
-      <a [href]="links.organizationStructure" target="_blank">מבנה ארגוני</a>
-      <a [href]="links.seniorPositions" target="_blank">בעלי תפקידים</a>
-      <a [href]="links.contact" target="_blank">פניות הציבור</a>
-      <a [href]="links.ministrySiteAbout" target="_blank">אודות המשרד</a>
+      <a [href]="links.ministrySite" target="_blank" aria-label="אתר משרד הרווחה והביטחון החברתי (ייפתח בחלון חדש)">
+        <img src="assets/logo.svg" alt="סמליל המשרד" class="logo" aria-hidden="true"></a>
+      <a [href]="links.organizationStructure" target="_blank" aria-label="מבנה ארגוני (ייפתח בחלון חדש)">מבנה ארגוני</a>
+      <a [href]="links.seniorPositions" target="_blank" aria-label="בעלי תפקידים (ייפתח בחלון חדש)">בעלי תפקידים</a>
+      <a [href]="links.contact" target="_blank" aria-label="פניות הציבור (ייפתח בחלון חדש)">פניות הציבור</a>
+      <a [href]="links.ministrySiteAbout" target="_blank" aria-label="אודות המשרד (ייפתח בחלון חדש)">אודות המשרד</a>
     </div>
     <div class="footer-left">
-      <a [href]="links.facebook" target="_blank"><img src="assets/facebook.svg" alt="facebook"></a>
-      <a [href]="links.x" target="_blank"><img src="assets/x.svg" alt="x"></a>
-      <a [href]="links.instagram" target="_blank"><img src="assets/instagram.svg" alt="instagram"></a>
-      <a [href]="`tel:${links.phone}`" target="_blank"><img src="assets/phone.svg" alt="phone"></a>
+      <a [href]="links.facebook" target="_blank" aria-label="משרד הרווחה בפייסבוק (ייפתח בחלון חדש)"><img src="assets/facebook.svg" alt="פייסבוק" aria-hidden="true"></a>
+      <a [href]="links.x" target="_blank" aria-label="משרד הרווחה בX (ייפתח בחלון חדש)"><img src="assets/x.svg" alt="X" aria-hidden="true"></a>
+      <a [href]="links.instagram" target="_blank" aria-label="משרד הרווחה באינסטגרם (ייפתח בחלון חדש)"><img src="assets/instagram.svg" alt="אינסטגרם" aria-hidden="true"></a>
+      <a [href]="`tel:${links.phone}`" target="_blank" aria-label="התקשר למשרד הרווחה"><img src="assets/phone.svg" alt="טלפון" aria-hidden="true"></a>
     </div>
   </div>
 </footer>

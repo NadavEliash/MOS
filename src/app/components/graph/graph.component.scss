@@ -17,6 +17,7 @@
     border: 1px solid #B5C7E2;
     border-radius: 32px;
     height: fit-content;
+    min-height: auto;
   }
 }
 
@@ -80,6 +81,16 @@
     align-items: center;
     gap: 8px;
     padding: 4px;
+  }
+
+  .save-graph-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 4px;
+    background: none;
+    border: none;
+    cursor: pointer;
   }
 
   .save-graph {

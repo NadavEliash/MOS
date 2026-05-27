@@ -2,42 +2,42 @@
 
   @if (graphData() && !hasError()) {
   <div class="graph-header">
-    <div class="graph-titles">
-      @if (!headless) {<h3 class="graph-title" [ngClass]="{'long': graphData().title.length > 30}">{{ graphData().title }}</h3>}
+    @if (!headless) {<div class="graph-titles">
+      <h3 class="graph-title" [ngClass]="{'long': graphData().title.length > 30}" id="graph-title">{{ graphData().title }}</h3>
       <h4 class="graph-description">{{ graphData().description }}</h4>
-    </div>
-    <div class="graph-tools">
-      @if (!headless) {<button class="save-graph-wrapper" type="button" class="share-btns" (click)="saveGraph()"
-        (focus)="toggleShareBar(false)">
-        <img src="/assets/save-graph.svg" alt="save" class="tool-icon" (click)="saveGraph()" style="cursor: pointer;" />
-        <span class="save-graph">שמירת גרף</span>
-      </button>}
-      <button type="button" class="share-btns" (click)="toggleShareBar()">
-        <img src="/assets/share.svg" alt="שתף" class="tool-icon" />
+    </div>}
+    @if (!headless) {<div class="graph-tools">
+        <button class="save-graph-wrapper" type="button" (click)="saveGraph()"
+        (focus)="toggleShareBar(false)"
+        aria-label="שמור גרף">
+          <img src="/assets/save-graph.svg" alt="" class="tool-icon" style="cursor: pointer;" aria-hidden="true" />
+          <span class="save-graph">שמירת גרף</span>
+        </button>
+        <button type="button" class="share-btns" (click)="toggleShareBar()" [attr.aria-expanded]="showShareBar" aria-label="שתף גרף">
+          <img src="/assets/share.svg" alt="" class="tool-icon" aria-hidden="true" />
+        </button>
+        @if (showShareBar) {
+        <div class="share-bar" role="region" aria-label="אפשרויות שיתוף">
+          <app-share-bar [url]="getShareUrl()" [title]="graphData().title!" (close)="closeShareBar()"
+            (copied)="showSuccessMessage($event)">
+          </app-share-bar>
+        </div>}
+        @if (successMessage()) {
+        <div class="success-message" [class.error]="messageType() === 'error'" role="status" aria-live="polite" aria-atomic="true">
+          {{ successMessage() }}
+        </div>
+        }
+      <button type="button" class="share-btns" (click)="exportToExcel()" (focus)="toggleShareBar(false)" aria-label="לייצא לאקסל - הנתונים יוצגו בהתאם לפילטרים שנבחרו">
+        <img src="/assets/excel.svg" alt="" class="tool-icon" aria-hidden="true" />
       </button>
-      @if (showShareBar) {
-      <div type="button" class="share-bar">
-        <app-share-bar [url]="getShareUrl()" [title]="graphData().title!" (close)="closeShareBar()"
-          (copied)="showSuccessMessage($event)">
-        </app-share-bar>
-      </div>}
-      @if (successMessage()) {
-      <div class="success-message" [class.error]="messageType() === 'error'">
-        {{ successMessage() }}
-      </div>
-      }
-      <button class="share-btns" (click)="exportToExcel()" (focus)="toggleShareBar(false)">
-        <img src="/assets/excel.svg" alt="יצא לאקסל" class="tool-icon" />
-      </button>
-    </div>
+    </div>}
     @if (graphData().subtitles?.split('#')!.length > 1) {
-    <div class="graph-subtitles">
-      @for (subtitle of graphData().subtitles?.split('#'); track $index) {<span class="subtitle">מדד {{ $index + 1 }}:
-        {{ subtitle }}</span>}
+    <div class="graph-subtitles" aria-label="כותרות משנה של הגרף">
+      @for (subtitle of graphData().subtitles?.split('#'); track $index) {<span class="subtitle" role="doc-subtitle">מדד {{ $index + 1 }}: {{ subtitle }}</span>}
     </div>}
 
-    @if (activeFilters().length > 0) {
-    <div class="active-filters">
+    @if (!headless && activeFilters().length > 0) {
+    <div class="active-filters" role="region" aria-label="מסננים פעילים">
       @for (filterText of activeFilters(); track $index) {
       <span class="filter-item">{{ filterText }}</span>
       }
@@ -45,22 +45,22 @@
     }
   </div>
 
-  <div [ngClass]="{'no-category': !data?.series?.length}" #chartEl class="chart"></div>
+  <div [ngClass]="{'no-category': !data?.series?.length}" #chartEl class="chart" role="region" aria-labelledby="graph-title" aria-label="גרף נתונים"></div>
   } @else {
-  <div class="graph-error">
-    <img src="/assets/graph-error.jpeg" />
+  <div class="graph-error" role="alert">
+    <img src="/assets/graph-error.jpeg" alt="" aria-hidden="true" />
     <h2>משהו השתבש...</h2>
     <h3>לא הצלחנו להציג את הנתונים בגרף</h3>
-    <button (click)="reload()">טען מחדש</button>
+    <button type="button" (click)="reload()" aria-label="טען את הגרף מחדש">טען מחדש</button>
   </div>
   }
 
   @if (isLoading && !hasError()) {
-  <span class="loader"></span>
-  <span class="loading">טוען נתונים</span>
+  <span class="loader" aria-hidden="true"></span>
+  <span class="loading" role="status" aria-live="polite" aria-label="טוען נתונים">טוען נתונים</span>
   } @else if (!hasError() && (noCategory() || !data?.series?.length)) {
-  <div class="graph-error">
-    <img src="/assets/graph-no-data.svg" />
+  <div class="graph-error" role="alert">
+    <img src="/assets/graph-no-data.svg" alt="" aria-hidden="true" />
     <h2>לא נבחרו מדדים לגרף</h2>
     <h3>בחרו מדד ופילוחים בצד ימין או חקרו את אחת ההצעות למעלה</h3>
     <h3>לתשומת לבך, לרוב לא ניתן לשלב יותר ממדד אחד בגרף</h3>

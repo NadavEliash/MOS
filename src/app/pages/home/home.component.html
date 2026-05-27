@@ -7,31 +7,50 @@
     }
     <div class="search-wrap">
       <div class="search-bar" [ngClass]="isDrawerOpen ? 'open' : ''" role="search" aria-label="חיפוש בדוח" (keydown)="onKeyDown($event)">
+        <label id="home-search-label" for="home-search-input" class="sr-only">חיפוש בדוח</label>
+        <span id="home-search-description" class="sr-only">הקלד מילה כדי לפתוח תוצאות חיפוש. השתמש בחצים למעלה ולמטה לבחירה ולחץ אנטר לביצוע.</span>
         <button class="search-btn" type="button" aria-label="חפש">
-          <img src="/assets/search-icon.svg" alt="search" width="20" height="20" />
+          <img src="/assets/search-icon.svg" alt="חיפוש" width="20" height="20" />
         </button>
         <input
+          id="home-search-input"
           type="text"
           class="search-input"
           placeholder="חיפוש בדוח לפי מילת מפתח. לדוגמה: אזרחים ותיקים, רשות מקומית, תקציב"
-          aria-label="חיפוש בדוח"
+          aria-labelledby="home-search-label home-search-description"
+          aria-autocomplete="list"
+          role="combobox"
+          aria-haspopup="listbox"
+          [attr.aria-expanded]="isDrawerOpen"
+          aria-controls="search-results-list"
+          [attr.aria-activedescendant]="selectedResultIndex > -1 ? 'search-result-' + selectedResultIndex : null"
           [value]="searchTerm()"
           (input)="onSearchInput($event)"
-          />
+        />
+        <div aria-live="polite" aria-atomic="true" class="sr-only">
+          {{ searchTerm() ? (searchResults.length > 0 && isDrawerOpen ? searchResults.length + ' תוצאות נמצאו' : 'לא נמצאו תוצאות') : '' }}
+        </div>
         @if (searchTerm()) {
           <button class="clear-btn" type="button" aria-label="נקה חיפוש" (click)="resetSearch()" (keydown.enter)="resetSearch()">
-            <img src="/assets/close-icon.svg" alt="×" width="16" height="16" />
+            <img src="/assets/close-icon.svg" alt="ניקוי" width="16" height="16" />
           </button>
         }
           @if (isDrawerOpen) {
-          <div class="drawer">
+          <div id="search-results-list" class="drawer" role="listbox" aria-label="תוצאות חיפוש">
             @if (searchResults.length > 0) {
+              <div class="border"></div>
               @for (result of searchResults; track result.id; let i = $index) {
-                <div
+                <button
+                  id="search-result-{{i}}"
                   class="result"
+                  type="button"
+                  role="option"
                   [class.selected]="i === selectedResultIndex"
+                  [attr.aria-selected]="i === selectedResultIndex"
                   (click)="onSelectResult(result)"
-                  (mouseenter)="selectedResultIndex = i">
+                  (focus)="selectedResultIndex = i"
+                  (keydown.enter)="onSelectResult(result)"
+                  (keydown.space)="onSelectResult(result)">
                   @if (isCategory(result.id)) {
                     <div class="category-result">
                       <img [src]="`/icons/${result.id}.svg`" [alt]="result.name">
@@ -44,7 +63,7 @@
                   @if (result.none) {
                     <span class="result-none" [innerHTML]="result.none | highlight: searchTerm()"></span>
                   }
-                </div>
+                </button>
               }
             }
           </div>}
@@ -56,7 +75,7 @@
         <a class="chip" href="javascript:void(0)" 
         (click)="onChipClick(chip.Category_ID)" 
         (focus)="isDrawerOpen = false" 
-        [attr.aria-label]="isDrawerOpen ? null : chip['ToolTip/Hover']" tabindex="0">
+        [attr.aria-label]="isDrawerOpen ? null : chip.Category_Name + ': ' + chip['ToolTip/Hover']" tabindex="0">
           {{ chip.Category_Name }}
         </a>
         <div class="chip-tooltip">{{ chip['ToolTip/Hover'] }}</div>
@@ -70,13 +89,10 @@
         <h2 class="mid-title">{{ midData().Main_Header ?? '' }}</h2>
         <p class="mid-paragraph">{{ midData().Text }}</p>
         <a class="link" [href]="midData().Link" target="_blank">{{ midData()['Link Text']}}
-          <img src="/assets/read-more.svg" alt="↖️" width="16" height="16" />
+          <img src="/assets/read-more.svg" alt="קרא עוד" width="16" height="16" />
         </a>
       </div>
     }
-    <img src="/heros/HOME.svg" alt="סקירת השירותים החברתיים">
+    <img src="/heros/HOME.svg" alt="איור">
   </section>    
-  <footer class="footer">
-
-  </footer>
 </section>

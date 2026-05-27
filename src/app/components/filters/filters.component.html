@@ -3,32 +3,35 @@
         <div class="segmentation-scroll-wrapper">
             <div class="segmentation-header">
                 <h2 class="segmentation-title">מדדים</h2>
-                <button class="reset-button" (click)="resetFilters()">איפוס</button>
+                <button type="button" class="reset-button" (click)="resetFilters()" aria-label="איפוס כל הפילטרים">איפוס</button>
             </div>
             <div class="measures-group">
                 @if (showGrouped) {
                 @for (group of groupedMeasures; track group.id) {
                 <div class="measure-item">
-                    <button type="button" class="measure-title" (click)="selectGroup(group)">
+                    <button type="button" class="measure-title" (click)="selectGroup(group)" [attr.aria-label]="'בחר ' + group.name">
                         <span>{{ group.name }}</span>
-                        <img class="left-arrow" src="/assets/measure-arrow.svg" alt="◀️" />
+                        <img class="left-arrow" src="/assets/measure-arrow.svg" alt="" aria-hidden="true" />
                     </button>
                 </div>
                 }
                 } @else {
                 @if (selectedGroupName) {
-                <button type="button" class="grouped-measure-title" (click)="showGrouped = true">
-                    <img class="right-arrow" src="/assets/measure-arrow.svg" alt="◀️" />
+                <button type="button" class="grouped-measure-title" (click)="showGrouped = true" aria-label="חזור לבחירת קבוצה">
+                    <img class="right-arrow" src="/assets/measure-arrow.svg" alt="" aria-hidden="true" />
                     <span class="selected-group-title">{{ selectedGroupName }}</span>
                 </button> }
                 @for (measure of measures; track measure.id) {
                 <div class="measure-item">
                     <button type="button" class="measure-title" [class.expanded]="measure.expanded"
-                        (click)="toggleMeasure(measure)">
+                        (click)="toggleMeasure(measure)"
+                        [attr.aria-expanded]="measure.expanded"
+                        [attr.aria-controls]="'measure-' + measure.id"
+                        [attr.aria-label]="measure.name + (measure.expanded ? ' - מוקפל' : ' - מורחב')">
                         <div class="measure-info">
                             <span class="measure-name">{{ measure.name }}</span>
                             @if (isMeasureActive(measure.id) && !measure.expanded) {
-                            <div class="active-filters-summary">
+                            <div class="active-filters-summary" role="region" aria-label="סיכום פילטרים פעילים">
                                 @for (item of getActiveFilterSummary(measure.id); track item.name) {
                                 <div class="summary-line">
                                     <span class="filter-name">{{ item.name }}:</span>
@@ -39,35 +42,46 @@
                             }
                         </div>
                         <img class="arrow" [class.expanded]="measure.expanded" src="/assets/filter-arrow.svg"
-                            alt="🔽" />
+                            alt="" aria-hidden="true" />
                     </button>
                     @if (measure.expanded) {
-                    <div class="filter-groups-container">
+                    <div class="filter-groups-container" [id]="'measure-' + measure.id">
                         @for (group of getFilterGroupsForMeasure(measure.id); track group.filter.id) {
                         <div class="filter-group-item" [class.disabled]="group.filter.disabled">
                             <button type="button" class="group-header" [class.expanded]="group.filter.expanded"
                                 [class.active]="hasActiveSelection(group)"
-                                (click)="toggleFilterGroup(group)">
+                                (click)="toggleFilterGroup(group)"
+                                [attr.aria-expanded]="group.filter.expanded"
+                                [attr.aria-controls]="'group-' + group.filter.id"
+                                [attr.aria-label]="group.filter.name + (group.filter.expanded ? ' - מוקפל' : ' - מורחב')"
+                                [attr.aria-disabled]="group.filter.disabled">
                                 <img class="arrow-left" [class.expanded]="group.filter.expanded"
-                                    src="/assets/measure-arrow.svg" alt="◀️" />
+                                    src="/assets/measure-arrow.svg" alt="" aria-hidden="true" />
                                 <span class="group-title">{{ group.filter.name }}</span>
                             </button>
                             @if (group.filter.expanded) {
-                            @if (group.filter.id.includes('YER0') && group.filter.labels.length < 4) { <span class="years-disclaimer">מופיעות שנים עם נתונים זמינים בלבד</span> }
-                            @if (group.filter.disabled && group.filter.disabledReason) { <span class="years-disclaimer">{{ group.filter.disabledReason }}</span> }
-                            <div class="group-content">
+                            @if (group.filter.id.includes('YER0') && group.filter.labels.length < 4) { <span class="years-disclaimer" role="note">מופיעות שנים עם נתונים זמינים בלבד</span> }
+                            @if (group.filter.disabled && group.filter.disabledReason) { <span class="years-disclaimer" role="alert">{{ group.filter.disabledReason }}</span> }
+                            <div class="group-content" [id]="'group-' + group.filter.id">
                                 @if (hasManyLabels(group)) {
-                                <button class="clear-all" (click)="toggleSelectAll(group)" [disabled]="!isAnyFilteredSelected(group)">נקה בחירה</button>
+                                <button type="button" class="clear-all" (click)="toggleSelectAll(group)" [disabled]="!isAnyFilteredSelected(group)" aria-label="נקה את כל הבחירות בקבוצה זו">נקה בחירה</button>
                                 <div class="search-wrapper">
-                                    <img class="search-icon" src="/assets/search-icon.svg" alt="🔍" />
-                                    <input #searchInput type="text" class="search-input" placeholder="חיפוש..."
+                                    <img class="search-icon" src="/assets/search-icon.svg" alt="" aria-hidden="true" />
+                                    <label for="search-{{ group.filter.id }}" class="sr-only">חיפוש ב{{ group.filter.name }}</label>
+                                    <input #searchInput 
+                                        [id]="'search-' + group.filter.id"
+                                        type="text" 
+                                        class="search-input" 
+                                        placeholder="חיפוש..."
+                                        aria-label="חיפוש ב{{ group.filter.name }}"
                                         [value]="searchTerms.get(group.filter.id) || ''"
                                         (input)="onSearchChange($event, group.filter.id)">
                                     @if (searchTerms.get(group.filter.id)) {
                                     <button type="button" class="clear-search"
-                                        (click)="clearSearch(group.filter.id); searchInput.value = ''">
+                                        (click)="clearSearch(group.filter.id); searchInput.value = ''"
+                                        aria-label="נקה חיפוש">
                                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                                            stroke-linecap="round" stroke-linejoin="round">
+                                            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                                             <line x1="18" y1="6" x2="6" y2="18"></line>
                                             <line x1="6" y1="6" x2="18" y2="18"></line>
                                         </svg>
@@ -86,22 +100,22 @@
                                 </label>
                                 } @empty {
                                 @if (searchTerms.get(group.filter.id)) {
-                                <div class="no-results">לא נמצאה התאמה</div>
+                                <div class="no-results" role="status" aria-live="polite">לא נמצאה התאמה</div>
                                 }
                                 }
 
                                 @if (searchTerms.get(group.filter.id) && getSelectedLabelsNotMatching(group).length > 0)
                                 {
                                 <div class="selected-labels-section">
-                                    <div class="selected-labels-divider"></div>
-                                    <div class="selected-labels-header">בחירות נוספות:</div>
+                                    <div class="selected-labels-divider" aria-hidden="true"></div>
+                                    <div class="selected-labels-header" id="selected-label-header-{{ group.filter.id }}" role="heading" aria-level="3">בחירות נוספות:</div>
                                     @for (label of getSelectedLabelsNotMatching(group); track label.title) {
                                     <label class="checkbox-label">
                                         <input type="checkbox" [checked]="label.data.checked"
                                             (change)="onCheckboxChange(label)"
                                             (keydown.enter)="$event.preventDefault(); onCheckboxChange(label)"
                                             [disabled]="group.filter.disabled">
-                                        <span class="checkmark"></span>
+                                        <span class="checkmark" aria-hidden="true"></span>
                                         {{ label.title }}
                                     </label>
                                     }

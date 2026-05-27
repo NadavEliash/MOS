@@ -1,22 +1,24 @@
-<nav class="app-nav" role="navigation" aria-label="Top Navigation">
+<nav class="app-nav" role="navigation" aria-label="ניווט ראשי">
     <div class="nav-right">
-        <a [href]="ministrySite" target="_blank" class="logo link" aria-label="בית">
-            <img src="/assets/logo.svg" alt="logo" class="logo-img" />
+        <a [href]="ministrySite" target="_blank" class="logo link" aria-label="עבור לאתר משרד הרווחה והביטחון החברתי (יפתח בחלון חדש)">
+            <img src="/assets/logo.svg" alt="סמליל המשרד" class="logo-img" />
         </a>
         @if (!isHome()) {
-        <a routerLink="/" class="link" aria-label="בית">
+        <a routerLink="/" class="link" aria-label="עמוד הבית" [attr.aria-current]="isHome() ? 'page' : null">
             <span>עמוד הבית</span>
         </a>
         }
     </div>
     <div class="nav-left">
         <a routerLink="/report" class="report link" [ngClass]="savedGraphsCount() ? '' : 'disabled'"
-            aria-label="הדוח שלי">
+            [attr.aria-label]="savedGraphsCount() ? 'הדוח שלי - ' + savedGraphsCount() + ' גרפים שמורים' : 'הדוח שלי - לא זמין, אין גרפים שמורים'"
+            [attr.aria-disabled]="!savedGraphsCount()"
+            [tabindex]="savedGraphsCount() ? 0 : -1">
             <div class="badge">
-                <img class="report-icon" src="/assets/my-report.svg" alt="🧾" />
+                <img class="report-icon" src="/assets/my-report.svg" alt="דוח" />
                 @if (savedGraphsCount() > 0) {
-                <div class="count-icon">
-                    <img class="icon" src="/assets/category-badge.svg" alt="°">
+                <div class="count-icon" aria-hidden="true">
+                    <img class="icon" src="/assets/category-badge.svg" alt="כמות">
                     <span class="count">{{savedGraphsCount()}}</span>
                 </div>}
             </div>
