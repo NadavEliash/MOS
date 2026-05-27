@@ -98,7 +98,7 @@
                         </div>
                         <h5 class="filter-title" aria-label="קבוצת פילוח: {{graph.data.series[0].groupTitle}}">{{ graph.data.series[0].groupTitle }}</h5>
                         <div class="filter-values" aria-label="ערכים שנבחרו">
-                          @for (serie of graph.data.series; track $index) {
+                          @for (serie of cleanGraphSeries(graph).data.series; track $index) {
                             <span class="filter-value"><span style="color: transparent;">,</span>{{ serie.name }}</span>
                           }
                         </div>

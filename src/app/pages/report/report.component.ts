@@ -42,7 +42,7 @@ export class ReportComponent implements OnInit {
     }, 2000);
   }
   
-  private cleanGraphSeries(graph: ExtendedGraph): ExtendedGraph {
+  cleanGraphSeries(graph: ExtendedGraph): ExtendedGraph {
     if (!graph.data || !graph.data.series) {
       return graph;
     }
@@ -84,8 +84,7 @@ export class ReportComponent implements OnInit {
         .map(c => ({ 
           ...c, 
           graphs: c.graphs.map(graph => {
-            const cleanedGraph = this.cleanGraphSeries({...graph, selectedForExport: true, showShareBar: false});
-            return cleanedGraph;
+            return {...graph, selectedForExport: true, showShareBar: false};
           })
         }));
       
