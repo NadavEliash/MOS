@@ -18,7 +18,7 @@
   text-align: center;
   font-weight: 400;
   line-height: 30px;
-  font-size: 48px;
+  font-size: var(--font-size-48);
 
   .year {
     font-weight: 700;
@@ -29,7 +29,7 @@
 .subtitle {
   display: block;
   text-align: center;
-  font-size: 18px;
+  font-size: var(--font-size-l);
   font-weight: 400;
   color: #5878A4;
 }
@@ -176,7 +176,7 @@
     flex-direction: column;
     align-items: start;
     background-color: transparent;
-    font-size: 16px;
+    font-size: var(--font-size-m);
 
     &:hover {
       background-color: #F1F5FB;
@@ -198,7 +198,7 @@
     }
 
     span:first-child {
-      font-size: 14px;
+      font-size: var(--font-size-s);
       color: #4D6F9B;
     }
 
@@ -217,12 +217,12 @@
 
   .mid-title {
     font-weight: 400;
-    font-size: 32px;
+    font-size: var(--font-size-32);
   }
 
   .mid-paragraph {
-    font-size: 16px;
-    line-height: 24px;
+    font-size: var(--font-size-m);
+    line-height: var(--font-size-32);
     max-width: 800px;
     margin-block: 24px;
   }
@@ -274,7 +274,7 @@
   color: var(--color-dark-blue);
   background: transparent;
   text-decoration: none;
-  font-size: 16px;
+  font-size: var(--font-size-m);
   font-weight: 400;
   box-sizing: border-box;
   text-align: center;
@@ -305,8 +305,8 @@
   pointer-events: none;
   transition: opacity 0.15s ease, transform 0.15s ease;
   text-align: center;
-  font-size: 13px;
-  line-height: 1.35;
+  font-size: var(--font-size-s);
+  line-height: var(--font-size-l);
   white-space: pre-wrap;
 }
 

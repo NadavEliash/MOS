@@ -1,4 +1,4 @@
-@if (open()) {<div class="accessibility-backdrop" (click)="toggleOpen()" tabindex="-1" aria-hidden="true"></div>}
+@if (open()) {<div class="backdrop" (click)="toggleOpen()" tabindex="-1" aria-hidden="true"></div>}
 <div class="accessibility" [attr.aria-hidden]="!open()">
   <button class="accessibility-button" (click)="toggleOpen()" aria-haspopup="true" [attr.aria-expanded]="open()"
     aria-label="תפריט נגישות">
@@ -16,11 +16,11 @@
     </div>
 
     <div class="menu-item" role="menuitem" tabindex="0">
-      <span class="label">הגדלת טקסט</span>
-      <button type="button" class="toggle contrast-border" (click)="toggleLargeText()" role="switch" [attr.aria-checked]="largeText()"
-        [attr.aria-label]="largeText() ? 'בטל הגדלת טקסט' : 'הפעל הגדלת טקסט'">
-        <span class="knob" [class.on]="largeText()"></span>
-      </button>
+      <span class="label">גודל טקסט</span>
+      <div class="slider-wrap">
+        <input type="range" min="100" max="200" [value]="(fontScale() * 100)" (input)="setFontScale($any($event.target).value)" aria-label="הגדר גודל טקסט">
+        <output class="slider-value">{{ (fontScale() * 100) | number:'1.0-0' }}%</output>
+      </div>
     </div>
   </div>}
 </div>

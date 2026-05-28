@@ -11,17 +11,19 @@ import { CommonModule } from '@angular/common';
 export class AccessibilityComponent implements OnInit {
   open = signal(false);
   contrast = signal(false);
-  largeText = signal(false);
+  fontScale = signal(1);
 
   ngOnInit(): void {
     try {
       this.contrast.set(localStorage.getItem('highContrast') === '1');
-      this.largeText.set(localStorage.getItem('largeText') === '1');
+      const stored = localStorage.getItem('fontScale');
+      if (stored) this.fontScale.set(parseFloat(stored));
     } catch (e) {
       // ignore
     }
     if (this.contrast()) document.body.classList.add('high-contrast');
-    if (this.largeText()) document.body.classList.add('large-text');
+    // apply current scale to root so CSS variables update
+    try { document.documentElement.style.setProperty('--font-scale', String(this.fontScale())); } catch {}
   }
 
   toggleOpen(): void {
@@ -35,10 +37,11 @@ export class AccessibilityComponent implements OnInit {
     if (v) document.body.classList.add('high-contrast'); else document.body.classList.remove('high-contrast');
   }
 
-  toggleLargeText(): void {
-    const v = !this.largeText();
-    this.largeText.set(v);
-    try { localStorage.setItem('largeText', v ? '1' : '0'); } catch {}
-    if (v) document.body.classList.add('large-text'); else document.body.classList.remove('large-text');
+  setFontScale(value: number | string): void {
+    const v = typeof value === 'string' ? parseFloat(value) / 100 : value;
+    const scale = Number.isFinite(v) ? v : this.fontScale();
+    this.fontScale.set(scale);
+    try { localStorage.setItem('fontScale', String(scale)); } catch {}
+    try { document.documentElement.style.setProperty('--font-scale', String(scale)); } catch {}
   }
 }

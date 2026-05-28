@@ -7,7 +7,7 @@
 	align-items: center;
 	justify-content: flex-start;
 	padding: 16px 24px;
-    font-size: 16px;
+    font-size: var(--font-size-m);
     width: 100%;
 	z-index: 10;
 }
@@ -88,7 +88,7 @@
 	.count {
 		position: absolute;
 		left: -14px;
-		font-size: 14px;
+		font-size: 13px;
 		font-weight: 500;
 	}
 }

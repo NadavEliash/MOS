@@ -37,19 +37,19 @@
 
 .graph-title {
   margin: 0;
-  font-size: 18px;
+  font-size: var(--font-size-l);
   font-weight: 600;
   color: var(--color-dark-blue);
 
   &.long {
-    font-size: 16px;
+    font-size: var(--font-size-m);
   }
 }
 
 .graph-description {
   margin-block: 6px;
   margin-inline: 0;
-  font-size: 14px;
+  font-size: var(--font-size-s);
   font-weight: 400;
   color: #5878A4;
 }
@@ -61,7 +61,7 @@
   .subtitle {
     display: block;
     margin-bottom: 4px;
-    font-size: 14px;
+    font-size: var(--font-size-s);
     color: #335D9C;
   }
 }
@@ -154,13 +154,13 @@
 
   h2 {
     font-weight: 400;
-    font-size: 20px;
+    font-size: var(--font-size-xl);
     margin: 0;
   }
 
   h3 {
     font-weight: 400;
-    font-size: 16px;
+    font-size: var(--font-size-m);
     margin: 0;
   }
 
@@ -181,7 +181,7 @@
   transform: translateX(-50%);
   width: 180px;
   color: #28a745;
-  font-size: 14px;
+  font-size: var(--font-size-s);
   background: #f8f8f8;
   padding: 12px;
   border-radius: 4px;
@@ -258,7 +258,7 @@
   top: 50%;
   right: calc(50% - 64px);
   margin-top: 80px;
-  font-size: 16px;
+  font-size: var(--font-size-m);
   color: var(--color-blue);
 }
 
@@ -287,7 +287,7 @@
 
   .filter-item {
     margin-bottom: 4px;
-    font-size: 14px;
+    font-size: var(--font-size-s);
     color: #5878A4;
     border-left: 1px solid #B5C7E2;
     padding-left: 8px;

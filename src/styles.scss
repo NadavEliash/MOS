@@ -30,6 +30,29 @@
 
 	/* Text color */
 	--text-color-dark-blue: #0C3058;
+	
+	/* Font sizes (base values) and scale multiplier */
+	--font-scale: 1;
+	--font-size-xs-base: 12px;
+	--font-size-s-base: 14px;
+	--font-size-m-base: 16px;
+	--font-size-l-base: 18px;
+	--font-size-xl-base: 20px;
+	--font-size-24-base: 24px;
+	--font-size-32-base: 32px;
+	--font-size-40-base: 40px;
+	--font-size-48-base: 48px;
+
+	/* Active font-size variables consumed by components (respecting scale) */
+	--font-size-xs: calc(var(--font-size-xs-base) * var(--font-scale));
+	--font-size-s: calc(var(--font-size-s-base) * var(--font-scale));
+	--font-size-m: calc(var(--font-size-m-base) * var(--font-scale));
+	--font-size-l: calc(var(--font-size-l-base) * var(--font-scale));
+	--font-size-xl: calc(var(--font-size-xl-base) * var(--font-scale));
+	--font-size-24: calc(var(--font-size-24-base) * var(--font-scale));
+	--font-size-32: calc(var(--font-size-32-base) * var(--font-scale));
+	--font-size-40: calc(var(--font-size-40-base) * var(--font-scale));
+	--font-size-48: calc(var(--font-size-48-base) * var(--font-scale));
 
 }
 
@@ -85,7 +108,7 @@ input {
 }
 
 body.high-contrast,
-body.high-contrast * {
+body.high-contrast * :not(.backdrop) {
 	background-color: #ffffff !important;
 	color: #000000 !important;
 	border-color: #000000 !important;
@@ -111,9 +134,4 @@ body.high-contrast .knob {
 body.high-contrast :focus {
 	outline: 3px solid #000000 !important;
 	outline-offset: 2px !important;
-}
-
-/* Large text mode increases base font-size for accessibility */
-body.large-text * {
-  font-size: 1.25rem !important;
 }
