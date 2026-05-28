@@ -83,3 +83,37 @@ input {
 	white-space: nowrap;
 	border-width: 0;
 }
+
+body.high-contrast,
+body.high-contrast * {
+	background-color: #ffffff !important;
+	color: #000000 !important;
+	border-color: #000000 !important;
+	filter: none !important;
+
+	&.contrast-border {
+		border: 2px solid #000000 !important;
+	}
+	&::after {
+		background-color: #000000 !important;
+	}
+}
+
+body.high-contrast a,
+body.high-contrast .link {
+	color: #000000 !important;
+}
+
+body.high-contrast .knob {
+	background: #000000 !important;
+}
+
+body.high-contrast :focus {
+	outline: 3px solid #000000 !important;
+	outline-offset: 2px !important;
+}
+
+/* Large text mode increases base font-size for accessibility */
+body.large-text * {
+  font-size: 1.25rem !important;
+}

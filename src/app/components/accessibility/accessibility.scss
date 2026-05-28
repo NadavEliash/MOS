@@ -1,0 +1,105 @@
+.accessibility {
+  position: fixed;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 100;
+}
+
+.accessibility-button {
+  background: var(--color-light-blue);
+  color: #fff;
+  border: none;
+  border-top-right-radius: 6px;
+  border-bottom-right-radius: 6px;
+  padding: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  height: 40px;
+  width: 40px;
+}
+
+.accessibility-menu {
+    position: absolute;
+    left: 0;
+    top: 40px;
+    background: #fff;
+    color: var(--text-color-dark-blue);
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+}
+
+.menu-item {
+  background: transparent;
+  border: none;
+  padding: 8px;
+  text-align: right;
+  cursor: pointer;
+  font-size: 16px;
+  width: 150px;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.menu-item .label {
+  font-size: 14px;
+}
+
+/* Toggle switch */
+.toggle {
+  width: 44px;
+  height: 24px;
+  background: #e6e6e6;
+  border-radius: 12px;
+  border: none;
+  padding: 3px;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.toggle:focus {
+  outline: 2px solid #0068F5;
+  outline-offset: 2px;
+}
+
+.toggle .knob {
+  width: 18px;
+  height: 18px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  transform: translateX(0);
+  transition: transform 160ms ease-in-out, background 160ms ease-in-out;
+}
+
+.toggle .knob.on {
+  transform: translateX(-20px);
+  background: #0068F5;
+}
+
+/* When in high contrast, make toggle more visible */
+body.high-contrast .toggle {
+  background: #222;
+  border: 1px solid #ffff00;
+}
+
+body.high-contrast .toggle .knob.on {
+  background: #ffff00;
+}
+
+body.high-contrast .accessibility-button {
+  background: #000;
+  color: #ffff00;
+  border: 2px solid #ffff00;
+}

@@ -148,7 +148,7 @@
   }
 
   &.expanded {
-    color: #0068f5;
+    color: var(--color-blue);
 
     .arrow {
       filter: brightness(0) saturate(100%) invert(42%) sepia(92%) saturate(6601%) hue-rotate(206deg) brightness(101%) contrast(101%);
@@ -201,8 +201,8 @@
   }
 
   input:checked~.checkmark {
-    background: #0068f5;
-    border-color: #0068f5;
+    background: var(--color-blue);
+    border-color: var(--color-blue);
 
     &::after {
       opacity: 1;
@@ -210,7 +210,7 @@
   }
 
   &:hover .checkmark {
-    border-color: #0068f5;
+    border-color: var(--color-blue);
   }
 }
 
@@ -275,7 +275,7 @@
   }
 
   &:focus {
-    border-color: #0068f5;
+    border-color: var(--color-blue);
   }
 }
 
@@ -402,7 +402,7 @@
   }
 
   &.expanded {
-    color: #0068f5;
+    color: var(--color-blue);
     font-weight: 500;
 
     .arrow {

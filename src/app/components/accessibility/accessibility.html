@@ -1,0 +1,24 @@
+<div class="accessibility" [attr.aria-hidden]="!open()">
+  <button class="accessibility-button" (click)="toggleOpen()" aria-haspopup="true" [attr.aria-expanded]="open()"
+    aria-label="תפריט נגישות">
+    <img src="/assets/accessibility.svg" alt="נגישות">
+  </button>
+
+  @if (open()) {<div class="accessibility-menu" role="menu" aria-label="תפריט נגישות">
+    <div class="menu-item" role="menuitem" tabindex="0">
+      <span class="label">ניגודיות צבעים</span>
+      <button type="button" class="toggle contrast-border" (click)="toggleContrast()" role="switch" [attr.aria-checked]="contrast()"
+        [attr.aria-label]="contrast() ? 'בטל ניגודיות' : 'הפעל ניגודיות'">
+        <span class="knob" [class.on]="contrast()"></span>
+      </button>
+    </div>
+
+    <div class="menu-item" role="menuitem" tabindex="0">
+      <span class="label">הגדלת טקסט</span>
+      <button type="button" class="toggle contrast-border" (click)="toggleLargeText()" role="switch" [attr.aria-checked]="largeText()"
+        [attr.aria-label]="largeText() ? 'בטל הגדלת טקסט' : 'הפעל הגדלת טקסט'">
+        <span class="knob" [class.on]="largeText()"></span>
+      </button>
+    </div>
+  </div>}
+</div>
