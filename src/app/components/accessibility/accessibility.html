@@ -1,10 +1,12 @@
+@if (open()) {<div class="accessibility-backdrop" (click)="toggleOpen()" tabindex="-1" aria-hidden="true"></div>}
 <div class="accessibility" [attr.aria-hidden]="!open()">
   <button class="accessibility-button" (click)="toggleOpen()" aria-haspopup="true" [attr.aria-expanded]="open()"
     aria-label="תפריט נגישות">
     <img src="/assets/accessibility.svg" alt="נגישות">
   </button>
 
-  @if (open()) {<div class="accessibility-menu" role="menu" aria-label="תפריט נגישות">
+  @if (open()) {
+  <div class="accessibility-menu" role="menu" aria-label="תפריט נגישות">
     <div class="menu-item" role="menuitem" tabindex="0">
       <span class="label">ניגודיות צבעים</span>
       <button type="button" class="toggle contrast-border" (click)="toggleContrast()" role="switch" [attr.aria-checked]="contrast()"

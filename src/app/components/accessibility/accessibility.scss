@@ -35,6 +35,23 @@
     flex-direction: column;
 }
 
+/* Backdrop that closes the menu when clicked */
+.accessibility-backdrop {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 90;
+}
+
+.accessibility-menu {
+  position: absolute;
+  left: 8px;
+  top: 48px;
+  z-index: 100;
+}
+
 .menu-item {
   background: transparent;
   border: none;
