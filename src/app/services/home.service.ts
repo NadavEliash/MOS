@@ -20,14 +20,15 @@ export class HomeService {
   
   async getSearchData() {
     if (this.searchData.length > 0) return;
-    
-    const categories = this.categoryService.categories()?.map(c => ({
-      name: c.Category_Name, 
-      id: c.Category_ID, 
+
+    const loadedCategories = await this.categoryService.getCategories();
+    const categories = loadedCategories?.map(c => ({
+      name: c.Category_Name,
+      id: c.Category_ID,
       categoryId: c.Category_ID,
       categoryName: c.Category_Name
-    }));    
-    if (categories && categories?.length > 0) this.searchData.push(...categories);
+    }));
+    if (categories && categories.length > 0) this.searchData.push(...categories);
     
     const data = await this.apiService.getStatistics('layersMeasures');
     const measures = data.map((item: any) => ({

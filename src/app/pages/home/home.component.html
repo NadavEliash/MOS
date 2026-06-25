@@ -16,6 +16,9 @@
           id="home-search-input"
           type="text"
           class="search-input"
+          [ngClass] ="{'no-outline': noOutline()}"
+          (pointerdown)="setNoOutline(true)"
+          (blur)="setNoOutline(false)"
           placeholder="חיפוש בדוח לפי מילת מפתח. לדוגמה: אזרחים ותיקים, רשות מקומית, תקציב"
           aria-labelledby="home-search-label home-search-description"
           aria-autocomplete="list"
@@ -89,10 +92,10 @@
         <h2 class="mid-title">{{ midData().Main_Header ?? '' }}</h2>
         <p class="mid-paragraph">{{ midData().Text }}</p>
         <a class="link" [href]="midData().Link" target="_blank">{{ midData()['Link Text']}}
-          <img src="/assets/read-more.svg" alt="קרא עוד" width="16" height="16" />
+          <img src="/assets/read-more.svg" alt="" width="16" height="16" />
         </a>
       </div>
     }
-    <img src="/heros/HOME.svg" alt="איור">
+    <img src="/heros/HOME.svg" alt="">
   </section>    
 </section>

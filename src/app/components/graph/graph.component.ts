@@ -51,6 +51,7 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
   graphReload = output<void>();
   graphSaved = output<void>();
   graphData = signal<GraphData>(this.emptyGraph);
+  accessibleChartData = signal<string>('');
   successMessage = signal<string | null>(null);
   messageType = signal<'success' | 'error'>('success');
   noCategory = signal<boolean>(false);
@@ -386,6 +387,7 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
       })
     };
     this.chart.setOption(option, true);
+    this.accessibleChartData.set(this.getAccessibleChartData());
   }
 
   saveGraph(): void {
@@ -461,6 +463,36 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
     const encodedGraphData = encodeURIComponent(graphDataString);
 
     return `${baseUrl}/category?id=${categoryId}&graph=${encodedGraphData}`;
+  }
+
+  getAccessibleChartData(): string {
+    const chartData = this.graphData();
+    if (!chartData || !chartData.series?.length) {
+      return 'אין נתונים להצגה בגרף';
+    }
+
+    const labels = chartData.categories?.filter?.labels || [];
+    const visibleIndices = labels
+      .map((label, idx) => label.data?.checked ? idx : -1)
+      .filter(idx => idx !== -1);
+    const indices = visibleIndices.length ? visibleIndices : labels.map((_, idx) => idx);
+
+    const subtitles = chartData.subtitles?.split('#').map((subtitle: string) => subtitle.trim()).filter(Boolean) || [];
+    const subtitleText = subtitles.length ? `כותרת משנה: ${subtitles.join(', ')}. ` : '';
+
+    const rows = indices.map((labelIndex) => {
+      const labelTitle = labels[labelIndex]?.title?.toString().trim() || `${labelIndex + 1}`;
+      const valuesText = (chartData.series || []).map((series: any, seriesIndex: number) => {
+        const name = series.name?.toString().trim() || `סדרה ${seriesIndex + 1}`;
+        const value = series.data?.[labelIndex];
+        const valueText = value === null || value === undefined ? 'אין ערך' : value.toString();
+        return `${name}: ${valueText}`;
+      }).join(' ');
+
+      return `שנה ${labelTitle} - ${valuesText}`;
+    });
+
+    return `${chartData.title || 'גרף'}. ${subtitleText}${rows.join(', ')}`.trim();
   }
 
   private onResize = () => this.chart?.resize();

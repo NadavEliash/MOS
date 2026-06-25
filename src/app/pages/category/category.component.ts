@@ -216,12 +216,22 @@ export class CategoryComponent implements OnInit {
       this.abortController.abort();
     }
     this.abortController = new AbortController();
-
     let updatedChips = this.chips();
+    const targetChip = updatedChips.find(chip => chip.Chip_ID === id);
+
+    if (targetChip && targetChip.isActive) {
+      targetChip.isActive = false;
+      this.chips.set(updatedChips);
+      this.updateActiveGraph('chip', '');
+      this.categoryService.selectedMeasure.set(undefined);
+      this.graphData.set(undefined);
+      return;
+    }
+
     if (updatedChips.find(chip => chip.isActive)) {
       updatedChips.find(chip => chip.isActive)!.isActive = false;
     }
-    updatedChips.find(chip => chip.Chip_ID === id)!.isActive = true;
+    if (targetChip) targetChip.isActive = true;
     this.chips.set(updatedChips);
     this.updateActiveGraph('chip', id);
 

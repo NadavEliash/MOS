@@ -23,7 +23,7 @@
           </app-share-bar>
         </div>}
         @if (successMessage()) {
-        <div class="success-message" [class.error]="messageType() === 'error'" role="status" aria-live="polite" aria-atomic="true">
+        <div class="success-message" [class.error]="messageType() === 'error'" role="alert" aria-live="polite" aria-atomic="true">
           {{ successMessage() }}
         </div>
         }
@@ -45,7 +45,7 @@
     }
   </div>
 
-  <div [ngClass]="{'no-category': !data?.series?.length}" #chartEl class="chart" role="region" aria-labelledby="graph-title" aria-label="גרף נתונים"></div>
+  <div [ngClass]="{'no-category': !data?.series?.length}" #chartEl class="chart" role="region" tabindex="0" aria-live="polite" [attr.aria-label]="accessibleChartData()"></div>
   } @else {
   <div class="graph-error" role="alert">
     <img src="/assets/graph-error.jpeg" alt="" aria-hidden="true" />

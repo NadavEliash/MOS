@@ -123,7 +123,6 @@ export class ReportComponent implements OnInit {
   }
 
   returnToGraph(graph: ExtendedGraph): void {
-    console.log(graph);
     this.router.navigate(['/category']).then(() => {
       this.categoryService.setSelectedSavedGraph(graph.id);
     });

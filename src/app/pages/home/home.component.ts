@@ -24,6 +24,11 @@ export class HomeComponent {
   searchResults: any[] = [];
   isDrawerOpen: boolean = false;
   selectedResultIndex: number = -1;
+  noOutline = signal<boolean>(false);
+
+  setNoOutline(value: boolean): void {
+    this.noOutline.set(value);
+  }
 
   title = computed(() => {
     return this.pageData()?.find((d: any) => d.PagePart_ID === "H01")?.Main_Header.match(/^(.*?)(\d+)(.*)$/) ?? 

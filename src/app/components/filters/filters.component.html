@@ -27,7 +27,7 @@
                         (click)="toggleMeasure(measure)"
                         [attr.aria-expanded]="measure.expanded"
                         [attr.aria-controls]="'measure-' + measure.id"
-                        [attr.aria-label]="measure.name + (measure.expanded ? ' - מוקפל' : ' - מורחב')">
+                        [attr.aria-label]="measure.name">
                         <div class="measure-info">
                             <span class="measure-name">{{ measure.name }}</span>
                             @if (isMeasureActive(measure.id) && !measure.expanded) {
@@ -53,7 +53,7 @@
                                 (click)="toggleFilterGroup(group)"
                                 [attr.aria-expanded]="group.filter.expanded"
                                 [attr.aria-controls]="'group-' + group.filter.id"
-                                [attr.aria-label]="group.filter.name + (group.filter.expanded ? ' - מוקפל' : ' - מורחב')"
+                                [attr.aria-label]="group.filter.name"
                                 [attr.aria-disabled]="group.filter.disabled">
                                 <img class="arrow-left" [class.expanded]="group.filter.expanded"
                                     src="/assets/measure-arrow.svg" alt="" aria-hidden="true" />

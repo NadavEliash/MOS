@@ -6,8 +6,8 @@
   </button>
 
   @if (open()) {
-  <div class="accessibility-menu" role="menu" aria-label="תפריט נגישות">
-    <div class="menu-item" role="menuitem" tabindex="0">
+  <div class="accessibility-menu" aria-label="תפריט נגישות">
+    <div class="menu-item">
       <span class="label">ניגודיות צבעים</span>
       <button type="button" class="toggle contrast-border" (click)="toggleContrast()" role="switch" [attr.aria-checked]="contrast()"
         [attr.aria-label]="contrast() ? 'בטל ניגודיות' : 'הפעל ניגודיות'">
@@ -15,7 +15,7 @@
       </button>
     </div>
 
-    <div class="menu-item" role="menuitem" tabindex="0">
+    <div class="menu-item">
       <span class="label">גודל טקסט</span>
       <div class="slider-wrap">
         <input type="range" min="100" max="200" [value]="(fontScale() * 100)" (input)="setFontScale($any($event.target).value)" aria-label="הגדר גודל טקסט">

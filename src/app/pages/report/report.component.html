@@ -22,7 +22,7 @@
       }
       </div>   
     </div>
-    <img src="/heros/REPORT.svg" alt="איור" class="report-hero">
+    <img src="/heros/REPORT.svg" alt="" class="report-hero">
   </div>
 
   <div class="report-content">
@@ -32,7 +32,7 @@
         <div class="category-section">
           <div class="category-header">
             <div class="category-info">
-              <img [src]="categoryGroup.category.icon" [alt]="categoryGroup.category.Category_Name" class="category-icon">
+              <img [src]="categoryGroup.category.icon" alt="" class="category-icon">
               <h2 class="category-title">{{ categoryGroup.category.Category_Name }}</h2>
             </div>
             <span class="graphs-count">{{ categoryGroup.graphs.length }} גרפים</span>
@@ -49,7 +49,7 @@
                   </div>
                   <div class="graph-report-actions">
                     @if (successMessage()) {
-                      <div class="success-message" [class.error]="messageType() === 'error'" role="status" aria-live="polite" aria-atomic="true">
+                      <div class="success-message" [class.error]="messageType() === 'error'" role="alert" aria-live="polite" aria-atomic="true">
                         {{ successMessage() }}
                       </div>
                     }

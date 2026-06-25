@@ -42,11 +42,11 @@ export class CookieService {
     const labels1 = graph1.categories?.filter?.labels
       ?.filter((l: any) => l.data.checked)
       .map((l: any) => l.title)
-      .sort((a: string, b: string) => a.localeCompare(b, undefined, { numeric: true })) || [];
+      .sort((a: any, b: any) => String(a).localeCompare(String(b), undefined, { numeric: true })) || [];
     const labels2 = graph2.categories?.filter?.labels
       ?.filter((l: any) => l.data.checked)
       .map((l: any) => l.title)
-      .sort((a: string, b: string) => a.localeCompare(b, undefined, { numeric: true })) || [];
+      .sort((a: any, b: any) => String(a).localeCompare(String(b), undefined, { numeric: true })) || [];
 
     if (JSON.stringify(labels1) !== JSON.stringify(labels2)) {
       return false;
@@ -56,12 +56,12 @@ export class CookieService {
     const series1 = graph1.series?.map((s: any) => ({
       name: s.name,
       data: s.data
-    })).sort((a: any, b: any) => a.name.localeCompare(b.name, undefined, { numeric: true })) || [];
+    })).sort((a: any, b: any) => String(a.name).localeCompare(String(b.name), undefined, { numeric: true })) || [];
 
     const series2 = graph2.series?.map((s: any) => ({
       name: s.name,
       data: s.data
-    })).sort((a: any, b: any) => a.name.localeCompare(b.name, undefined, { numeric: true })) || [];
+    })).sort((a: any, b: any) => String(a.name).localeCompare(String(b.name), undefined, { numeric: true })) || [];
 
     return JSON.stringify(series1) === JSON.stringify(series2);
   }

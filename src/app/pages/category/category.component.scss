@@ -135,12 +135,12 @@
   &::after { content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); border: 8px solid transparent; border-top-color: #fff; }
 }
 
-.research-option:hover .chip-tooltip { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
+.research-option:hover .chip-tooltip, .research-option:focus-visible .chip-tooltip { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
 
 .saved-option-container { display: inline-flex; align-items: center; margin: 6px 6px 0; }
 
 .saved-option {
-  padding: 8px 12px;
+  padding: 8px 12px;    
   border-radius: 0 8px 8px 0;
   border: 1px solid #B5C7E2;
   font-family: inherit;

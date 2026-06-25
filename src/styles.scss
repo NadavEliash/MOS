@@ -75,6 +75,11 @@ $color-yellow: #F2DD54;
 	box-sizing: border-box;
 }
 
+*:focus-visible {
+    outline: 2px solid #000000 !important;
+    outline-offset: 3px !important;
+}
+
 /* Global font family */
 html,
 body {
@@ -114,6 +119,24 @@ body.high-contrast * :not(.backdrop) {
 	border-color: #000000 !important;
 	filter: none !important;
 
+	button, a {
+		border: 1px solid #000000 !important;
+	}
+
+	input[type=range] {
+		background: #000000 !important;
+
+		&::-webkit-slider-thumb {
+			background: #ffffff !important;
+			border: 1px solid #000000 !important;
+		}
+	}
+
+	input::placeholder {
+		color: #000000 !important;
+		font-style: italic !important;
+	}
+		
 	&.contrast-border {
 		border: 2px solid #000000 !important;
 	}

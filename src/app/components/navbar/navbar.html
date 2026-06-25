@@ -11,9 +11,8 @@
     </div>
     <div class="nav-left">
         <a routerLink="/report" class="report link" [ngClass]="savedGraphsCount() ? '' : 'disabled'"
-            [attr.aria-label]="savedGraphsCount() ? 'הדוח שלי - ' + savedGraphsCount() + ' גרפים שמורים' : 'הדוח שלי - לא זמין, אין גרפים שמורים'"
-            [attr.aria-disabled]="!savedGraphsCount()"
-            [tabindex]="savedGraphsCount() ? 0 : -1">
+            [attr.aria-label]="savedGraphsCount() ? 'הדוח שלי - ' + savedGraphsCount() + ' גרפים שמורים' : 'הדוח שלי - לא זמין. עדיין לא נשמרו גרפים'"
+            tabindex=0>
             <div class="badge">
                 <img class="report-icon" src="/assets/my-report.svg" alt="דוח" />
                 @if (savedGraphsCount() > 0) {

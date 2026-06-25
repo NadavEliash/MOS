@@ -7,7 +7,8 @@ export const links = {
     instagram: 'https://www.instagram.com/israel_social/',
     contact: 'https://www.gov.il/he/service/contact-the-ministry-of-labor-welfare-and-social-services',
     organizationStructure: 'https://www.gov.il/he/pages/molsa-organization-structure',
-    seniorPositions: 'https://www.gov.il/he/Departments/DynamicCollectors/molsa-senior-positions?skip=0&limit=10'
+    seniorPositions: 'https://www.gov.il/he/Departments/DynamicCollectors/molsa-senior-positions?skip=0&limit=10',
+    accessibilityStatement: 'https://www.gov.il/he/pages/accessibility-statement'
 }
 
 export const graphColors = [
