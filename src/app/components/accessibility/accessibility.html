@@ -1,5 +1,5 @@
 @if (open()) {<div class="backdrop" (click)="toggleOpen()" tabindex="-1" aria-hidden="true"></div>}
-<div class="accessibility" [attr.aria-hidden]="!open()">
+<div class="accessibility">
   <button class="accessibility-button" (click)="toggleOpen()" aria-haspopup="true" [attr.aria-expanded]="open()"
     aria-label="תפריט נגישות">
     <img src="/assets/accessibility.svg" alt="נגישות">
