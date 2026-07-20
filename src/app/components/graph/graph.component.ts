@@ -439,22 +439,25 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
     }
 
     const categoryId = this.data.categoryId;
-    const measureId = this.data.categories?.measureId;
-    if (!measureId) {
+    const measureIds = this.data.measureIds?.length
+      ? this.data.measureIds
+      : (this.data.categories?.measureId ? [this.data.categories.measureId] : []);
+    if (measureIds.length === 0) {
       return '';
     }
 
     const checkedFilters = this.data.filterGroups
-      .filter(fg => fg.measureId === measureId)
+      .filter(fg => measureIds.includes(fg.measureId))
       .map(fg => ({
         filterId: fg.filter.id,
         checkedLabels: fg.filter.labels?.filter(l => l.data.checked).map(l => l.title)
       }))
-      .filter(f => f.checkedLabels?.length > 0);
+      .filter(f => f.checkedLabels?.length > 0)
+      .filter((f, i, arr) => arr.findIndex(x => x.filterId === f.filterId) === i);
 
     const shareableData = {
       categoryId,
-      measureId,
+      measureIds,
       checkedFilters
     };
 

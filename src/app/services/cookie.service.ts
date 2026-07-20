@@ -131,26 +131,30 @@ export class CookieService {
         csv += '\n\n'; // Separate graphs
       }
 
-      const xAxisLabels = graph.data.categories.filter.labels
-        .filter((l: any) => l.data.checked)
-        .map((l: any) => l.title);
+      const allLabels = graph.data.categories.filter.labels;
+      const checkedIndices = allLabels
+        .map((label: any, idx: number) => (label.data.checked ? idx : -1))
+        .filter((idx: number) => idx !== -1);
+      const xAxisLabels = checkedIndices.map((idx: number) => allLabels[idx].title);
 
       csv += `"${graph.title.replace(/"/g, '""')}"` + '\n';
       csv += `"${graph.subtitle.replace(/"/g, '""')}"` + '\n';
 
-      if (graph.data.subtitles.split('#').length > 1) {
+      if (graph.data.subtitles?.split('#').length > 1) {
         graph.data.subtitles.split('#').forEach((subtitle: string, idx: number) => {
           csv += `מדד ${idx + 1}: ${subtitle}` + '\n';
         });
       }
 
       const headerRow = [...xAxisLabels, ''];
-      csv += headerRow.map(cell => `"${cell}"`).join(',') + `${graph.data.categories.filter.name}` + '\n';
+      csv += `${graph.data.categories.filter.name}` + ',' + headerRow.map(cell => `${cell}`).join(',') + '\n';
 
       graph.data.series.forEach((s: any) => {
-        const row = [...s.data, s.name];
+        const alignedData = checkedIndices.map((idx: number) => s.data?.[idx] ?? '');
+        const row = [s.name, ...alignedData];
         csv += row.map(cell => `"${cell}"`).join(',') + '\n';
       });
+      
     });
 
     return csv;

@@ -1,23 +1,23 @@
 <section class="page category">
   <section class="category-header">
-    <div class="options-bar" role="navigation" aria-label="אפשרויות קטגוריה">
-      <div class="options-inner">
-        @for (category of categories(); track category.Category_ID) {
-        <button type="button" class="category-option"
+    <div class="options-bar" role="radiogroup" aria-label="אפשרויות קטגוריה">
+        @for (category of categories(); track category.Category_ID; let i = $index) {
+        <div role="radio" class="category-option"
+          [attr.aria-checked]="selectedCategory()?.Category_ID === category.Category_ID"
+          [attr.tabindex]="(selectedCategory()?.Category_ID === category.Category_ID) || (!selectedCategory() && i === 0) ? 0 : -1"
           [ngClass]="selectedCategory()?.Category_ID === category.Category_ID ? 'selected' : ''"
           (click)="onSelectCategory(category.Category_ID, true)"
+          (keydown)="onCategoryKeydown($event, i)"
           [class.active]="selectedCategory()?.Category_ID === category.Category_ID"
-          [attr.aria-label]="category.Category_Name + (selectedCategory()?.Category_ID === category.Category_ID ? ' - נבחר' : '')"
-          [attr.aria-pressed]="selectedCategory()?.Category_ID === category.Category_ID">
+          [attr.aria-label]="category.Category_Name + (selectedCategory()?.Category_ID === category.Category_ID ? ' - נבחר' : '') + (category.isSaved ? 'נשמר בדוח שלי' : '')">
           <span class="icon-box">
             <img [src]="category.icon" [alt]="category.Category_Name">
-            @if (category.isSaved) {<img class="badge" src="/assets/category-badge.svg" alt="נשמר בדוח שלי">}
+            @if (category.isSaved) {<img class="badge" src="/assets/category-badge.svg" alt="שמור">}
           </span>
           <span class="option-label">{{ category.Category_Name }}</span>
           <span class="option-underline" aria-hidden="true"></span>
-        </button>
+        </div>
         }
-      </div>
     </div>
 
     <div class="header-content">

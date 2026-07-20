@@ -143,8 +143,12 @@ export class ReportComponent implements OnInit {
   getShareUrl(graph: ExtendedGraph): string {
     const data = graph.data;
     const categoryId = data.categoryId;
-    const measureId = data.filterGroups.find((fg:any) => fg.measureId)?.measureId;
-    if (!measureId) {
+    const measureIds = data.measureIds?.length
+      ? data.measureIds
+      : (data.filterGroups.find((fg:any) => fg.measureId)?.measureId
+        ? [data.filterGroups.find((fg:any) => fg.measureId)!.measureId]
+        : []);
+    if (measureIds.length === 0) {
       return '';
     }
 
@@ -157,7 +161,7 @@ export class ReportComponent implements OnInit {
 
     const shareableData = {
       categoryId,
-      measureId,
+      measureIds,
       checkedFilters
     };
 

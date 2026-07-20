@@ -76,7 +76,21 @@ export class CategoryComponent implements OnInit {
             if (graph) {
               this.loadingGraph.set(true);
               const parsedShareData = JSON.parse(graph);
-              const currentFilterGroups = await this.categoryService.getFilters().then(() => this.filterGroups());
+              const measureIds: string[] = parsedShareData.measureIds?.length
+                ? parsedShareData.measureIds
+                : (parsedShareData.measureId ? [parsedShareData.measureId] : []);
+
+              await this.categoryService.getFilters();
+
+              for (const measureId of measureIds) {
+                const measure = this.measures().find(m => m.id === measureId);
+                if (measure && this.filterGroups().filter(fg => fg.measureId === measureId).length === 0) {
+                  await this.categoryService.getView(measureId);
+                  this.setFilterGroups(measure);
+                }
+              }
+
+              const currentFilterGroups = this.filterGroups();
               currentFilterGroups?.forEach(fg => {
                 fg.filter.labels?.forEach(l => l.data.checked = false);
                 const sharedFilter = parsedShareData.checkedFilters.find((cf: any) => cf.filterId === fg.filter.id);
@@ -89,7 +103,15 @@ export class CategoryComponent implements OnInit {
                 }
               });
               this.filterGroups.set([...currentFilterGroups]);
-              this.setGraphData(this.measures().find(m => m.id === parsedShareData.measureId)!);
+
+              if (measureIds.length > 1) {
+                const measures = measureIds
+                  .map(id => this.measures().find(m => m.id === id))
+                  .filter((m): m is Measure => !!m);
+                this.setMultiMeasureGraphData(measures);
+              } else if (measureIds.length === 1) {
+                this.setGraphData(this.measures().find(m => m.id === measureIds[0])!);
+              }
               this.loadingGraph.set(false);
             }
           } else if (this.categoryService.selectedSavedGraph()) {
@@ -125,6 +147,36 @@ export class CategoryComponent implements OnInit {
       }));
       this.categoryService.categories.set(updatedCategories);
     }
+  }
+
+  onCategoryKeydown(event: KeyboardEvent, currentIndex: number) {
+    const cats = this.categories();
+    if (!cats || cats.length === 0) return;
+    const lastIndex = cats.length - 1;
+    let nextIndex = currentIndex;
+
+    switch (event.key) {
+      case 'ArrowUp':
+      case 'ArrowRight':
+        nextIndex = currentIndex === 0 ? lastIndex : currentIndex - 1;
+        break;
+      case 'ArrowDown':
+      case 'ArrowLeft':
+        nextIndex = currentIndex === lastIndex ? 0 : currentIndex + 1;
+        break;
+      case 'Enter':
+      case ' ':
+        event.preventDefault();
+        this.onSelectCategory(cats[currentIndex].Category_ID, true);
+        return;
+      default:
+        return;
+    }
+
+    event.preventDefault();
+    const target = event.currentTarget as HTMLElement;
+    const options = target.closest('.options-bar')?.querySelectorAll<HTMLElement>('.category-option');
+    options?.[nextIndex]?.focus();
   }
 
   async onSelectCategory(id: string, resetGraph: boolean = false) {
@@ -367,7 +419,6 @@ export class CategoryComponent implements OnInit {
       const data = await this.apiService.getStatistics('layersMeasures');
       const measureData = data.find((m: any) => m['Measure ID'] === measureId);
       if (measureData) {
-        // if (signal.aborted) return;
         const measure = {
           id: measureData['Measure ID'],
           name: measureData['Measure Name'],
