@@ -46,6 +46,7 @@ export class FiltersComponent implements OnChanges {
   showGrouped: boolean = true;
   selectedGroupName: string = '';
   data: GraphData | undefined = undefined;
+  toggleSelection: { [key: string]: boolean } = {};
 
   private measureExpandedState = new Map<string, boolean>();
   searchTerms = new Map<string, string>();
@@ -333,10 +334,15 @@ export class FiltersComponent implements OnChanges {
   isAnyFilteredSelected(group: InputFilterGroup): boolean {
     return group.filter.labels?.some(label => label.data.checked) ?? false;
   }
-
-  toggleSelectAll(group: InputFilterGroup): void {
+  
+  toggleSelectAll(group: InputFilterGroup, toggle: boolean = false) {
+    if (toggle) {
+      this.toggleSelection[group.filter.name] ? 
+      this.toggleSelection[group.filter.name] = false : 
+      this.toggleSelection[group.filter.name] = true;     
+    }
     group.filter.labels.forEach(label => {
-      label.data.checked = false;
+      label.data.checked = this.toggleSelection[group.filter.name];
     });
     this.selectionChange.emit(this.filterGroupsInput.filter(fg => fg.measureId === group.measureId));
   }

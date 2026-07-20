@@ -88,6 +88,8 @@
                                     </button>
                                     }
                                 </div>
+                                } @else {
+                                <button type="button" class="clear-all" (click)="toggleSelectAll(group, true)" [aria-label]="toggleSelection[group.filter.name] ? 'נקה את כל הבחירות בקבוצה זו' : 'בחר הכל'">{{toggleSelection[group.filter.name] ? 'נקה הכל' : 'בחר הכל'}}</button>
                                 }
                                 @for (label of getFilteredLabels(group); track label.title) {
                                 <label class="checkbox-label">
