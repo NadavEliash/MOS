@@ -16,6 +16,10 @@
   align-items: center;
   min-width: 280px;
   z-index: 99;
+
+  .close-button {
+     display: none;
+  }
 }
 
 .share-buttons {

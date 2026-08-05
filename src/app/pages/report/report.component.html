@@ -93,13 +93,13 @@
                         <h5 class="filter-title" aria-label="קבוצת פילוח: {{graph.data.categories.filter.name}}">{{ graph.data.categories.filter.name }}</h5>
                         <div class="filter-values" aria-label="ערכים שנבחרו">
                           @for (label of graph.data.categories.filter.labels; track $index) {
-                            <span class="filter-value"><span style="color: transparent;">,</span>{{ label.title }}</span>
+                            <span class="filter-value"><span class="transparent">,</span>{{ label.title }}</span>
                           }
                         </div>
                         <h5 class="filter-title" aria-label="קבוצת פילוח: {{graph.data.series[0].groupTitle}}">{{ graph.data.series[0].groupTitle }}</h5>
                         <div class="filter-values" aria-label="ערכים שנבחרו">
                           @for (serie of cleanGraphSeries(graph).data.series; track $index) {
-                            <span class="filter-value"><span style="color: transparent;">,</span>{{ serie.name }}</span>
+                            <span class="filter-value"><span class="transparent">,</span>{{ serie.name }}</span>
                           }
                         </div>
                       </div>

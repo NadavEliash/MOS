@@ -1,4 +1,6 @@
-﻿.graph-wrapper {
+﻿@use 'sass:list';
+
+.graph-wrapper {
   background: #FFFFFF52;
   font-family: "Rubik", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   padding: 24px 32px;
@@ -297,4 +299,37 @@
       border-left: none;
     }
   }
+}
+
+// Keep in sync with graphColors in src/app/services/static.data.ts - the
+// tooltip picks its swatch class by index into that same list.
+$graph-colors: #a3e2fd, #1379ff, #043775, #ff90cd, #ff5f77, #DEAAFF, #8df8dd, #00F587, #ffa51f, #F2DD54;
+
+// The tooltip markup is injected by ECharts, so it carries no Angular
+// encapsulation attribute - ::ng-deep is required for these rules to match.
+:host ::ng-deep .tooltip-item {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;
+
+  .tooltip-color {
+    width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0;
+    background-color: #000; // fallback for a series colour outside the palette
+
+    @for $i from 1 through list.length($graph-colors) {
+      &--#{$i - 1} { background-color: list.nth($graph-colors, $i); }
+    }
+  }
+  .tooltip-title {
+    color: #6b7a90; flex: 1; margin-right: 8px; text-align: right;
+
+    &--emphasized {
+      font-weight: 700; text-decoration: underline;
+    }
+  }
+  .tooltip-value {
+    font-weight: 600; color: #123248; margin-right: 16px;
+  }
+}
+
+:host ::ng-deep .tooltip-container {
+  padding: 8px 12px; background-color: rgba(255,255,255,0.95); border-radius: 4px;
 }

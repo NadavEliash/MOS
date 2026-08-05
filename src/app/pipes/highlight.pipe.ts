@@ -33,7 +33,7 @@ export class HighlightPipe implements PipeTransform {
 
     const highlightedHtml = encodedText.replace(
       safePattern,
-      (match) => `<mark style="background-color: transparent; font-weight: 700;">${match}</mark>`
+      (match) => `<mark class="highlight">${match}</mark>`
     );
 
     return this.sanitizer.bypassSecurityTrustHtml(highlightedHtml);

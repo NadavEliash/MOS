@@ -184,6 +184,11 @@
     background-color: transparent;
     font-size: var(--font-size-m);
 
+    .highlight {
+      background-color: transparent; 
+      font-weight: 700;
+    }
+
     &:hover {
       background-color: #F1F5FB;
     }

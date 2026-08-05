@@ -10,6 +10,7 @@ import { FilterGroup, Graph, GraphData } from "../../interfaces";
 
 import { ErrorService } from "../../services/error.service";
 import { CategoryService } from "../../services/category.service";
+import { graphColors } from "../../services/static.data";
 
 echarts.use([BarChart, LineChart, GridComponent, TooltipComponent, LegendComponent, TitleComponent, CanvasRenderer]);
 
@@ -229,14 +230,14 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
         extraCssText: 'max-width: 400px; overflow: hidden; word-wrap: break-word;',
         formatter: (params: any) => {
           if (!Array.isArray(params)) return '';
-
           const filteredParams = params.filter((param: any) =>
             param.value !== 0 && param.value !== undefined && param.value !== null
-          );
-
-          if (filteredParams.length === 0) return '';
-
-          const tooltipItems = filteredParams.map((param: any, idx: number) => {
+        );
+        
+        if (filteredParams.length === 0) return '';
+        
+        const tooltipItems = filteredParams.map((param: any, idx: number) => {
+            console.log('Tooltip params:', param.color);
             const value = typeof param.value === 'number'
               ? (isPercentRate
                 ? param.value.toLocaleString(undefined, { maximumFractionDigits: 2 }) + '%'
@@ -260,21 +261,27 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
                 : seriesName;
             }
 
-            const color = param.color || '#000';
+            const colorIndex = graphColors.findIndex(c =>
+              c.toLowerCase() === param.color?.toString().toLowerCase()
+            );
+            const colorClass = colorIndex === -1
+              ? 'tooltip-color'
+              : `tooltip-color tooltip-color--${colorIndex}`;
+
             const isRegularBar = hasVisibleStackedBars && !isStackedSeries;
 
-            const titleStyle = isRegularBar
-              ? 'font-weight: 700; text-decoration: underline;'
-              : '';
+            const titleClass = isRegularBar
+              ? 'tooltip-title tooltip-title--emphasized'
+              : 'tooltip-title';
 
-            return `<div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-              <div style="width: 12px; height: 12px; border-radius: 50%; background-color: ${color}; flex-shrink: 0;"></div>
-              <span style="color: #6b7a90; flex: 1; margin-right: 8px; text-align: right; ${titleStyle}">${title}</span>
-              <span style="font-weight: 600; color: #123248; margin-right: 16px;">${value}</span>
+            return `<div class="tooltip-item">
+              <div class="${colorClass}"></div>
+              <span class="${titleClass}">${title}</span>
+              <span class="tooltip-value">${value}</span>
             </div>`;
           }).reverse().join('');
 
-          return `<div style="padding: 8px 12px; background-color: rgba(255,255,255,0.95); border-radius: 4px;">${tooltipItems}</div>`;
+          return `<div class="tooltip-container">${tooltipItems}</div>`;
         }
       },
       legend: {
