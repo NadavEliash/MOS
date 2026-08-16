@@ -134,7 +134,6 @@ export class CookieService {
   }
   
   private convertGraphToRows(graph: Graph): (string | number)[][] {
-    // console.log(graph);
     const rows: (string | number)[][] = [];
 
     const allLabels = graph.data.categories.filter.labels;
