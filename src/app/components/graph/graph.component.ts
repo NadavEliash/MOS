@@ -16,6 +16,15 @@ echarts.use([BarChart, LineChart, GridComponent, TooltipComponent, LegendCompone
 
 export type ChartType = 'line' | 'stacked-column';
 
+/** Screen-reader equivalent of the chart: x-axis labels as rows, series as columns */
+export interface ChartTable {
+  caption: string;
+  summary: string;
+  columnHeader: string;
+  series: string[];
+  rows: { label: string; values: string[] }[];
+}
+
 @Component({
   selector: "app-graph",
   standalone: true,
@@ -52,7 +61,7 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
   graphReload = output<void>();
   graphSaved = output<void>();
   graphData = signal<GraphData>(this.emptyGraph);
-  accessibleChartData = signal<string>('');
+  chartTable = signal<ChartTable | null>(null);
   successMessage = signal<string | null>(null);
   messageType = signal<'success' | 'error'>('success');
   noCategory = signal<boolean>(false);
@@ -393,7 +402,7 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
       })
     };
     this.chart.setOption(option, true);
-    this.accessibleChartData.set(this.getAccessibleChartData());
+    this.chartTable.set(this.buildChartTable(!!isPercentRate));
   }
 
   saveGraph(): void {
@@ -474,34 +483,67 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
     return `${baseUrl}/category?id=${categoryId}&graph=${encodedGraphData}`;
   }
 
-  getAccessibleChartData(): string {
+  private buildChartTable(isPercentRate: boolean): ChartTable | null {
     const chartData = this.graphData();
     if (!chartData || !chartData.series?.length) {
-      return 'אין נתונים להצגה בגרף';
+      return null;
     }
 
     const labels = chartData.categories?.filter?.labels || [];
-    const visibleIndices = labels
+    const checkedIndices = labels
       .map((label, idx) => label.data?.checked ? idx : -1)
       .filter(idx => idx !== -1);
-    const indices = visibleIndices.length ? visibleIndices : labels.map((_, idx) => idx);
+    const indices = checkedIndices.length ? checkedIndices : labels.map((_, idx) => idx);
+    if (indices.length === 0) return null;
 
-    const subtitles = chartData.subtitles?.split('#').map((subtitle: string) => subtitle.trim()).filter(Boolean) || [];
-    const subtitleText = subtitles.length ? `כותרת משנה: ${subtitles.join(', ')}. ` : '';
+    // Same predicate the chart uses to drop empty series, in the original order
+    const series = chartData.series.filter((s: any) =>
+      indices.some(idx => {
+        const value = s.data?.[idx];
+        return value !== 0 && value !== null && value !== undefined;
+      })
+    );
+    if (series.length === 0) return null;
 
-    const rows = indices.map((labelIndex) => {
-      const labelTitle = labels[labelIndex]?.title?.toString().trim() || `${labelIndex + 1}`;
-      const valuesText = (chartData.series || []).map((series: any, seriesIndex: number) => {
-        const name = series.name?.toString().trim() || `סדרה ${seriesIndex + 1}`;
-        const value = series.data?.[labelIndex];
-        const valueText = value === null || value === undefined ? 'אין ערך' : value.toString();
-        return `${name}: ${valueText}`;
-      }).join(' ');
-
-      return `שנה ${labelTitle} - ${valuesText}`;
+    // Alongside stacked series, a series with no stack is the overall value
+    const hasStackedSeries = series.some((s: any) => s.stack);
+    const seriesNames = series.map((s: any, idx: number) => {
+      const name = s.name?.toString().trim() || `סדרה ${idx + 1}`;
+      if (s.stack) return `${s.stack.toString().trim()}, ${name}`;
+      return hasStackedSeries ? `${name}, כללי` : name;
     });
 
-    return `${chartData.title || 'גרף'}. ${subtitleText}${rows.join(', ')}`.trim();
+    const rows = indices.map(labelIndex => ({
+      label: labels[labelIndex]?.title?.toString().trim() || `${labelIndex + 1}`,
+      values: series.map((s: any) => this.formatTableValue(s.data?.[labelIndex], isPercentRate))
+    }));
+
+    const subtitles = chartData.subtitles?.split('#').map((s: string) => s.trim()).filter(Boolean) || [];
+    const caption = [
+      chartData.title || 'גרף',
+      chartData.description,
+      ...subtitles.map((s: string, idx: number) => subtitles.length > 1 ? `מדד ${idx + 1}: ${s}` : s),
+      ...this.activeFilters()
+    ].filter(Boolean).join('. ');
+
+    return {
+      caption: `${caption}. טבלת הנתונים של הגרף`,
+      summary: `הגרף עודכן. ${rows.length} שורות, ${seriesNames.length} סדרות נתונים`,
+      columnHeader: chartData.categories?.filter?.name?.toString().trim() || 'שנה',
+      series: seriesNames,
+      rows
+    };
+  }
+
+  private formatTableValue(value: any, isPercentRate: boolean): string {
+    if (value === null || value === undefined || value === '') {
+      return 'אין ערך';
+    }
+    const num = Number(value);
+    if (!Number.isFinite(num)) return String(value);
+
+    const text = num.toLocaleString(undefined, { maximumFractionDigits: 2 });
+    return isPercentRate ? `${text}%` : text;
   }
 
   private onResize = () => this.chart?.resize();

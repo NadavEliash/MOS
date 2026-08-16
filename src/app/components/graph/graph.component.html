@@ -45,7 +45,30 @@
     }
   </div>
 
-  <div [ngClass]="{'no-category': !data?.series?.length}" #chartEl class="chart" role="region" tabindex="0" aria-live="polite" [attr.aria-label]="accessibleChartData()"></div>
+  <div [ngClass]="{'no-category': !data?.series?.length}" #chartEl class="chart" aria-hidden="true"></div>
+
+  @if (chartTable(); as table) {
+  <div class="sr-only">
+    <table>
+      <caption>{{ table.caption }}</caption>
+      <thead>
+        <tr>
+          <th scope="col">{{ table.columnHeader }}</th>
+          @for (name of table.series; track $index) {<th scope="col">{{ name }}</th>}
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of table.rows; track $index) {
+        <tr>
+          <th scope="row">{{ row.label }}</th>
+          @for (value of row.values; track $index) {<td>{{ value }}</td>}
+        </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  <p class="sr-only" role="status" aria-live="polite">{{ table.summary }}</p>
+  }
   } @else {
   <div class="graph-error" role="alert">
     <img src="/assets/graph-error.jpeg" alt="" aria-hidden="true" />
