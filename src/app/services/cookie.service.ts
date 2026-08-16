@@ -102,61 +102,99 @@ export class CookieService {
     return Date.now().toString(36) + Math.random().toString(36).substr(2);
   }
 
-  exportToExcel(graphs?: Graph[]): void {
+  async exportToExcel(graphs?: Graph[]): Promise<void> {
     const savedGraphs = graphs ?? this.getSavedGraphs();
     if (savedGraphs.length === 0) {
       return;
     }
 
-    // Create CSV content
-    const csvContent = '\ufeff' + this.convertGraphsToCSV(savedGraphs);
+    const title = graphs?.length === 1 ? graphs[0].title : graphs?.map(g => g.title).join('_') || 'גרף מאתר נתוני הרווחה';
 
-    // Create and download file
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `graphs_export_${new Date().toISOString().split('T')[0]}.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  }
+    try {
+      // Loaded on demand so the spreadsheet library stays out of the initial bundle
+      const XLSX = await import('xlsx');
 
-  private convertGraphsToCSV(graphs: Graph[]): string {
-    let csv = '';
+      // Build a workbook with one sheet per graph
+      const workbook = XLSX.utils.book_new();
+      // Open every sheet right-to-left, matching the Hebrew content
+      workbook.Workbook = { ...workbook.Workbook, Views: [{ RTL: true }] };
+      const usedSheetNames: string[] = [];
 
-    graphs.forEach((graph, index) => {
-      if (index > 0) {
-        csv += '\n\n'; // Separate graphs
-      }
-
-      const allLabels = graph.data.categories.filter.labels;
-      const checkedIndices = allLabels
-        .map((label: any, idx: number) => (label.data.checked ? idx : -1))
-        .filter((idx: number) => idx !== -1);
-      const xAxisLabels = checkedIndices.map((idx: number) => allLabels[idx].title);
-
-      csv += `"${graph.title.replace(/"/g, '""')}"` + '\n';
-      csv += `"${graph.subtitle.replace(/"/g, '""')}"` + '\n';
-
-      if (graph.data.subtitles?.split('#').length > 1) {
-        graph.data.subtitles.split('#').forEach((subtitle: string, idx: number) => {
-          csv += `מדד ${idx + 1}: ${subtitle}` + '\n';
-        });
-      }
-
-      const headerRow = [...xAxisLabels, ''];
-      csv += `${graph.data.categories.filter.name}` + ',' + headerRow.map(cell => `${cell}`).join(',') + '\n';
-
-      graph.data.series.forEach((s: any) => {
-        const alignedData = checkedIndices.map((idx: number) => s.data?.[idx] ?? '');
-        const row = [s.name, ...alignedData];
-        csv += row.map(cell => `"${cell}"`).join(',') + '\n';
+      savedGraphs.forEach((graph, index) => {
+        const sheet = XLSX.utils.aoa_to_sheet(this.convertGraphToRows(graph));
+        const sheetName = this.uniqueSheetName(graph.title || `גרף ${index + 1}`, usedSheetNames);
+        usedSheetNames.push(sheetName);
+        XLSX.utils.book_append_sheet(workbook, sheet, sheetName);
       });
+
+      XLSX.writeFile(workbook, `${title}.xlsx`);
+    } catch (error) {
+      console.error('Error exporting graphs to Excel:', error);
+    }
+  }
+  
+  private convertGraphToRows(graph: Graph): (string | number)[][] {
+    // console.log(graph);
+    const rows: (string | number)[][] = [];
+
+    const allLabels = graph.data.categories.filter.labels;
+    const checkedIndices = allLabels
+      .map((label: any, idx: number) => (label.data.checked ? idx : -1))
+      .filter((idx: number) => idx !== -1);
+    const xAxisLabels = checkedIndices.map((idx: number) => allLabels[idx].title);
+    
+    rows.push([graph.title]);
+    rows.push([graph.subtitle]);
+
+    if (graph.data.subtitles?.split('#').length > 1) {
+      graph.data.subtitles.split('#').forEach((subtitle: string, idx: number) => {
+        rows.push([`מדד ${idx + 1}: ${subtitle}`]);
+      });
+    }
+    const titles: string[] = graph.data.series.map((s: any) => s.groupTitle.toString().trim());    
+    const filterTitles = new Set(titles);
+    const valueHeader = graph.data.isPercent ? 'אחוז' : graph.data.isRate ? 'יחס' : 'סך הכל';
+    rows.push([...filterTitles, 'שנה', valueHeader]);
+
+    graph.data.series.forEach((s: any) => {
+      const alignedData = checkedIndices.map((idx: number) => this.toCellValue(s.data?.[idx]));
+      let rowLabel = `${s.name.toString().trim()}`;
+      if (s.stack) {
+        const stackName = graph.data.series.find((serie: any) => serie.name === s.stack).groupTitle.trim();
+        rowLabel = `${stackName}: ${s.stack.trim()}, ${rowLabel}`;
+      }
       
+      alignedData.forEach((value: any, idx: number) => {        
+        if (filterTitles.size > 1) {
+          rows.push([s.stack ? s.stack.toString().trim() : s.name.toString().trim(), s.stack ? s.name.toString().trim() : 'כללי', xAxisLabels[idx], value]);
+        } else {
+          rows.push([s.name.toString().trim(), xAxisLabels[idx], value]);
+        }
+      })
     });
 
-    return csv;
+    return rows;
+  }
+
+  // Keep numeric values numeric so Excel can sum and chart them
+  private toCellValue(value: any): string | number {
+    if (value === null || value === undefined || value === '') {
+      return '';
+    }
+    const num = Number(value);
+    return Number.isFinite(num) ? num : String(value);
+  }
+
+  // Excel sheet names: max 31 chars, no []:*?/\ and unique within the workbook
+  private uniqueSheetName(title: string, used: string[]): string {
+    const base = (title.replace(/[\[\]:*?\/\\]/g, ' ').trim() || 'גרף').substring(0, 31);
+
+    let name = base;
+    let suffix = 2;
+    while (used.includes(name)) {
+      const tag = ` (${suffix++})`;
+      name = base.substring(0, 31 - tag.length) + tag;
+    }
+    return name;
   }
 }

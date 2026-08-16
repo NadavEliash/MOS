@@ -80,7 +80,9 @@ export interface GraphData {
   type: string;
   description?: string;
   measureIds?: string[];
-  categories: FilterGroup; 
+  isRate?: boolean;
+  isPercent?: boolean;
+  categories: FilterGroup;
   series: { 
     name: string; 
     data: number[]; 

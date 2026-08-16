@@ -237,7 +237,6 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
         if (filteredParams.length === 0) return '';
         
         const tooltipItems = filteredParams.map((param: any, idx: number) => {
-            console.log('Tooltip params:', param.color);
             const value = typeof param.value === 'number'
               ? (isPercentRate
                 ? param.value.toLocaleString(undefined, { maximumFractionDigits: 2 }) + '%'

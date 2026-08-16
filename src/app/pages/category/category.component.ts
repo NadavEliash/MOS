@@ -588,6 +588,8 @@ export class CategoryComponent implements OnInit {
         description: chipDescription,
         subtitles: chipSubtitles,
         type: graphType,
+        isRate: this.categoryService.isMeasureRate(measure),
+        isPercent: this.categoryService.isPercentSeries(series),
         categories,
         series,
         filterGroups: this.filterGroups()
@@ -690,6 +692,8 @@ export class CategoryComponent implements OnInit {
       subtitles: measures.map(m => m.name).join('#'),
       measureIds: measureIds,
       type: graphType,
+      isRate: measures.every(m => this.categoryService.isMeasureRate(m)),
+      isPercent: this.categoryService.isPercentSeries(series),
       categories: categories,
       series: series,
       filterGroups: sharedFilterGroups

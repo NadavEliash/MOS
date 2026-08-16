@@ -178,7 +178,7 @@ export class CategoryService {
     return updatedLabels;
   }
 
-  private isMeasureRate(measure: Measure): boolean {    
+  isMeasureRate(measure: Measure): boolean {
     const viewData = this.views().find(v => v.id === measure.id)?.data;
     if (!viewData || viewData.length === 0) return false;
 
@@ -190,6 +190,16 @@ export class CategoryService {
     if (values.length === 0) return false;
     
     return values.some((val: number) => val % 1 !== 0) && !Boolean(measure.calculation);
+  }
+
+  isPercentSeries(series: { data: number[] }[]): boolean {
+    const values = series
+      .flatMap(s => s.data ?? [])
+      .filter(val => val !== null && val !== undefined && !isNaN(val));
+
+    if (values.length === 0) return false;
+
+    return values.some(val => val % 1 !== 0) && values.every(val => val <= 1);
   }
 
   getSeriesData(measure: Measure, categories: FilterGroup, filterGroups: FilterGroup[], label: Label, firstLabel?: Label): number[] {

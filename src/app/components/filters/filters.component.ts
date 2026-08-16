@@ -107,6 +107,7 @@ export class FiltersComponent implements OnChanges {
           });
         }
         this.measures.forEach(m => this.updateBlockedFilters(m.id));
+        this.syncToggleSelection();
       }
     }
 
@@ -335,14 +336,25 @@ export class FiltersComponent implements OnChanges {
     return group.filter.labels?.some(label => label.data.checked) ?? false;
   }
   
+  selectAllKey(group: InputFilterGroup): string {
+    return `${group.measureId}|${group.filter.id}`;
+  }
+
+  private syncToggleSelection(): void {
+    this.filterGroupsInput.forEach(group => {
+      const labels = group.filter.labels;
+      if (!labels?.length) return;
+      this.toggleSelection[this.selectAllKey(group)] = labels.every(label => label.data.checked);
+    });
+  }
+
   toggleSelectAll(group: InputFilterGroup, toggle: boolean = false) {
-    if (toggle) {
-      this.toggleSelection[group.filter.name] ? 
-      this.toggleSelection[group.filter.name] = false : 
-      this.toggleSelection[group.filter.name] = true;     
-    }
+    const key = this.selectAllKey(group);
+    const shouldCheck = toggle ? !this.toggleSelection[key] : false;
+
+    this.toggleSelection[key] = shouldCheck;
     group.filter.labels.forEach(label => {
-      label.data.checked = this.toggleSelection[group.filter.name];
+      label.data.checked = shouldCheck;
     });
     this.selectionChange.emit(this.filterGroupsInput.filter(fg => fg.measureId === group.measureId));
   }
