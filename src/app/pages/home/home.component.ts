@@ -1,6 +1,6 @@
 ﻿import { Component, computed, effect, inject, signal } from "@angular/core";
 import { CommonModule } from "@angular/common";
-import { Router } from "@angular/router";
+import { Router, RouterLink } from "@angular/router";
 import { FormsModule } from "@angular/forms";
 import { CategoryService } from "../../services/category.service";
 
@@ -9,7 +9,7 @@ import { HomeService } from "../../services/home.service";
 @Component({
   selector: "app-home",
   standalone: true,
-  imports: [CommonModule, FormsModule, HighlightPipe],
+  imports: [CommonModule, FormsModule, RouterLink, HighlightPipe],
   templateUrl: "./home.component.html",
   styleUrls: ["./home.component.scss"]
 })
@@ -25,6 +25,7 @@ export class HomeComponent {
   isDrawerOpen: boolean = false;
   selectedResultIndex: number = -1;
   noOutline = signal<boolean>(false);
+  dismissedTooltip = signal<string | null>(null);
 
   setNoOutline(value: boolean): void {
     this.noOutline.set(value);
@@ -50,6 +51,15 @@ export class HomeComponent {
   }
 
   onKeyDown(event: KeyboardEvent): void {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      if (this.isDrawerOpen) {
+        this.closeDrawer();
+      } else if (this.searchTerm()) {
+        this.resetSearch();
+      }
+      return;
+    }
     if (this.isDrawerOpen && this.searchResults.length > 0) {
       switch (event.key) {
         case 'ArrowUp':
@@ -94,11 +104,38 @@ export class HomeComponent {
   resetSearch(): void {
     this.searchTerm.set('');
     this.searchResults = [];
-    this.isDrawerOpen = false;
+    this.closeDrawer();
   }
 
-  onChipClick(chipId: string): void {
-    this.router.navigate(['/category'], { queryParams: { id: chipId } });
+  reopenDrawer(): void {
+    if (!this.isDrawerOpen && this.searchTerm().trim() && this.searchResults.length > 0) {
+      this.isDrawerOpen = true;
+    }
+  }
+
+  closeDrawer(): void {
+    this.isDrawerOpen = false;
+    this.selectedResultIndex = -1;
+  }
+
+  onSearchFocusOut(event: FocusEvent): void {
+    const region = event.currentTarget as HTMLElement;
+    const next = event.relatedTarget as Node | null;
+    // A null relatedTarget also covers browsers that don't focus a button on click,
+    // so leave the drawer open in that case and let the result's click handler run.
+    if (next && !region.contains(next)) {
+      this.closeDrawer();
+    }
+  }
+
+  dismissTooltip(chipId: string): void {
+    this.dismissedTooltip.set(chipId);
+  }
+
+  restoreTooltips(): void {
+    if (this.dismissedTooltip() !== null) {
+      this.dismissedTooltip.set(null);
+    }
   }
 
   onSelectResult(result: any): void {

@@ -5,7 +5,7 @@
       <h1 class="title">{{ title()[3].replace(',', '') }}</h1>
       <span class="subtitle">{{ HeaderData().Sub_Header}}</span>
     }
-    <div class="search-wrap">
+    <div class="search-wrap" (focusout)="onSearchFocusOut($event)">
       <div class="search-bar" [ngClass]="isDrawerOpen ? 'open' : ''" role="search" aria-label="חיפוש בדוח" (keydown)="onKeyDown($event)">
         <label id="home-search-label" for="home-search-input" class="sr-only">חיפוש בדוח</label>
         <span id="home-search-description" class="sr-only">הקלד מילה כדי לפתוח תוצאות חיפוש. השתמש בחצים למעלה ולמטה לבחירה ולחץ אנטר לביצוע.</span>
@@ -19,6 +19,7 @@
           [ngClass] ="{'no-outline': noOutline()}"
           (pointerdown)="setNoOutline(true)"
           (blur)="setNoOutline(false)"
+          (focus)="reopenDrawer()"
           placeholder="חיפוש בדוח לפי מילת מפתח. לדוגמה: אזרחים ותיקים, רשות מקומית, תקציב"
           aria-labelledby="home-search-label home-search-description"
           aria-autocomplete="list"
@@ -72,19 +73,22 @@
           </div>}
       </div>
     </div>
-    <div class="chips" role="navigation" aria-label="קישורים מהירים">
+    <nav class="chips" aria-label="קישורים מהירים">
       @for (chip of chips(); track chip.Category_ID) {
-      <div class="chip-wrapper" [ngClass]="{'no-tooltip': isDrawerOpen}">
-        <a class="chip" href="javascript:void(0)" 
-        (click)="onChipClick(chip.Category_ID)" 
-        (focus)="isDrawerOpen = false" 
-        [attr.aria-label]="isDrawerOpen ? null : chip.Category_Name + ': ' + chip['ToolTip/Hover']" tabindex="0">
+      <div class="chip-wrapper" [ngClass]="{'no-tooltip': isDrawerOpen || dismissedTooltip() === chip.Category_ID}">
+        <a class="chip"
+        [routerLink]="['/category']"
+        [queryParams]="{ id: chip.Category_ID }"
+        [attr.aria-describedby]="chip.Category_Name + ': ' + chip['ToolTip/Hover']"
+         (keydown.escape)="dismissTooltip(chip.Category_ID)"
+        (focus)="restoreTooltips()"
+        (mouseenter)="restoreTooltips()">
           {{ chip.Category_Name }}
         </a>
-        <div class="chip-tooltip">{{ chip['ToolTip/Hover'] }}</div>
+        <div class="chip-tooltip" role="tooltip" [id]="'chip-tooltip-' + chip.Category_ID">{{ chip['ToolTip/Hover'] }}</div>
       </div>
       }
-    </div>
+    </nav>
   </section>
   <section class="mid">
     @if (pageData()) { 

@@ -317,8 +317,9 @@
   border-radius: 10px;
   box-shadow: 0 18px 40px rgba(6, 74, 157, 0.18);
   opacity: 0;
+  visibility: hidden;
   pointer-events: none;
-  transition: opacity 0.15s ease, transform 0.15s ease;
+  transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s ease;
   text-align: center;
   font-size: var(--font-size-s);
   line-height: var(--font-size-l);
@@ -341,6 +342,7 @@
 .chip-wrapper:hover .chip-tooltip,
 .chip:focus-visible+.chip-tooltip {
   opacity: 1;
+  visibility: visible;
   transform: translateX(-50%) translateY(0);
   pointer-events: auto;
 }
@@ -369,7 +371,8 @@
 
   .chip {
     padding: 8px 12px;
-    font-size: 13px
+    font-size: 13px;
+    white-space: normal
   }
 
   .chip-tooltip {

@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, ElementRef, HostListener, OnInit, signal, viewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 @Component({
@@ -12,6 +12,8 @@ export class AccessibilityComponent implements OnInit {
   open = signal(false);
   contrast = signal(false);
   fontScale = signal(1);
+
+  private trigger = viewChild<ElementRef<HTMLButtonElement>>('trigger');
 
   ngOnInit(): void {
     try {
@@ -28,6 +30,18 @@ export class AccessibilityComponent implements OnInit {
 
   toggleOpen(): void {
     this.open.set(!this.open());
+  }
+
+  /** Closing must not leave focus on a removed element, so hand it back to the trigger. */
+  close(returnFocus = false): void {
+    if (!this.open()) return;
+    this.open.set(false);
+    if (returnFocus) this.trigger()?.nativeElement.focus();
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    this.close(true);
   }
 
   toggleContrast(): void {
