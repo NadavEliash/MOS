@@ -3,9 +3,6 @@ import { bootstrapApplication } from '@angular/platform-browser';
 import { appConfig } from './app/app.config';
 import { App } from './app/app';
 
-/* Temporary CSP diagnostic. Reports the directive, the source location and the first
-   characters of the blocked code for every violation, plus the offending element.
-   Remove once the 'script-src' inline-handler violation is accounted for. */
 document.addEventListener('securitypolicyviolation', (event) => {
   console.error('[CSP violation]', {
     directive: event.effectiveDirective || event.violatedDirective,
@@ -16,10 +13,6 @@ document.addEventListener('securitypolicyviolation', (event) => {
   });
 });
 
-/* Temporary companion to the listener above. CSP blocks a handler from *running* but leaves
-   the attribute in the DOM, so this finds the offender even when the violation fired before
-   this bundle executed. Call findInlineHandlers() from the console at any time - e.g. after
-   hovering a graph - to re-scan. */
 function findInlineHandlers(): Element[] {
   const hits = Array.from(document.querySelectorAll('*')).filter((el) =>
     Array.from(el.attributes).some((attr) => /^on[a-z]+$/i.test(attr.name))
