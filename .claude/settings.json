@@ -11,7 +11,11 @@
       "Bash(grep -oE \"\\\\bon\\(load|click|error|mouseover|focus\\)=\\\\\\\\\\\\\\\\?[\\\\\"']\" dist/molsa/browser/main-*.js)",
       "Bash(grep -loE \"setAttribute\\\\\\(\\\\\"on[a-z]+\\\\\"|\\\\bon\\(load|click|error\\)=\\\\\\\\\\\\\\\\?\\\\\"\" dist/molsa/browser/*.js)",
       "Bash(grep -oE 'style=\"[^\"]{0,60}' dist/molsa/browser/index.html)",
-      "Bash(grep -c \"\\\\.scss$\")"
+      "Bash(grep -c \"\\\\.scss$\")",
+      "Bash(sed -i 's/\"inlineCritical\": false/\"inlineCritical\": true/' angular.json)",
+      "Bash(git checkout *)",
+      "Bash(awk '{print $6, $7}')",
+      "Bash(node -e \"console.log\\('beasties', require\\('./node_modules/beasties/package.json'\\).version, '- bundled inside @angular/build, no standalone config'\\)\")"
     ]
   }
 }
