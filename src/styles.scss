@@ -1,8 +1,8 @@
 @use 'mixins';
-/* Import Rubik font and provide global font-family
-	Using Google Fonts import; replace with local @font-face if you prefer.
+/* Rubik is self-hosted from /assets/fonts - see _fonts.scss.
+	No third-party request, so the CSP needs no font-src/style-src allowance for Google.
 */
-@import url('https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700&display=swap');
+@use 'fonts';
 
 /* Global project color variables
 	- Provides both CSS custom properties (for runtime theming)

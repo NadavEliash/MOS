@@ -1,5 +1,6 @@
 import { Pipe, PipeTransform, SecurityContext } from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { escapeHtml } from '../utils/escape-html';
 
 @Pipe({
   name: 'highlight',
@@ -8,15 +9,6 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 export class HighlightPipe implements PipeTransform {
 
   constructor(private sanitizer: DomSanitizer) { }
-
-  private encodeHtml(value: string): string {
-    return value
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#x27;');
-  }
 
   private escapeRegExp(value: string): string {
     return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -27,8 +19,8 @@ export class HighlightPipe implements PipeTransform {
       return text || '';
     }
 
-    const encodedText = this.encodeHtml(text);
-    const encodedTerm = this.encodeHtml(searchTerm);
+    const encodedText = escapeHtml(text);
+    const encodedTerm = escapeHtml(searchTerm);
     const safePattern = new RegExp(this.escapeRegExp(encodedTerm), 'gi');
 
     const highlightedHtml = encodedText.replace(

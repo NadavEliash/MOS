@@ -4,7 +4,14 @@
       "Bash(npx ng *)",
       "Bash(grep -o \"<noscript>.\\\\{0,120\\\\}\" dist/molsa/browser/index.html)",
       "Bash(python -c ' *)",
-      "Bash(node -e \"const p=require\\('./package.json'\\);console.log\\(p.dependencies['@angular/core'],'| cdk:',p.dependencies['@angular/cdk']||'none'\\)\")"
+      "Bash(node -e \"const p=require\\('./package.json'\\);console.log\\(p.dependencies['@angular/core'],'| cdk:',p.dependencies['@angular/cdk']||'none'\\)\")",
+      "Bash(node -e \"const p=require\\('./package.json'\\);console.log\\(JSON.stringify\\(p.dependencies,null,1\\)\\)\")",
+      "Bash(PYTHONIOENCODING=utf-8 python -c ' *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" --max-time 20 -A \"Mozilla/5.0 \\(Windows NT 10.0; Win64; x64\\) AppleWebKit/537.36 Chrome/120 Safari/537.36\" \"https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;700&display=swap\")",
+      "Bash(grep -oE \"\\\\bon\\(load|click|error|mouseover|focus\\)=\\\\\\\\\\\\\\\\?[\\\\\"']\" dist/molsa/browser/main-*.js)",
+      "Bash(grep -loE \"setAttribute\\\\\\(\\\\\"on[a-z]+\\\\\"|\\\\bon\\(load|click|error\\)=\\\\\\\\\\\\\\\\?\\\\\"\" dist/molsa/browser/*.js)",
+      "Bash(grep -oE 'style=\"[^\"]{0,60}' dist/molsa/browser/index.html)",
+      "Bash(grep -c \"\\\\.scss$\")"
     ]
   }
 }

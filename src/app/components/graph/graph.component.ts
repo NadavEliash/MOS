@@ -11,6 +11,7 @@ import { FilterGroup, Graph, GraphData } from "../../interfaces";
 import { ErrorService } from "../../services/error.service";
 import { CategoryService } from "../../services/category.service";
 import { graphColors } from "../../services/static.data";
+import { escapeHtml } from "../../utils/escape-html";
 
 echarts.use([BarChart, LineChart, GridComponent, TooltipComponent, LegendComponent, TitleComponent, CanvasRenderer]);
 
@@ -284,8 +285,8 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
 
             return `<div class="tooltip-item">
               <div class="${colorClass}"></div>
-              <span class="${titleClass}">${title}</span>
-              <span class="tooltip-value">${value}</span>
+              <span class="${titleClass}">${escapeHtml(title)}</span>
+              <span class="tooltip-value">${escapeHtml(value)}</span>
             </div>`;
           }).reverse().join('');
 
