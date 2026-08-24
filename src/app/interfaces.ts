@@ -83,11 +83,12 @@ export interface GraphData {
   isRate?: boolean;
   isPercent?: boolean;
   categories: FilterGroup;
-  series: { 
-    name: string; 
-    data: number[]; 
+  series: {
+    name: string;
+    data: number[];
     color?: string;
     stack?: string;
+    groupTitle?: string;
   }[];
   filterGroups: FilterGroup[];
 }

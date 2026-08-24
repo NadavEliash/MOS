@@ -656,14 +656,11 @@ export class CategoryComponent implements OnInit {
 
 
     measures.forEach((measure, idx) => {
-      const measureName = `מדד ${idx + 1}`;
-      const stackName = `measure${idx}`;
-
-
       const measureFilterGroups = allFilterGroups.filter(fg => fg.measureId === measure.id);
       const data = this.categoryService.getNoSeriesData(measure, categories, measureFilterGroups);
       series.push({
-        name: measureName,
+        groupTitle: 'מדד',
+        name: `מדד ${idx + 1}`,
         data: data,
         color: colors[idx % colors.length]
       });
@@ -674,8 +671,9 @@ export class CategoryComponent implements OnInit {
         checkedLabels.forEach(label => {
           const stackData = this.categoryService.getSeriesData(measure, categories, [filterGroup], label);
           series.push({
+            groupTitle: filterGroup.filter.name,
             name: label.title,
-            stack: stackName,
+            stack: `מדד ${idx + 1}`,
             data: stackData,
             color: this.getLabelColor(label.title, filterGroup, firstMeasure, measures.length)
           });

@@ -114,65 +114,120 @@ export class CookieService {
       // Loaded on demand so the spreadsheet library stays out of the initial bundle
       const XLSX = await import('xlsx');
 
-      // Build a workbook with one sheet per graph
       const workbook = XLSX.utils.book_new();
-      // Open every sheet right-to-left, matching the Hebrew content
-      workbook.Workbook = { ...workbook.Workbook, Views: [{ RTL: true }] };
+      workbook.Props = {
+        Title: title,
+        Subject: 'נתונים מאתר סקירת שירותי הרווחה',
+        Author: 'משרד הרווחה והביטחון החברתי',
+        Language: 'he-IL'
+      };
       const usedSheetNames: string[] = [];
+      const names: { Name: string; Ref: string }[] = [];
 
       savedGraphs.forEach((graph, index) => {
-        const sheet = XLSX.utils.aoa_to_sheet(this.convertGraphToRows(graph));
+        const table = this.buildGraphTable(graph);
+        const sheet = XLSX.utils.aoa_to_sheet(table.rows);
         const sheetName = this.uniqueSheetName(graph.title || `גרף ${index + 1}`, usedSheetNames);
         usedSheetNames.push(sheetName);
+
+        const firstRow = table.headerRowIndex;
+        const lastRow = table.headerRowIndex + table.bodyRowCount;
+        const lastCol = table.headers.length - 1;
+        const ref = `${XLSX.utils.encode_cell({ r: firstRow, c: 0 })}:${XLSX.utils.encode_cell({ r: lastRow, c: lastCol })}`;
+        sheet['!autofilter'] = { ref };
+        sheet['!cols'] = table.colWidths.map(wch => ({ wch }));
+
         XLSX.utils.book_append_sheet(workbook, sheet, sheetName);
+
+        const absRef = `$A$${firstRow + 1}:$${XLSX.utils.encode_col(lastCol)}$${lastRow + 1}`;
+        names.push({
+          Name: `Table_${index + 1}`,
+          Ref: `'${sheetName.replace(/'/g, "''")}'!${absRef}`
+        });
       });
+
+      workbook.Workbook = { ...workbook.Workbook, Views: [{ RTL: true }], Names: names };
 
       XLSX.writeFile(workbook, `${title}.xlsx`);
     } catch (error) {
       console.error('Error exporting graphs to Excel:', error);
     }
   }
-  
-  private convertGraphToRows(graph: Graph): (string | number)[][] {
-    const rows: (string | number)[][] = [];
 
-    const allLabels = graph.data.categories.filter.labels;
+  private buildGraphTable(graph: Graph): {
+    rows: (string | number)[][];
+    headers: string[];
+    headerRowIndex: number;
+    bodyRowCount: number;
+    colWidths: number[];
+  } {
+    const series: any[] = graph.data.series ?? [];
+    const allLabels = graph.data.categories?.filter?.labels ?? [];
     const checkedIndices = allLabels
       .map((label: any, idx: number) => (label.data.checked ? idx : -1))
       .filter((idx: number) => idx !== -1);
-    const xAxisLabels = checkedIndices.map((idx: number) => allLabels[idx].title);
-    
-    rows.push([graph.title]);
-    rows.push([graph.subtitle]);
+    const xAxisLabels = checkedIndices.map((idx: number) => String(allLabels[idx].title).trim());
 
-    if (graph.data.subtitles?.split('#').length > 1) {
-      graph.data.subtitles.split('#').forEach((subtitle: string, idx: number) => {
-        rows.push([`מדד ${idx + 1}: ${subtitle}`]);
-      });
-    }
-    const titles: string[] = graph.data.series.map((s: any) => s.groupTitle.toString().trim());    
-    const filterTitles = new Set(titles);
+    const groupTitleOf = (s: any) => s?.groupTitle?.toString().trim() ?? '';
+    const sharedGroupTitle = (list: any[], fallback: string) => {
+      const titles = new Set(list.map(groupTitleOf).filter(Boolean));
+      return titles.size === 1 ? [...titles][0] : fallback;
+    };
+
+    const isMultiMeasure = (graph.data.measureIds?.length ?? 0) > 1;
+    const stackedSeries = series.filter(s => s.stack);
+    const parentSeries = series.filter(s => !s.stack);
+    const hasStacks = stackedSeries.length > 0;
+
     const valueHeader = graph.data.isPercent ? 'אחוז' : graph.data.isRate ? 'יחס' : 'סך הכל';
-    rows.push([...filterTitles, 'שנה', valueHeader]);
+    const xAxisHeader = graph.data.categories?.filter?.name?.toString().trim() || 'שנה';
+    const groupHeader = isMultiMeasure ? 'מדד' : sharedGroupTitle(parentSeries, 'קבוצה');
 
-    graph.data.series.forEach((s: any) => {
-      const alignedData = checkedIndices.map((idx: number) => this.toCellValue(s.data?.[idx]));
-      let rowLabel = `${s.name.toString().trim()}`;
-      if (s.stack) {
-        const stackName = graph.data.series.find((serie: any) => serie.name === s.stack).groupTitle.trim();
-        rowLabel = `${stackName}: ${s.stack.trim()}, ${rowLabel}`;
-      }
-      
-      alignedData.forEach((value: any, idx: number) => {        
-        if (filterTitles.size > 1) {
-          rows.push([s.stack ? s.stack.toString().trim() : s.name.toString().trim(), s.stack ? s.name.toString().trim() : 'כללי', xAxisLabels[idx], value]);
-        } else {
-          rows.push([s.name.toString().trim(), xAxisLabels[idx], value]);
-        }
-      })
+    const headers = hasStacks
+      ? [groupHeader, sharedGroupTitle(stackedSeries, 'פילוח'), xAxisHeader, valueHeader]
+      : [groupHeader, xAxisHeader, valueHeader];
+
+    const body: (string | number)[][] = [];
+    series.forEach((s: any) => {
+      const name = String(s.name ?? '').trim();
+      const stack = s.stack ? String(s.stack).trim() : '';
+
+      checkedIndices.forEach((dataIdx: number, idx: number) => {
+        const value = this.toCellValue(s.data?.[dataIdx]);
+        body.push(hasStacks
+          ? [stack || name, stack ? name : 'כללי', xAxisLabels[idx], value]
+          : [name, xAxisLabels[idx], value]);
+      });
     });
 
-    return rows;
+    const heading: (string | number)[][] = [];
+    if (graph.title) heading.push([String(graph.title).trim()]);
+    if (graph.subtitle) heading.push([String(graph.subtitle).trim()]);
+
+    const subtitles = (graph.data.subtitles?.split('#') ?? []).filter((s: string) => s?.trim());
+    if (subtitles.length > 1) {
+      subtitles.forEach((subtitle: string, idx: number) => {
+        heading.push([`מדד ${idx + 1}: ${subtitle.trim()}`]);
+      });
+    }
+    // A single blank row keeps the heading block out of the table region
+    if (heading.length) heading.push([]);
+
+    const colWidths = headers.map((header, col) => {
+      const longest = body.reduce(
+        (max, row) => Math.max(max, String(row[col] ?? '').length),
+        header.length
+      );
+      return Math.min(Math.max(longest + 2, 10), 40);
+    });
+
+    return {
+      rows: [...heading, headers, ...body],
+      headers,
+      headerRowIndex: heading.length,
+      bodyRowCount: body.length,
+      colWidths
+    };
   }
 
   // Keep numeric values numeric so Excel can sum and chart them
