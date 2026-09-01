@@ -79,8 +79,10 @@
   }
 
   @if (isLoading && !hasError()) {
-  <span class="loader" aria-hidden="true"></span>
-  <span class="loading" role="status" aria-live="polite" aria-label="טוען נתונים">טוען נתונים</span>
+    <div class="loader-container">
+      <span class="loader" aria-hidden="true"></span>
+      <span class="loading" role="status" aria-live="polite" aria-label="טוען נתונים">טוען נתונים</span>
+    </div>
   } @else if (!hasError() && (noCategory() || !data?.series?.length)) {
   <div class="graph-error" role="alert">
     <img src="/assets/graph-no-data.svg" alt="" aria-hidden="true" />

@@ -375,6 +375,9 @@ export class CategoryComponent implements OnInit {
     this.loadingGraph.set(false);
     if (!measureId) {
       this.graphData.set(undefined);
+      this.updateActiveGraph('measure', '');
+      this.categoryService.selectedMeasure.set(undefined);
+      this.categoryService.setSelectedSavedGraph(undefined);
       return;
     }
     if (this.categoryService.views().every(v => v.id !== measureId)) {
@@ -589,7 +592,7 @@ export class CategoryComponent implements OnInit {
         subtitles: chipSubtitles,
         type: graphType,
         isRate: this.categoryService.isMeasureRate(measure),
-        isPercent: this.categoryService.isPercentSeries(series),
+        isPercent: this.categoryService.isPercentSeries(measure),
         categories,
         series,
         filterGroups: this.filterGroups()
@@ -691,7 +694,7 @@ export class CategoryComponent implements OnInit {
       measureIds: measureIds,
       type: graphType,
       isRate: measures.every(m => this.categoryService.isMeasureRate(m)),
-      isPercent: this.categoryService.isPercentSeries(series),
+      isPercent: measures.every(m => this.categoryService.isPercentSeries(m)),
       categories: categories,
       series: series,
       filterGroups: sharedFilterGroups
