@@ -124,7 +124,7 @@ input[type="range"]::-webkit-slider-thumb {
 
 .toggle .knob {
   width: 18px;
-  height: 18px;
+  height: 17px;
   background: #fff;
   border-radius: 50%;
   box-shadow: 0 1px 3px rgba(0,0,0,0.2);
@@ -133,6 +133,6 @@ input[type="range"]::-webkit-slider-thumb {
 }
 
 .toggle .knob.on {
-  transform: translateX(-16px);
+  transform: translateX(-18px);
   background: #000000;
 }

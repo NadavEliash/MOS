@@ -66,7 +66,7 @@ export class FiltersComponent implements OnChanges {
       ).map(group => ({
         ...group,
         measures: group.measures.filter((mid: string) => this.measuresInput.some(m => m.id === mid))
-      })).filter(group => group.measures.length > 1);
+      })).filter(group => group.measures.length >= 1);
 
       this.showGrouped = this.groupedMeasures.length > 0;
       this.selectedGroupName = '';

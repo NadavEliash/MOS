@@ -329,6 +329,10 @@ $graph-colors: #a3e2fd, #1379ff, #043775, #ff90cd, #ff5f77, #DEAAFF, #8df8dd, #0
       &--#{$i - 1} { background-color: list.nth($graph-colors, $i); }
     }
   }
+  // High contrast only: the dash-and-symbol swatch of a line series
+  .tooltip-line {
+    flex-shrink: 0; overflow: visible;
+  }
   .tooltip-title {
     color: #6b7a90; flex: 1; margin-right: 8px; text-align: right;
 
@@ -343,4 +347,55 @@ $graph-colors: #a3e2fd, #1379ff, #043775, #ff90cd, #ff5f77, #DEAAFF, #8df8dd, #0
 
 :host ::ng-deep .tooltip-container {
   padding: 8px 12px; background-color: rgba(255,255,255,0.95); border-radius: 4px;
+}
+
+// Keep in sync with contrastTones in src/app/services/static.data.ts
+$contrast-tones: #1A1A1A, #4D4D4D, #737373;
+
+// The chart is a canvas, so its tones and textures are drawn in TS; these rules
+// only repeat them on the tooltip swatch. The global high-contrast stylesheet
+// forces every background to white, hence the !important overrides.
+:host-context(body.high-contrast) ::ng-deep .tooltip-item .tooltip-color {
+  width: 14px;
+  height: 14px;
+  border-radius: 0;
+  border: 1px solid #000000;
+  background-repeat: repeat;
+
+  @for $i from 1 through list.length($contrast-tones) {
+    &.tooltip-tone--#{$i - 1} { background-color: list.nth($contrast-tones, $i) !important; }
+  }
+
+  // horizontal stripes
+  &.tooltip-texture--0 {
+    background-image: repeating-linear-gradient(0deg, #FFFFFF 0 2px, transparent 2px 6px);
+  }
+  // vertical stripes
+  &.tooltip-texture--1 {
+    background-image: repeating-linear-gradient(90deg, #FFFFFF 0 2px, transparent 2px 6px);
+  }
+  // diagonal stripes, leaning right
+  &.tooltip-texture--2 {
+    background-image: repeating-linear-gradient(45deg, #FFFFFF 0 2px, transparent 2px 6px);
+  }
+  // diagonal stripes, leaning left
+  &.tooltip-texture--3 {
+    background-image: repeating-linear-gradient(-45deg, #FFFFFF 0 2px, transparent 2px 6px);
+  }
+  // dots
+  &.tooltip-texture--4 {
+    background-image: radial-gradient(#FFFFFF 1.5px, transparent 1.6px);
+    background-size: 6px 6px;
+  }
+  // checkerboard
+  &.tooltip-texture--5 {
+    background-image: conic-gradient(#FFFFFF 25%, transparent 25% 50%, #FFFFFF 50% 75%, transparent 75%);
+    background-size: 8px 8px;
+  }
+  // grid
+  &.tooltip-texture--6 {
+    background-image:
+      repeating-linear-gradient(0deg, #FFFFFF 0 1px, transparent 1px 5px),
+      repeating-linear-gradient(90deg, #FFFFFF 0 1px, transparent 1px 5px);
+  }
 }

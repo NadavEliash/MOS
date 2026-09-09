@@ -10,12 +10,23 @@ import { FilterGroup, Graph, GraphData } from "../../interfaces";
 
 import { ErrorService } from "../../services/error.service";
 import { CategoryService } from "../../services/category.service";
-import { graphColors } from "../../services/static.data";
+import { ContrastStyle, contrastDecals, contrastStyles, contrastTones, graphColors } from "../../services/static.data";
 import { escapeHtml } from "../../utils/escape-html";
+import { AccessibilityService } from "../../services/accessibility.service";
 
 echarts.use([BarChart, LineChart, GridComponent, TooltipComponent, LegendComponent, TitleComponent, CanvasRenderer]);
 
 export type ChartType = 'line' | 'stacked-column';
+
+/**
+ * Width of a high-contrast line swatch, shared by the legend icon and the
+ * tooltip so both show the same stretch of the dash pattern. The longest
+ * dash in contrastStyles needs about this much room to be recognisable.
+ */
+const CONTRAST_SWATCH_WIDTH = 30;
+
+/** Counts below this are shown as a bound rather than a figure */
+const SMALL_VALUE_THRESHOLD = 10;
 
 /** Screen-reader equivalent of the chart: x-axis labels as rows, series as columns */
 export interface ChartTable {
@@ -72,6 +83,13 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
   private cookieService = inject(CookieService);
   private errorService = inject(ErrorService);
   private categoryService = inject(CategoryService);
+  private accessibility = inject(AccessibilityService);
+
+  /** The chart is a canvas, so the high-contrast stylesheet cannot reach it - redraw instead. */
+  private contrastEffect = effect(() => {
+    this.accessibility.contrast();
+    this.updateChart();
+  });
 
   showShareBar = false;
 
@@ -137,6 +155,54 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
     window.removeEventListener("resize", this.onResize);
   }
 
+  private contrastStyle(series: any, fallback: number): ContrastStyle {
+    const paletteIdx = graphColors.findIndex(c =>
+      c.toLowerCase() === series?.color?.toString().toLowerCase()
+    );
+    const idx = paletteIdx === -1 ? fallback : paletteIdx;
+    return contrastStyles[idx % contrastStyles.length];
+  }
+
+  private contrastLineSwatch(style: ContrastStyle): string {
+    const width = CONTRAST_SWATCH_WIDTH;
+    const height = 14;
+    const mid = height / 2;
+    const dash = Array.isArray(style.lineDash)
+      ? ` stroke-dasharray="${style.lineDash.join(' ')}"`
+      : '';
+
+    return `<svg class="tooltip-line" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" aria-hidden="true">`
+      + `<line x1="0" y1="${mid}" x2="${width}" y2="${mid}" stroke="${style.tone}" stroke-width="2.5"${dash} />`
+      + this.contrastSymbolShape(style.lineSymbol, width / 2, mid, style.tone)
+      + `</svg>`;
+  }
+
+  /** The subset of ECharts symbols used by contrastStyles, as flat SVG shapes */
+  private contrastSymbolShape(symbol: string, cx: number, cy: number, tone: string): string {
+    const hollow = symbol.startsWith('empty');
+    const shape = (hollow ? symbol.slice(5) : symbol).toLowerCase();
+    const r = 4;
+    const paint = `fill="${hollow ? '#FFFFFF' : tone}" stroke="${tone}" stroke-width="1.5"`;
+
+    switch (shape) {
+      case 'rect':
+        return `<rect x="${cx - r}" y="${cy - r}" width="${r * 2}" height="${r * 2}" ${paint} />`;
+      case 'roundrect':
+        return `<rect x="${cx - r}" y="${cy - r}" width="${r * 2}" height="${r * 2}" rx="1.5" ${paint} />`;
+      case 'triangle':
+        return `<polygon points="${cx},${cy - r} ${cx + r},${cy + r} ${cx - r},${cy + r}" ${paint} />`;
+      case 'diamond':
+        return `<polygon points="${cx},${cy - r} ${cx + r},${cy} ${cx},${cy + r} ${cx - r},${cy}" ${paint} />`;
+      case 'pin':
+        return `<path d="M${cx},${cy + r} C${cx - r},${cy} ${cx - r},${cy - r} ${cx},${cy - r}`
+          + ` C${cx + r},${cy - r} ${cx + r},${cy} ${cx},${cy + r} Z" ${paint} />`;
+      case 'arrow':
+        return `<polygon points="${cx},${cy - r} ${cx + r},${cy + r} ${cx},${cy + r * 0.4} ${cx - r},${cy + r}" ${paint} />`;
+      default:
+        return `<circle cx="${cx}" cy="${cy}" r="${r}" ${paint} />`;
+    }
+  }
+
   private getChartData() {
     if (!this.data) {
       this.graphData.set(this.emptyGraph);
@@ -195,11 +261,9 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
     //   Math.max(max, ...s.data.filter((v: number) => v !== null && v !== undefined).map(Number)), 0
     // ) ?? 0;
     const isPercentRate = isRate && this.graphData()?.isPercent;
-    if (isPercentRate) {
-      chartData.series.forEach((s: any) => {
-        s.data = s.data.map((v: number) => v !== null && v !== undefined ? v * 100 : v);
-      });
-    }
+    // Rates arrive as fractions - scale on read so redrawing cannot scale twice
+    const valueScale = isPercentRate ? 100 : 1;
+    const isContrast = this.accessibility.contrast();
 
 
     const reversedSeries = [...(chartData?.series || [])].reverse();
@@ -222,16 +286,16 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
         axisPointer: {
           type: isLine ? 'line' : 'shadow',
           lineStyle: {
-            color: '#0068F514',
+            color: isContrast ? 'rgba(0, 0, 0, 0.12)' : '#0068F514',
             width: 70,
             padding: 10,
             type: 'solid'
           },
           shadowStyle: {
-            color: 'rgba(0, 104, 245, 0.08)'
+            color: isContrast ? 'rgba(0, 0, 0, 0.12)' : 'rgba(0, 104, 245, 0.08)'
           },
           crossStyle: {
-            color: '#0068F514',
+            color: isContrast ? 'rgba(0, 0, 0, 0.12)' : '#0068F514',
             width: 100,
             type: 'solid'
           }
@@ -248,9 +312,7 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
         
         const tooltipItems = filteredParams.map((param: any, idx: number) => {
             const value = typeof param.value === 'number'
-              ? (isPercentRate
-                ? param.value.toLocaleString(undefined, { maximumFractionDigits: 2 }) + '%'
-                : param.value.toLocaleString(undefined, { maximumFractionDigits: 2 }))
+              ? this.formatValue(param.value, !!isPercentRate)
               : param.value;
 
             const seriesIndex = param.seriesIndex;
@@ -270,12 +332,28 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
                 : seriesName;
             }
 
-            const colorIndex = graphColors.findIndex(c =>
-              c.toLowerCase() === param.color?.toString().toLowerCase()
-            );
-            const colorClass = colorIndex === -1
-              ? 'tooltip-color'
-              : `tooltip-color tooltip-color--${colorIndex}`;
+            // In high contrast the swatch repeats the legend icon: a dash and its
+            // symbol for lines, the fill and its texture for bars
+            let swatch: string;
+            if (isContrast) {
+              const style = this.contrastStyle(series, seriesIndex);
+              if (isLine) {
+                swatch = this.contrastLineSwatch(style);
+              } else {
+                const textureIdx = style.decal ? contrastDecals.indexOf(style.decal) : -1;
+                swatch = `<div class="tooltip-color tooltip-tone--${contrastTones.indexOf(style.tone)}`
+                  + (textureIdx === -1 ? '' : ` tooltip-texture--${textureIdx}`)
+                  + `"></div>`;
+              }
+            } else {
+              const colorIndex = graphColors.findIndex(c =>
+                c.toLowerCase() === param.color?.toString().toLowerCase()
+              );
+              swatch = colorIndex === -1
+                ? `<div class="tooltip-color"></div>`
+                : `<div class="tooltip-color tooltip-color--${colorIndex}"></div>`;
+            }
+
 
             const isRegularBar = hasVisibleStackedBars && !isStackedSeries;
 
@@ -284,7 +362,7 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
               : 'tooltip-title';
 
             return `<div class="tooltip-item">
-              <div class="${colorClass}"></div>
+              ${swatch}
               <span class="${titleClass}">${escapeHtml(title)}</span>
               <span class="tooltip-value">${escapeHtml(value)}</span>
             </div>`;
@@ -298,23 +376,26 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
         right: 20,
         top: 10,
         orient: 'horizontal',
-        icon: 'circle',
+        // Lines keep the series' own icon in high contrast so the dash pattern shows
+        icon: isContrast ? (isLine ? undefined : 'rect') : 'circle',
         itemGap: 20,
-        itemWidth: 12,
+        // A dash needs room to be read, so the line icon matches the tooltip swatch
+        itemWidth: isContrast ? (isLine ? CONTRAST_SWATCH_WIDTH : 18) : 12,
         itemHeight: 12,
         textStyle: {
-          color: "#123248",
+          color: isContrast ? "#000000" : "#123248",
           fontFamily: "Rubik, sans-serif",
           fontSize: 12
         },
         pageIconSize: 12,
         pageTextStyle: {
-          color: "#123248"
+          color: isContrast ? "#000000" : "#123248"
         },
         pageButtonPosition: 'start',
         data: visibleSeries.map((s, idx, arr) => {
           const hasMultipleMeasures = chartData?.measureIds && chartData.measureIds.length > 1;
           const isStackedSeries = s.stack;
+          let name: string;
           if (hasMultipleMeasures && !isStackedSeries) {
             const measureSeries = chartData.series.filter((series: any) => !series.stack);
             const measureIndex = measureSeries.findIndex((series: any) => series.name === s.name);
@@ -329,20 +410,20 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
         data: chartData?.categories?.filter?.labels?.filter(l => l.data.checked).map(l => l.title),
         axisLine: { show: false },
         axisTick: { show: false },
-        axisLabel: { color: "#6b7a90", fontFamily: "Rubik, sans-serif" },
-        splitLine: { show: true, lineStyle: { color: "rgba(90, 124, 167, 0.1)" } }
+        axisLabel: { color: isContrast ? "#000000" : "#6b7a90", fontFamily: "Rubik, sans-serif" },
+        splitLine: { show: true, lineStyle: { color: isContrast ? "rgba(0, 0, 0, 0.35)" : "rgba(90, 124, 167, 0.1)" } }
       },
       yAxis: {
         type: "value",
         axisLine: { show: false },
-        splitLine: { lineStyle: { color: "rgba(90, 124, 167, 0.15)" } },
+        splitLine: { lineStyle: { color: isContrast ? "rgba(0, 0, 0, 0.35)" : "rgba(90, 124, 167, 0.15)" } },
         axisLabel: {
-          color: "#866b90ff",
+          color: isContrast ? "#000000" : "#866b90ff",
           fontFamily: "Rubik, sans-serif",
           formatter: isPercentRate ? '{value}%' : '{value}'
         }
       },
-      series: visibleSeries.map(s => {
+      series: visibleSeries.map((s, seriesIdx) => {
         const isLine = this.data?.type?.toLowerCase().includes('line');
         const isStacked = this.data?.type?.toLowerCase().includes('stacked');
 
@@ -353,6 +434,9 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
             .filter(idx => idx !== -1);
           filteredData = checkedIndices.map(idx => s.data[idx]);
         }
+        filteredData = filteredData.map((v: number) =>
+          v !== null && v !== undefined ? v * valueScale : v
+        );
 
         const seriesName = s.name.toString().trim();
 
@@ -365,19 +449,29 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
           displayName = `מדד ${measureIndex + 1}`;
         }
 
+        // High contrast drops the palette for a full fill or a texture over a dark gray tone
+        const contrastStyle = isContrast ? this.contrastStyle(s, seriesIdx) : null;
+        const seriesColor = contrastStyle ? contrastStyle.tone : s.color;
+
         const seriesConfig: any = {
           name: displayName,
           type: isLine ? 'line' : 'bar',
           data: isLine ? filteredData : filteredData.map(v => v === 0 ? null : v),
-          itemStyle: { color: s.color },
+          itemStyle: { color: seriesColor },
           z: 10
         };
 
         if (isLine) {
           seriesConfig.smooth = true;
-          seriesConfig.symbol = 'circle';
-          seriesConfig.symbolSize = 7;
-          seriesConfig.itemStyle = { color: s.color };
+          seriesConfig.symbol = contrastStyle ? contrastStyle.lineSymbol : 'circle';
+          seriesConfig.symbolSize = isContrast ? 9 : 7;
+          if (contrastStyle) {
+            seriesConfig.lineStyle = {
+              color: contrastStyle.tone,
+              width: 3,
+              type: contrastStyle.lineDash
+            };
+          }
           seriesConfig.label = { show: false };
         } else {
           if (isStacked) {
@@ -385,11 +479,15 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
           }
           seriesConfig.itemStyle = {
             ...seriesConfig.itemStyle,
-            borderWidth: 3,
-            borderColor: 'rgba(255, 255, 255, 0)',
+            decal: contrastStyle?.decal,
+            borderWidth: 2,
+            borderColor: isContrast ? 'rgba(0, 0, 0, 1)' : 'rgba(255, 255, 255, 0.1)',
             borderRadius: [5, 5, 0, 0]
           };
-          seriesConfig.barWidth = hasVisibleStackedBars && !s.stack ? 18 : 12;
+          // A texture needs room to read, so the bars widen in high contrast
+          seriesConfig.barWidth = isContrast
+            ? (hasVisibleStackedBars && !s.stack ? 22 : 14)
+            : (hasVisibleStackedBars && !s.stack ? 18 : 12);
           seriesConfig.barMinHeight = 6;
           seriesConfig.barGap = '20%';
           seriesConfig.label = {
@@ -543,7 +641,21 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
     const num = Number(value);
     if (!Number.isFinite(num)) return String(value);
 
-    const text = num.toLocaleString(undefined, { maximumFractionDigits: 2 });
+    // The series keeps its raw fraction, so the percentage is scaled here too
+    return this.formatValue(isPercentRate ? num * 100 : num, isPercentRate);
+  }
+
+  /**
+   * How a value reads wherever it is shown - the tooltip and the accessible
+   * table. A count below the threshold is not spelled out, only bounded; a
+   * percentage is never masked, since it discloses no headcount.
+   * Zero is left as zero: it means none, not a withheld figure.
+   */
+  private formatValue(value: number, isPercentRate: boolean): string {
+    if (!isPercentRate && value > 0 && value < SMALL_VALUE_THRESHOLD) {
+      return `פחות מ-${SMALL_VALUE_THRESHOLD}`;
+    }
+    const text = value.toLocaleString(undefined, { maximumFractionDigits: 2 });
     return isPercentRate ? `${text}%` : text;
   }
 

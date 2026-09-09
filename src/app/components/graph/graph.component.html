@@ -2,6 +2,7 @@
 
   @if (graphData() && !hasError()) {
   <div class="graph-header">
+    <p class="sr-only">חלופה נגישה להצגת הנתונים בגרף מוגשת כטבלה לאחר הגרף</p>
     @if (!headless) {<div class="graph-titles">
       <h3 class="graph-title" [ngClass]="{'long': graphData().title.length > 30}" id="graph-title">{{ graphData().title }}</h3>
       <h4 class="graph-description">{{ graphData().description }}</h4>

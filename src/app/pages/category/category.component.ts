@@ -311,7 +311,7 @@ export class CategoryComponent implements OnInit {
         labels: [],
         blocked: this.getBlockedFilters(measure, filterId)
       }
-    }));
+    }))
 
     this.filterGroups.update(existingGroups => {
       const groupsForOtherMeasures = existingGroups.filter(g => g.measureId !== measure.id);
@@ -523,7 +523,6 @@ export class CategoryComponent implements OnInit {
       const seriesFilterGroups = measureFilterGroups.filter(fg => fg.filter.property !== categories.filter.property);
 
       const activeSeriesFilterGroups = seriesFilterGroups.filter(fg => fg.filter.labels?.some(l => l.data.checked));
-
       let series: any[] = [];
       let graphType = measure.graphType;
 

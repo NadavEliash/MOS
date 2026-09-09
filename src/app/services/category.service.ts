@@ -138,7 +138,7 @@ export class CategoryService {
     const view = this.views().find(v => v.id === measureId)?.data;
     const measure = this.measures()?.find(f => f.id === measureId);
     const defaultX = this.filters().find(f => f.id === measure?.xAxis)?.property;
-    let defaultY = measure?.yAxis;
+    let defaultY = measure?.yAxis || this.filters().find(f => f.id === 'AUT10')?.property;
 
     filterGroups.forEach(filterGroup => {
       const property = this.filters()?.find(f => f.id === filterGroup.filter.id)?.property;

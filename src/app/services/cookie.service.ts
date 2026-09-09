@@ -187,13 +187,19 @@ export class CookieService {
       ? [groupHeader, sharedGroupTitle(stackedSeries, 'פילוח'), xAxisHeader, valueHeader]
       : [groupHeader, xAxisHeader, valueHeader];
 
+    // Percentages are stored as fractions - the graph shows them scaled, so does the sheet
+    const isFractional = series.some((s: any) =>
+      (s.data ?? []).some((v: any) => v !== null && v !== undefined && Number(v) % 1 !== 0)
+    );
+    const valueScale = graph.data.isPercent && isFractional ? 100 : 1;
+
     const body: (string | number)[][] = [];
     series.forEach((s: any) => {
       const name = String(s.name ?? '').trim();
       const stack = s.stack ? String(s.stack).trim() : '';
 
       checkedIndices.forEach((dataIdx: number, idx: number) => {
-        const value = this.toCellValue(s.data?.[dataIdx]);
+        const value = this.toCellValue(s.data?.[dataIdx], valueScale);
         body.push(hasStacks
           ? [stack || name, stack ? name : 'כללי', xAxisLabels[idx], value]
           : [name, xAxisLabels[idx], value]);
@@ -231,12 +237,12 @@ export class CookieService {
   }
 
   // Keep numeric values numeric so Excel can sum and chart them
-  private toCellValue(value: any): string | number {
+  private toCellValue(value: any, scale = 1): string | number {
     if (value === null || value === undefined || value === '') {
       return '';
     }
     const num = Number(value);
-    return Number.isFinite(num) ? num : String(value);
+    return Number.isFinite(num) ? num * scale : String(value);
   }
 
   // Excel sheet names: max 31 chars, no []:*?/\ and unique within the workbook
