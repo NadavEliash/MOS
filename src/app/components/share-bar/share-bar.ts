@@ -34,7 +34,6 @@ export class ShareBar {
       this.copied.emit('הקישור הועתק בהצלחה');
     } catch (err) {
       console.error('Failed to copy link:', err);
-      // Fallback for older browsers
       const textArea = document.createElement('textarea');
       textArea.value = this.url;
       document.body.appendChild(textArea);

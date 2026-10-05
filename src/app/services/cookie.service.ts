@@ -13,13 +13,12 @@ export class CookieService {
   }
 
   saveGraph(graph: Graph): boolean {
-    // Check if the same graph already exists
     const isDuplicate = this.savedGraphs().some(savedGraph =>
       this.areGraphsEqual(savedGraph.data, graph.data)
     );
 
     if (isDuplicate) {
-      return false; // Graph already exists, don't save
+      return false;
     }
 
     const newGraph: Graph = {
@@ -29,16 +28,14 @@ export class CookieService {
 
     this.savedGraphs.update(graphs => [...graphs, newGraph]);
     this.setSavedGraphs(this.savedGraphs());
-    return true; // Graph saved successfully
+    return true;
   }
 
   private areGraphsEqual(graph1: any, graph2: any): boolean {
-    // Compare category IDs and measure titles
     if (graph1.categoryId !== graph2.categoryId || graph1.title !== graph2.title) {
       return false;
     }
 
-    // Compare checked category labels
     const labels1 = graph1.categories?.filter?.labels
       ?.filter((l: any) => l.data.checked)
       .map((l: any) => l.title)
@@ -52,7 +49,6 @@ export class CookieService {
       return false;
     }
 
-    // Compare series (names and data)
     const series1 = graph1.series?.map((s: any) => ({
       name: s.name,
       data: s.data
@@ -111,7 +107,6 @@ export class CookieService {
     const title = graphs?.length === 1 ? graphs[0].title : graphs?.map(g => g.title).join('_') || 'גרף מאתר נתוני הרווחה';
 
     try {
-      // Loaded on demand so the spreadsheet library stays out of the initial bundle
       const XLSX = await import('xlsx');
 
       const workbook = XLSX.utils.book_new();
@@ -187,7 +182,6 @@ export class CookieService {
       ? [groupHeader, sharedGroupTitle(stackedSeries, 'פילוח'), xAxisHeader, valueHeader]
       : [groupHeader, xAxisHeader, valueHeader];
 
-    // Percentages are stored as fractions - the graph shows them scaled, so does the sheet
     const isFractional = series.some((s: any) =>
       (s.data ?? []).some((v: any) => v !== null && v !== undefined && Number(v) % 1 !== 0)
     );
@@ -216,7 +210,6 @@ export class CookieService {
         heading.push([`מדד ${idx + 1}: ${subtitle.trim()}`]);
       });
     }
-    // A single blank row keeps the heading block out of the table region
     if (heading.length) heading.push([]);
 
     const colWidths = headers.map((header, col) => {
@@ -236,7 +229,6 @@ export class CookieService {
     };
   }
 
-  // Keep numeric values numeric so Excel can sum and chart them
   private toCellValue(value: any, scale = 1): string | number {
     if (value === null || value === undefined || value === '') {
       return '';
@@ -245,7 +237,6 @@ export class CookieService {
     return Number.isFinite(num) ? num * scale : String(value);
   }
 
-  // Excel sheet names: max 31 chars, no []:*?/\ and unique within the workbook
   private uniqueSheetName(title: string, used: string[]): string {
     const base = (title.replace(/[\[\]:*?\/\\]/g, ' ').trim() || 'גרף').substring(0, 31);
 

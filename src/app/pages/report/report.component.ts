@@ -47,13 +47,12 @@ export class ReportComponent implements OnInit {
       return graph;
     }
 
-    // Filter out series containing 'מדד' and remove duplicates
     const seenNames = new Set<string>();
     const cleanedSeries = graph.data.series
       .filter((series: any) => !series.name.includes('מדד'))
       .filter((series: any) => {
         if (seenNames.has(series.name)) {
-          return false; // Skip duplicate
+          return false;
         }
         seenNames.add(series.name);
         return true;
@@ -175,14 +174,14 @@ export class ReportComponent implements OnInit {
   removeGraph(graphId: string): void {
     if (confirm('האם אתה בטוח שברצונך למחוק גרף זה?')) {
       this.cookieService.removeGraph(graphId);
-      this.loadSavedGraphs(); // Reload the list
+      this.loadSavedGraphs(); 
     }
   }
 
   clearAllGraphs(): void {
     if (confirm('האם אתה בטוח שברצונך למחוק את כל הגרפים השמורים?')) {
       this.cookieService.clearAllGraphs();
-      this.loadSavedGraphs(); // Reload the list
+      this.loadSavedGraphs(); 
     }
   }
 }

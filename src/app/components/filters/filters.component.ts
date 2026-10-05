@@ -94,19 +94,10 @@ export class FiltersComponent implements OnChanges {
       const filterGroups = changes['filterGroupsInput'].currentValue;
       if (filterGroups) {
         const isMultiMeasureGraph = this.data?.measureIds && this.data.measureIds.length > 1;
-
-        if (isMultiMeasureGraph) {
-          const sharedFilterIds = this.data!.measureIds!.reduce((acc: string[], measureId: string) => {
-            const ids = filterGroups.filter((fg: InputFilterGroup) => fg.measureId === measureId).map((fg: InputFilterGroup) => fg.filter.id);
-            return acc.length === 0 ? ids : acc.filter(id => ids.includes(id));
-          }, []);
-          filterGroups.forEach((group: InputFilterGroup) => {
-            if (this.data!.measureIds!.includes(group.measureId)) {
-              group.filter.disabled = !sharedFilterIds.includes(group.filter.id);
-            }
-          });
-        }
         this.measures.forEach(m => this.updateBlockedFilters(m.id));
+        if (isMultiMeasureGraph) {
+          this.applyMultiMeasureFilterState();
+        }
         this.syncToggleSelection();
       }
     }
@@ -116,6 +107,12 @@ export class FiltersComponent implements OnChanges {
       if (data) {
         this.currentGraphData.set(data);
         this.data = data;
+        if (changes['graphData']) {
+          this.measures.forEach(m => this.updateBlockedFilters(m.id));
+          if (data.measureIds && data.measureIds.length > 1) {
+            this.applyMultiMeasureFilterState();
+          }
+        }
         const targetMeasureId = data.categories?.measureId || (data.measureIds && data.measureIds.length > 0 ? data.measureIds[0] : undefined);
         const targetGroup = this.groupedMeasures.find(g => g.measures.includes(targetMeasureId));
         
@@ -170,6 +167,14 @@ export class FiltersComponent implements OnChanges {
 
   getFilterGroupsForMeasure(measureId: string): InputFilterGroup[] {
     return this.filterGroupsInput.filter(fg => fg.measureId === measureId && fg.filter.labels?.length > 0);
+  }
+
+  isMultiMeasureLabelAvailable(group: InputFilterGroup, label: Label): boolean {
+    const measureIds = this.data?.measureIds;
+    if (!measureIds || measureIds.length < 2) return true;
+    return measureIds.every(measureId => this.filterGroupsInput
+      .find(candidate => candidate.measureId === measureId && candidate.filter.id === group.filter.id)
+      ?.filter.labels?.some(candidateLabel => candidateLabel.title === label.title));
   }
 
   collapseAllMeasures() {
@@ -268,6 +273,7 @@ export class FiltersComponent implements OnChanges {
     if (isMultiMeasureGraph) {
       const sourceFilterGroup = this.filterGroupsInput.find(fg => fg.filter.labels?.includes(label));
       if (!sourceFilterGroup) return;
+      if (!this.isMultiMeasureLabelAvailable(sourceFilterGroup, label)) return;
 
       const filterId = sourceFilterGroup.filter.id;
       const labelTitle = label.title;
@@ -288,6 +294,7 @@ export class FiltersComponent implements OnChanges {
       this.data!.measureIds!.forEach(measureId => {
         this.updateBlockedFilters(measureId);
       });
+      this.applyMultiMeasureFilterState();
       const allMeasureFilterGroups = this.filterGroupsInput.filter(fg =>
         this.data!.measureIds!.includes(fg.measureId)
       );
@@ -305,6 +312,7 @@ export class FiltersComponent implements OnChanges {
   resetFilters() {
     this.filterGroupsInput.forEach(fg => {
       fg.filter.labels?.forEach(l => l.data.checked = false);
+      this.toggleSelection[this.selectAllKey(fg)] = false;
     });
     this.measures.forEach(m => this.updateBlockedFilters(m.id));
     if (!this.showGrouped && this.groupedMeasures.length > 0) {
@@ -353,10 +361,27 @@ export class FiltersComponent implements OnChanges {
     const shouldCheck = toggle ? !this.toggleSelection[key] : false;
 
     this.toggleSelection[key] = shouldCheck;
-    group.filter.labels.forEach(label => {
-      label.data.checked = shouldCheck;
-    });
-    this.selectionChange.emit(this.filterGroupsInput.filter(fg => fg.measureId === group.measureId));
+    const measureIds = this.data?.measureIds;
+    if (measureIds && measureIds.length > 1) {
+      const sharedLabels = (group.filter.labels ?? []).filter(label => this.isMultiMeasureLabelAvailable(group, label));
+      const sharedTitles = new Set(sharedLabels.map(label => label.title));
+      for (const measureId of measureIds) {
+        const matchingGroup = this.filterGroupsInput.find(fg => fg.measureId === measureId && fg.filter.id === group.filter.id);
+        matchingGroup?.filter.labels?.forEach(label => {
+          if (sharedTitles.has(label.title)) label.data.checked = shouldCheck;
+          else label.data.checked = false;
+        });
+        this.updateBlockedFilters(measureId);
+      }
+      this.applyMultiMeasureFilterState();
+      this.syncToggleSelection();
+      this.selectionChange.emit(this.filterGroupsInput.filter(fg => measureIds.includes(fg.measureId)));
+    } else {
+      group.filter.labels.forEach(label => {
+        label.data.checked = shouldCheck;
+      });
+      this.selectionChange.emit(this.filterGroupsInput.filter(fg => fg.measureId === group.measureId));
+    }
   }
 
   onSearchChange(event: Event, filterId: string) {
@@ -386,6 +411,37 @@ export class FiltersComponent implements OnChanges {
     return group.filter.labels.filter(label =>
       label.data.checked && !filtered.some(f => f.title === label.title)
     );
+  }
+
+  private applyMultiMeasureFilterState(): void {
+    const measureIds = this.data?.measureIds;
+    if (!measureIds || measureIds.length < 2) return;
+
+    const groups = this.filterGroupsInput;
+    const selectedGroups = groups.filter(group => measureIds.includes(group.measureId));
+    const checkedSharedTitles = new Map<string, Set<string>>();
+    for (const group of selectedGroups) {
+      for (const label of group.filter.labels ?? []) {
+        if (!this.isMultiMeasureLabelAvailable(group, label) || !label.data.checked) continue;
+        if (!checkedSharedTitles.has(group.filter.id)) checkedSharedTitles.set(group.filter.id, new Set());
+        checkedSharedTitles.get(group.filter.id)!.add(label.title);
+      }
+    }
+
+    for (const group of selectedGroups) {
+      const sharedLabels = (group.filter.labels ?? []).filter(label => this.isMultiMeasureLabelAvailable(group, label));
+      if (sharedLabels.length === 0) {
+        group.filter.disabled = true;
+        group.filter.disabledReason = 'לא ניתן לבחור בפילוח זה בתצוגה של שני המדדים';
+      }
+      for (const label of group.filter.labels ?? []) {
+        if (!this.isMultiMeasureLabelAvailable(group, label)) {
+          label.data.checked = false;
+        } else if (checkedSharedTitles.get(group.filter.id)?.has(label.title)) {
+          label.data.checked = true;
+        }
+      }
+    }
   }
 
   private updateBlockedFilters(measureId: string): void {

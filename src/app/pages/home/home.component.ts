@@ -121,8 +121,6 @@ export class HomeComponent {
   onSearchFocusOut(event: FocusEvent): void {
     const region = event.currentTarget as HTMLElement;
     const next = event.relatedTarget as Node | null;
-    // A null relatedTarget also covers browsers that don't focus a button on click,
-    // so leave the drawer open in that case and let the result's click handler run.
     if (next && !region.contains(next)) {
       this.closeDrawer();
     }

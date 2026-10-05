@@ -261,7 +261,6 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
     //   Math.max(max, ...s.data.filter((v: number) => v !== null && v !== undefined).map(Number)), 0
     // ) ?? 0;
     const isPercentRate = isRate && this.graphData()?.isPercent;
-    // Rates arrive as fractions - scale on read so redrawing cannot scale twice
     const valueScale = isPercentRate ? 100 : 1;
     const isContrast = this.accessibility.contrast();
 
@@ -332,8 +331,6 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
                 : seriesName;
             }
 
-            // In high contrast the swatch repeats the legend icon: a dash and its
-            // symbol for lines, the fill and its texture for bars
             let swatch: string;
             if (isContrast) {
               const style = this.contrastStyle(series, seriesIndex);
@@ -376,10 +373,8 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
         right: 20,
         top: 10,
         orient: 'horizontal',
-        // Lines keep the series' own icon in high contrast so the dash pattern shows
         icon: isContrast ? (isLine ? undefined : 'rect') : 'circle',
         itemGap: 20,
-        // A dash needs room to be read, so the line icon matches the tooltip swatch
         itemWidth: isContrast ? (isLine ? CONTRAST_SWATCH_WIDTH : 18) : 12,
         itemHeight: 12,
         textStyle: {
@@ -449,7 +444,6 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
           displayName = `מדד ${measureIndex + 1}`;
         }
 
-        // High contrast drops the palette for a full fill or a texture over a dark gray tone
         const contrastStyle = isContrast ? this.contrastStyle(s, seriesIdx) : null;
         const seriesColor = contrastStyle ? contrastStyle.tone : s.color;
 
@@ -484,7 +478,6 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
             borderColor: isContrast ? 'rgba(0, 0, 0, 1)' : 'rgba(255, 255, 255, 0.1)',
             borderRadius: [5, 5, 0, 0]
           };
-          // A texture needs room to read, so the bars widen in high contrast
           seriesConfig.barWidth = isContrast
             ? (hasVisibleStackedBars && !s.stack ? 22 : 14)
             : (hasVisibleStackedBars && !s.stack ? 18 : 12);
@@ -595,7 +588,6 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
     const indices = checkedIndices.length ? checkedIndices : labels.map((_, idx) => idx);
     if (indices.length === 0) return null;
 
-    // Same predicate the chart uses to drop empty series, in the original order
     const series = chartData.series.filter((s: any) =>
       indices.some(idx => {
         const value = s.data?.[idx];
@@ -604,7 +596,6 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
     );
     if (series.length === 0) return null;
 
-    // Alongside stacked series, a series with no stack is the overall value
     const hasStackedSeries = series.some((s: any) => s.stack);
     const seriesNames = series.map((s: any, idx: number) => {
       const name = s.name?.toString().trim() || `סדרה ${idx + 1}`;
@@ -641,16 +632,9 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
     const num = Number(value);
     if (!Number.isFinite(num)) return String(value);
 
-    // The series keeps its raw fraction, so the percentage is scaled here too
     return this.formatValue(isPercentRate ? num * 100 : num, isPercentRate);
   }
 
-  /**
-   * How a value reads wherever it is shown - the tooltip and the accessible
-   * table. A count below the threshold is not spelled out, only bounded; a
-   * percentage is never masked, since it discloses no headcount.
-   * Zero is left as zero: it means none, not a withheld figure.
-   */
   private formatValue(value: number, isPercentRate: boolean): string {
     if (!isPercentRate && value > 0 && value < SMALL_VALUE_THRESHOLD) {
       return `פחות מ-${SMALL_VALUE_THRESHOLD}`;

@@ -25,7 +25,6 @@ export class AccessibilityService {
         if (Number.isFinite(parsed)) storedScale = parsed;
       }
     } catch {
-      // storage unavailable - fall back to defaults
     }
 
     this.setContrast(storedContrast);

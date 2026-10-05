@@ -69,7 +69,7 @@ export class CategoryComponent implements OnInit {
             if (this.categoryService.selectedMeasure()) {
               this.getSpecificMeasure(this.categoryService.selectedMeasure()!);
             }
-            if (this.categoryService.selectedCategory()?.Category_ID !== categoryId) {
+            if (this.categoryService.selectedCategory()?.Category_ID !== categoryId || !this.graphData()) {
               this.categoryService.setSelectedCategory(categoryId);
               await this.onSelectCategory(categoryId, !this.categoryService.selectedMeasure() && !graph);
             }
@@ -626,15 +626,55 @@ export class CategoryComponent implements OnInit {
     const colors = graphColors;
 
     const firstMeasure = measures[0];
-    const allFilterGroups = this.filterGroups();
+    let allFilterGroups = this.filterGroups();
     const measureFilterGroups = allFilterGroups.filter(fg => fg.measureId === firstMeasure.id);
     const categories = measureFilterGroups.find(fg => fg.filter.id === firstMeasure.xAxis)!;
 
 
-    const sharedFilterIds = measures.reduce((acc, measure) => {
-      const ids = allFilterGroups.filter(fg => fg.measureId === measure.id).map(fg => fg.filter.id);
-      return acc.filter(id => ids.includes(id));
-    }, allFilterGroups.filter(fg => fg.measureId === measures[0].id).map(fg => fg.filter.id));
+    const firstMeasureGroups = allFilterGroups.filter(fg => fg.measureId === firstMeasure.id);
+    const sharedLabelsByFilter = new Map<string, Set<string>>();
+    for (const group of firstMeasureGroups) {
+      const sharedTitles = (group.filter.labels ?? [])
+        .filter(label => measures.every(measure => allFilterGroups
+          .find(fg => fg.measureId === measure.id && fg.filter.id === group.filter.id)
+          ?.filter.labels?.some(otherLabel => otherLabel.title === label.title)))
+        .map(label => label.title);
+      if (sharedTitles.length > 0) {
+        sharedLabelsByFilter.set(group.filter.id, new Set(sharedTitles));
+      }
+    }
+    const sharedFilterIds = [...sharedLabelsByFilter.keys()];
+
+    const selectedMeasureIds = new Set(measures.map(measure => measure.id));
+    this.filterGroups.update(groups => groups.map(group => {
+      if (!selectedMeasureIds.has(group.measureId)) return group;
+
+      const sharedTitles = sharedLabelsByFilter.get(group.filter.id);
+      const isShared = !!sharedTitles;
+      const checkedTitles = isShared
+        ? [...new Set(allFilterGroups
+            .filter(candidate => selectedMeasureIds.has(candidate.measureId) && candidate.filter.id === group.filter.id)
+            .flatMap(candidate => candidate.filter.labels?.filter(label => label.data.checked && sharedTitles.has(label.title)).map(label => label.title) ?? []))]
+        : [];
+      return {
+        ...group,
+        filter: {
+          ...group.filter,
+          disabled: !isShared,
+          disabledReason: isShared ? undefined : 'לא ניתן לבחור בפילוח זה בתצוגה של שני המדדים',
+          labels: group.filter.labels?.map(label => ({
+                ...label,
+                data: {
+                  ...label.data,
+                  checked: !!isShared && sharedTitles!.has(label.title) && checkedTitles.length > 0
+                    ? checkedTitles.includes(label.title)
+                    : false
+                }
+              }))
+        }
+      };
+    }));
+    allFilterGroups = this.filterGroups();
 
     const sharedFilterGroups = sharedFilterIds
       .map(id => allFilterGroups.find(fg => fg.filter.id === id && fg.measureId === firstMeasure.id))
@@ -671,10 +711,13 @@ export class CategoryComponent implements OnInit {
       if (hasActiveFilters) {
         const filterGroup = activeFilters[0];
         checkedLabels.forEach(label => {
-          const stackData = this.categoryService.getSeriesData(measure, categories, [filterGroup], label);
+          const measureFilterGroup = measureFilterGroups.find(fg => fg.filter.id === filterGroup.filter.id);
+          const measureLabel = measureFilterGroup?.filter.labels?.find(l => l.title === label.title);
+          if (!measureFilterGroup || !measureLabel) return;
+          const stackData = this.categoryService.getSeriesData(measure, categories, [measureFilterGroup], measureLabel);
           series.push({
             groupTitle: filterGroup.filter.name,
-            name: label.title,
+            name: `${label.title} · מדד ${idx + 1}`,
             stack: `מדד ${idx + 1}`,
             data: stackData,
             color: this.getLabelColor(label.title, filterGroup, firstMeasure, measures.length)

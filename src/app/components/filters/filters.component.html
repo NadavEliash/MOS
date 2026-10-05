@@ -96,7 +96,7 @@
                                     <input type="checkbox" [checked]="label.data.checked"
                                         (change)="onCheckboxChange(label)"
                                         (keydown.enter)="$event.preventDefault(); onCheckboxChange(label)"
-                                        [disabled]="group.filter.disabled">
+                                        [disabled]="group.filter.disabled || !isMultiMeasureLabelAvailable(group, label)">
                                     <span class="checkmark"></span>
                                     {{ label.title }}
                                 </label>
@@ -116,7 +116,7 @@
                                         <input type="checkbox" [checked]="label.data.checked"
                                             (change)="onCheckboxChange(label)"
                                             (keydown.enter)="$event.preventDefault(); onCheckboxChange(label)"
-                                            [disabled]="group.filter.disabled">
+                                            [disabled]="group.filter.disabled || !isMultiMeasureLabelAvailable(group, label)">
                                         <span class="checkmark" aria-hidden="true"></span>
                                         {{ label.title }}
                                     </label>
