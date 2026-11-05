@@ -249,18 +249,21 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
     }
   }
 
+  private isRate() {
+    return Boolean(this.graphData()?.series?.some(s =>
+        s.data.some((val: number) => val !== null && val !== undefined && val % 1 !== 0)))
+  } 
+
   private updateChart() {
     if (!this.chart) return;
     const chartData = this.graphData();
     const isLine = this.data?.type?.toLowerCase().includes('line');
 
-    const isRate = chartData?.series?.some(s =>
-      s.data.some((val: number) => val !== null && val !== undefined && val % 1 !== 0)
-    );
+    
     // const maxSeriesValue = chartData?.series?.reduce((max: number, s: any) =>
     //   Math.max(max, ...s.data.filter((v: number) => v !== null && v !== undefined).map(Number)), 0
     // ) ?? 0;
-    const isPercentRate = isRate && this.graphData()?.isPercent;
+    const isPercentRate = this.isRate() && this.graphData()?.isPercent;
     const valueScale = isPercentRate ? 100 : 1;
     const isContrast = this.accessibility.contrast();
 
@@ -636,7 +639,7 @@ export class GraphComponent implements AfterViewInit, OnChanges, OnDestroy {
   }
 
   private formatValue(value: number, isPercentRate: boolean): string {
-    if (!isPercentRate && value > 0 && value < SMALL_VALUE_THRESHOLD) {
+    if (!this.isRate() && value > 0 && value < SMALL_VALUE_THRESHOLD) {
       return `פחות מ-${SMALL_VALUE_THRESHOLD}`;
     }
     const text = value.toLocaleString(undefined, { maximumFractionDigits: 2 });

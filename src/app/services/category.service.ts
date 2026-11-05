@@ -189,7 +189,7 @@ export class CategoryService {
 
     if (values.length === 0) return false;
     
-    return values.some((val: number) => val % 1 !== 0) && !Boolean(measure.calculation);
+    return values.some((val: number) => val % 1 !== 0) && !(measure.calculation === 'sum') || measure.calculation === 'Average';
   }
 
   isPercentSeries(measure: Measure): boolean {
