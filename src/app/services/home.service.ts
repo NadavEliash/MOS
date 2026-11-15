@@ -9,13 +9,16 @@ export class HomeService {
   private apiService = inject(ApiService);
   private categoryService = inject(CategoryService);
   pageData = signal<any>(null);
+  aboutData = signal<any[]>([]);
   searchData: any[] = [];
 
   constructor() { }
   
   async getPageData(page: string) {
     const data = await this.apiService.getStatistics(page);
+    const about = await this.apiService.getStatistics('about');
     this.pageData.set(data);
+    this.aboutData.set(about ?? []);
   }
   
   async getSearchData() {

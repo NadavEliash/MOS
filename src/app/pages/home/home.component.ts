@@ -19,6 +19,8 @@ export class HomeComponent {
   private categoryService = inject(CategoryService);
 
   pageData = this.homeService.pageData;
+  aboutData = this.homeService.aboutData;
+  aboutIcons = ['DEM01', 'DIS05', 'ELD06', 'EXT08', 'FAM07', 'HRW04', 'SOC02', 'SRV03'];
   chips = this.categoryService.categories;
   searchTerm = signal<string>('');
   searchResults: any[] = [];

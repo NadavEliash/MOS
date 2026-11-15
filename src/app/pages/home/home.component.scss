@@ -229,6 +229,7 @@
   display: flex;
   justify-content: space-around;
   gap: 36px;
+  margin-block-end: 80px;
 
   .mid-title {
     font-weight: 400;
@@ -388,5 +389,70 @@
 
   .search-input {
     font-size: 0.95rem;
+  }
+}
+.about {
+  padding: 24px 174px 48px;
+  text-align: center;
+  min-height: 480px;
+
+  .about-title {
+    font-weight: 400;
+    font-size: var(--font-size-xl);
+    color: var(--text-color-dark-blue);
+    margin-bottom: 24px;
+  }
+
+  .about-cards {
+    display: flex;
+    gap: 24px;
+    justify-content: center;
+    align-items: flex-start; // don't stretch siblings to the hovered card's height
+  }
+
+  .about-card {
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 200px;
+    box-sizing: border-box;
+    padding: 20px 16px;
+    border-radius: 16px;
+    background: var(--color-light-gray);
+    color: var(--text-color-dark-blue);
+    backdrop-filter: blur(4px);
+    box-shadow: 0px 8px 33.6px 16px #00357D0A;
+    cursor: pointer;
+    transition: background-color .25s, box-shadow .25s, transform .25s;
+
+    img { margin-bottom: 8px; }
+
+    .about-card-title {
+      font-size: var(--font-size-m);
+      font-weight: 700;
+      margin: 0 0 8px;
+    }
+
+    .about-card-text {
+      font-size: var(--font-size-xs);
+      line-height: 1.5;
+      margin: 0;
+      white-space: pre-line;
+    }
+
+    .about-card-readmore { color: var(--color-blue); white-space: nowrap; font-size: 12px; ; }
+    .about-card-full, .about-card-more { display: none; }
+
+    &:hover, &:focus-visible {
+      background: #fff;
+      box-shadow: 0 8px 24px rgba(12, 48, 88, .15);
+      z-index: 1;
+
+      .about-card-short, .about-card-readmore { display: none; }
+      .about-card-full { display: inline; }
+      .about-card-more {
+        display: block;
+        margin-top: 8px;
+      }
+    }
   }
 }

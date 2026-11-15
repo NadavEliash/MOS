@@ -101,5 +101,24 @@
       </div>
     }
     <img src="/heros/HOME.svg" alt="">
-  </section>    
+  </section>
+  @if (aboutData().length) {
+    <section class="about" aria-labelledby="about-title">
+      <h2 id="about-title" class="about-title">אודות הנתונים באתר</h2>
+      <div class="about-cards">
+        @for (item of aboutData(); track item.Part; let i = $index) {
+          <article class="about-card" tabindex="0">
+            <img [src]="'/icons/' + aboutIcons[(i * 3 + 1) % aboutIcons.length] + '.svg'" alt="" width="32" height="32" />
+            <h3 class="about-card-title">{{ item.Subject }}</h3>
+            <p class="about-card-text">
+              <span class="about-card-short">{{ item.Text }}</span>
+              <span class="about-card-full">{{ item.Text }}</span>
+              <span class="about-card-more">{{ item['Read More'] }}</span>
+            </p>
+            <span class="about-card-readmore">קרא עוד...</span>
+          </article>
+        }
+      </div>
+    </section>
+  }
 </section>
